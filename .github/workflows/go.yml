@@ -41,7 +41,7 @@ jobs:
 
       - name: Run linters
         run: $GITHUB_WORKSPACE/golangci-lint run --config .golangci.yml ./...
-        working-directory: api_middleware
+        working-directory: backend
         env:
           GOFLAGS: "-mod=mod"
           CGO_ENABLED: 0
