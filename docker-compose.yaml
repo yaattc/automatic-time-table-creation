@@ -3,8 +3,8 @@ version: "3.3"
 services:
   app:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: backend
+      dockerfile: backend/Dockerfile
     image: semior/attc:latest
     container_name: "attc"
     hostname: "attc"
@@ -13,14 +13,6 @@ services:
     environment:
       DEBUG: 'true'
       LOCATION: '/db'
-      # SMTP
-      HOST: '${HOST}'
-      PORT: '${PORT}'
-      USERNAME: '${USERNAME}'
-      PASSWORD: '${PASSWORD}'
-      TLS: '${TLS}'
-      TIMEOUT: '${TIMEOUT}'
-      FROM: '${FROM}'
     ports:
       - 8080:8080
     command: ["/entrypoint.sh", "serve"]
