@@ -40,7 +40,8 @@ jobs:
           curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $GITHUB_WORKSPACE v1.24.0
 
       - name: Run linters
-        run: $GITHUB_WORKSPACE/golangci-lint run --config ./backend/.golangci.yml ./...
+        run: $GITHUB_WORKSPACE/golangci-lint run --config .golangci.yml ./...
+        working-directory: api_middleware
         env:
           GOFLAGS: "-mod=mod"
           CGO_ENABLED: 0
