@@ -1,0 +1,56 @@
+name: Go
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Turn on debug mode if needed
+        run: |
+          export DEBUG=${DEBUG:-false}
+          if [[ "$DEBUG" == "true" ]]; then
+            env
+          fi
+        env:
+          DEBUG: ${{secrets.DEBUG}}
+
+      - name: Install go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+
+      - name: Run tests and extract coverage
+        run: |
+          cd backend/app
+          go test -mod=vendor -timeout=60s -covermode=count -coverprofile=$GITHUB_WORKSPACE/backend/profile.cov_tmp ./...
+          cat $GITHUB_WORKSPACE/backend/profile.cov_tmp | grep -v "mock_" > $GITHUB_WORKSPACE/backend/profile.cov
+        env:
+          CGO_ENABLED: 0
+
+      - name: Install golangci-lint
+        run: |
+          curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $GITHUB_WORKSPACE v1.24.0
+
+      - name: Run linters
+        run: $GITHUB_WORKSPACE/backend/golangci-lint run --config .golangci.yml ./...
+        env:
+          GOFLAGS: "-mod=mod"
+          CGO_ENABLED: 0
+
+      - name: Submit coverage to codecov
+        run: |
+          cat $GITHUB_WORKSPACE/backend/profile.cov > $GITHUB_WORKSPACE/backend/coverage.txt
+          cd $GITHUB_WORKSPACE
+          bash <(curl -s https://codecov.io/bash)
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          GOFLAGS: "-mod=mod"
+          CGO_ENABLED: 0

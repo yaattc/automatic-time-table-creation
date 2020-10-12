@@ -1,10 +1,26 @@
-FROM python:3.8
-
-COPY . /srv
-
-RUN pip3 install -r /srv/requirements.txt
+FROM semior/baseimage:latest
+LABEL maintainer="Semior <ura2178@gmail.com>"
 
 WORKDIR /srv
 
-EXPOSE 8083
-ENTRYPOINT ["python3", "/srv/main.py"]
+ENV GOFLAGS="-mod=vendor"
+
+COPY ./app /srv/app
+COPY ./vendor /srv/vendor
+COPY ./go.mod /srv/go.mod
+COPY ./go.sum /srv/go.sum
+
+COPY ./.git/ /srv/.git
+
+RUN \
+    export version="$(git describe --tags --long)" && \
+    echo $version && \
+    go build -mod=vendor -o /go/build/app -ldflags "-X 'main.version=${version}' -s -w" /srv/app
+
+COPY ./scripts/entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 2345
+
+CMD ["/entrypoint.sh"]

@@ -17,7 +17,7 @@
 
 # unneccessary
 .idea
-.env
+**/.env
 .vscode
 db_data
 bin/
