@@ -1,0 +1,80 @@
+package api
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"sync"
+	"time"
+
+	"github.com/go-pkgz/auth"
+
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/httprate"
+	R "github.com/go-pkgz/rest"
+	"github.com/yaattc/automatic-time-table-creation/backend/app/rest"
+)
+
+// Rest defines a simple web server for routing to calendar REST api methods
+type Rest struct {
+	Version string
+
+	Authenticator *auth.Service
+
+	http *http.Server
+	lock sync.Mutex
+}
+
+// Run starts the web-server for listening
+func (s *Rest) Run(port int) {
+	s.lock.Lock()
+	s.http = s.makeHTTPServer(port, s.routes())
+	s.http.ErrorLog = log.New(os.Stdout, "", log.Flags())
+	s.lock.Unlock()
+
+	log.Printf("[INFO] started web server at port %d", port)
+	err := s.http.ListenAndServe()
+	log.Printf("[WARN] web server terminated reason: %s", err)
+}
+
+func (s *Rest) makeHTTPServer(port int, routes chi.Router) *http.Server {
+	return &http.Server{
+		Addr:              fmt.Sprintf(":%d", port),
+		Handler:           routes,
+		ReadHeaderTimeout: 5 * time.Second,
+		IdleTimeout:       30 * time.Second,
+	}
+}
+
+// notFound returns standard 404 not found message
+func (s *Rest) notFound(w http.ResponseWriter, r *http.Request) {
+	rest.SendErrorJSON(w, r, http.StatusNotFound, nil, "not found", rest.ErrBadReq)
+}
+
+func (s *Rest) routes() chi.Router {
+	r := chi.NewRouter()
+
+	r.Use(R.AppInfo("attc", "yaattc", s.Version))
+	r.Use(R.Recoverer(rest.StdLogger()))
+	r.Use(R.Ping, middleware.RealIP)
+	r.Use(httprate.LimitByIP(100, 1*time.Minute))
+
+	r.NotFound(s.notFound)
+
+	authHandler, _ := s.Authenticator.Handlers()
+
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.Timeout(5 * time.Second))
+		r.Mount("/auth", authHandler)
+	})
+
+	m := s.Authenticator.Middleware()
+
+	r.With(m.Auth).Route("/api/v1", func(rapi chi.Router) {
+		// todo add routes
+	})
+
+	return r
+}

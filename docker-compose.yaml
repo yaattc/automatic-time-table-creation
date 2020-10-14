@@ -1,0 +1,18 @@
+version: "3.3"
+
+services:
+  app:
+    build:
+      context: backend
+      dockerfile: backend/Dockerfile
+    image: semior/attc:latest
+    container_name: "attc"
+    hostname: "attc"
+    volumes:
+      - ./db:/db # add your database location here
+    environment:
+      DEBUG: 'true'
+      LOCATION: '/db'
+    ports:
+      - 8080:8080
+    command: ["/entrypoint.sh", "serve"]
