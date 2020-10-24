@@ -1,9 +1,10 @@
 version: "3.3"
 
 services:
+
   app:
     build:
-      context: backend
+      context: .
       dockerfile: backend/Dockerfile
     image: semior/attc:latest
     container_name: "attc"
@@ -15,4 +16,24 @@ services:
       LOCATION: '/db'
     ports:
       - 8080:8080
-    command: ["/entrypoint.sh", "serve"]
+    depends_on:
+      - "db"
+    command: ["/entrypoint.sh", "server"]
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: 'dvizz'
+      POSTGRES_DB: 'dvizz'
+      POSTGRES_PASSWORD: 'dvizzpwd'
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  adminer:
+    image: adminer
+    depends_on:
+      - "db"
+    ports:
+      - 8081:8080

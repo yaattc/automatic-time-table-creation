@@ -5,10 +5,10 @@ WORKDIR /srv
 
 ENV GOFLAGS="-mod=vendor"
 
-COPY ./app /srv/app
-COPY ./vendor /srv/vendor
-COPY ./go.mod /srv/go.mod
-COPY ./go.sum /srv/go.sum
+COPY ./backend/app /srv/app
+COPY ./backend/vendor /srv/vendor
+COPY ./backend/go.mod /srv/go.mod
+COPY ./backend/go.sum /srv/go.sum
 
 COPY ./.git/ /srv/.git
 
@@ -17,7 +17,7 @@ RUN \
     echo $version && \
     go build -mod=vendor -o /go/build/app -ldflags "-X 'main.version=${version}' -s -w" /srv/app
 
-COPY ./scripts/entrypoint.sh /entrypoint.sh
+COPY ./backend/scripts/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh
 
