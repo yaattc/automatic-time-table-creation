@@ -4,5 +4,4 @@ import { Component } from '@angular/core';
   selector: 'app-root',
   template: ` <router-outlet></router-outlet> `,
 })
-// eslint-disable-next-line import/prefer-default-export
 export class AppComponent {}

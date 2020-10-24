@@ -25,7 +25,6 @@ module.exports = {
     {
       files: ['*.ts'],
       extends: [
-        'airbnb-typescript/base',
         'prettier/@typescript-eslint',
         'plugin:prettier/recommended',
       ],

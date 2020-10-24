@@ -1,18 +1,15 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
+import { RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
-import {RouterModule} from '@angular/router';
+import { ControlPanelComponent } from './module/control-panel/control-panel.component';
+import { AppRoutingModule } from './app-routing.module';
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    RouterModule
-  ],
+  declarations: [AppComponent, ControlPanelComponent],
+  imports: [BrowserModule, RouterModule, AppRoutingModule],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

@@ -1,0 +1,21 @@
+.login-form {
+  max-width: 250px;
+  margin: 0 auto;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  align-items: baseline;
+}
+
+input {
+  width: 100%;
+}
+
+hr {
+  width: 100%;
+}
