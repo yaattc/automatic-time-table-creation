@@ -44,6 +44,9 @@ github.com/go-stack/stack
 github.com/golang/protobuf/proto
 # github.com/golang/snappy v0.0.1
 github.com/golang/snappy
+# github.com/google/uuid v1.1.2
+## explicit
+github.com/google/uuid
 # github.com/hashicorp/logutils v1.0.0
 ## explicit
 # github.com/jackc/pgx v3.6.2+incompatible
@@ -85,6 +88,7 @@ github.com/xdg/stringprep
 # go.etcd.io/bbolt v1.3.4
 go.etcd.io/bbolt
 # go.mongodb.org/mongo-driver v1.3.2
+## explicit
 go.mongodb.org/mongo-driver/bson
 go.mongodb.org/mongo-driver/bson/bsoncodec
 go.mongodb.org/mongo-driver/bson/bsonoptions

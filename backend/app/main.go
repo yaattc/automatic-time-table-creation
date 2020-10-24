@@ -13,7 +13,8 @@ import (
 
 // Opts describes cli arguments and flags to execute a command
 type Opts struct {
-	ServerCmd cmd.Server `command:"server"`
+	ServerCmd  cmd.Server  `command:"server"`
+	AddUserCmd cmd.AddUser `command:"add_user"`
 
 	Dbg bool `long:"dbg" env:"DEBUG" description:"turn on debug mode"`
 }

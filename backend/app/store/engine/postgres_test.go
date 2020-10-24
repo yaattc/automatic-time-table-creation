@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"encoding/json"
 	"os"
 	"testing"
 
@@ -39,6 +38,23 @@ func TestPostgres_GetUser(t *testing.T) {
 	assert.ElementsMatch(t, shouldBe.Privileges, usr.Privileges)
 }
 
+func TestPostgres_AddUser(t *testing.T) {
+	srv := preparePgStore(t)
+
+	err := srv.AddUser(store.User{
+		ID:         "00000000-0000-0000-0000-000000000002",
+		Email:      "foo@bar.com",
+		Privileges: []store.Privilege{store.PrivAddUsers, store.PrivListUsers, store.PrivReadUsers},
+	}, "blahblah")
+	require.NoError(t, err)
+
+	row := srv.connPool.QueryRow(`SELECT id, email, privileges, password FROM users`)
+	var id, email, pwd string
+	var privs []store.Privilege
+	err = row.Scan(&id, &email, &privs, &pwd)
+	require.NoError(t, err)
+}
+
 func insertTestUsers(t *testing.T, srv *Postgres) {
 	tx, err := srv.connPool.Begin()
 	require.NoError(t, err)
@@ -48,11 +64,8 @@ func insertTestUsers(t *testing.T, srv *Postgres) {
 	}()
 
 	for _, u := range usrs {
-		privsMarshalled, err := json.Marshal(u.Privileges)
-		require.NoError(t, err)
-
 		_, err = srv.connPool.Exec("INSERT INTO users(id, email, password, privileges) "+
-			"VALUES ($1, $2, $3, $4)", u.ID, u.Email, u.Password, privsMarshalled)
+			"VALUES ($1, $2, $3, $4)", u.ID, u.Email, u.Password, u.Privileges)
 		require.NoError(t, err)
 	}
 }

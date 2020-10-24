@@ -16,10 +16,10 @@ func TestUser_GetUserOrEmpty(t *testing.T) {
 	u := GetUserOrEmpty(r)
 	assert.Equal(t, store.User{}, u)
 
-	r = SetUserInfo(r, store.User{ID: "blah", Email: "blah@blah.com", Admin: true})
+	r = SetUserInfo(r, store.User{ID: "blah", Email: "blah@blah.com", Privileges: []store.Privilege{store.PrivReadUsers}})
 	u = GetUserOrEmpty(r)
 	require.NoError(t, err)
-	assert.Equal(t, store.User{ID: "blah", Email: "blah@blah.com", Admin: true}, u)
+	assert.Equal(t, store.User{ID: "blah", Email: "blah@blah.com", Privileges: []store.Privilege{store.PrivReadUsers}}, u)
 }
 
 func TestUser_GetUserInfo(t *testing.T) {
@@ -28,10 +28,10 @@ func TestUser_GetUserInfo(t *testing.T) {
 	_, err = GetUserInfo(r)
 	assert.Error(t, err, "no user info")
 
-	r = SetUserInfo(r, store.User{ID: "blah", Email: "blah@blah.com", Admin: true})
+	r = SetUserInfo(r, store.User{ID: "blah", Email: "blah@blah.com", Privileges: []store.Privilege{store.PrivReadUsers}})
 	u, err := GetUserInfo(r)
 	require.NoError(t, err)
-	assert.Equal(t, store.User{ID: "blah", Email: "blah@blah.com", Admin: true}, u)
+	assert.Equal(t, store.User{ID: "blah", Email: "blah@blah.com", Privileges: []store.Privilege{store.PrivReadUsers}}, u)
 }
 
 func TestUser_MustGetUserInfo(t *testing.T) {
@@ -39,8 +39,8 @@ func TestUser_MustGetUserInfo(t *testing.T) {
 	require.NoError(t, err)
 	assert.Panics(t, func() { _ = MustGetUserInfo(r) }, "should panic")
 
-	r = SetUserInfo(r, store.User{ID: "blah", Email: "blah@blah.com", Admin: true})
+	r = SetUserInfo(r, store.User{ID: "blah", Email: "blah@blah.com", Privileges: []store.Privilege{store.PrivReadUsers}})
 	u := MustGetUserInfo(r)
 	require.NoError(t, err)
-	assert.Equal(t, store.User{ID: "blah", Email: "blah@blah.com", Admin: true}, u)
+	assert.Equal(t, store.User{ID: "blah", Email: "blah@blah.com", Privileges: []store.Privilege{store.PrivReadUsers}}, u)
 }
