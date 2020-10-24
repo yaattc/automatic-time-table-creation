@@ -5,9 +5,10 @@ import { LoginComponent } from './login/login.component';
 import { ControlPanelRoutingModule } from './control-panel-routing.module';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { DashboardComponent } from './dashboard/dashboard.component';
 
 @NgModule({
-  declarations: [LoginComponent],
+  declarations: [LoginComponent, DashboardComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
