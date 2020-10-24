@@ -3,6 +3,7 @@
 package service
 
 import (
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store/engine"
@@ -25,7 +26,7 @@ func (s *DataStore) GetUserEmail(id string) (email string, err error) {
 }
 
 // GetUserPrivs returns the list of privileges of the specified user
-func (s *DataStore) GetUserPrivs(id string) (privs []string, err error) {
+func (s *DataStore) GetUserPrivs(id string) (privs []store.Privilege, err error) {
 	u, err := s.Engine.GetUser(id)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read privs of %s", id)

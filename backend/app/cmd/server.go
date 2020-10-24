@@ -4,6 +4,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
+
+	"github.com/pkg/errors"
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/engine"
+
 	"github.com/go-pkgz/auth/provider"
 
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store/service"
@@ -31,7 +36,8 @@ type Server struct {
 		} `group:"ttl" namespace:"ttl" env-namespace:"TTL"`
 		Secret string `long:"secret" env:"SECRET" description:"secret for authentication tokens"`
 	} `group:"auth" namespace:"auth" env-namespace:"AUTH"`
-	AdminPwd string `long:"admin_pwd" env:"ADMIN_PWD" default:"" description:"admin basic auth password"`
+	AdminPwd  string `long:"admin_pwd" env:"ADMIN_PWD" default:"" description:"admin basic auth password"`
+	DBConnStr string `long:"db_conn_str" env:"DB_CONN_STR" required:"true" description:"connection string to db"`
 
 	Admin AdminGroup `group:"admin" namespace:"admin" env-namespace:"ADMIN"`
 
@@ -50,7 +56,12 @@ type AdminGroup struct {
 // Execute runs http web server
 func (s *Server) Execute(_ []string) error {
 
-	ds := &service.DataStore{}
+	pg, err := engine.NewPostgres(s.DBConnStr)
+	if err != nil {
+		return errors.Wrapf(err, "failed to initialize postgres engine at %s: %v", s.DBConnStr, err)
+	}
+
+	ds := &service.DataStore{Engine: pg}
 
 	authenticator := s.makeAuthenticator(ds)
 	srv := api.Rest{
@@ -83,7 +94,7 @@ func (s *Server) makeAuthenticator(ds *service.DataStore) *auth.Service {
 				log.Printf("[WARN] can't get privs for %s, %v ", c.User.ID, err)
 			}
 
-			c.User.SetSliceAttr("privileges", privs)
+			c.User.SetSliceAttr("privileges", store.PrivsToStr(privs))
 
 			return c
 		}),

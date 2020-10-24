@@ -28,8 +28,7 @@ func GetUserInfo(r *http.Request) (user store.User, err error) {
 	return store.User{
 		ID:         u.ID,
 		Email:      u.Email,
-		Admin:      u.IsAdmin(),
-		Privileges: u.SliceAttr("privileges"),
+		Privileges: store.StrToPrivs(u.SliceAttr("privileges")),
 	}, nil
 }
 
@@ -49,7 +48,6 @@ func SetUserInfo(r *http.Request, user store.User) *http.Request {
 		Email:    user.Email,
 		Audience: "attc",
 	}
-	u.SetSliceAttr("privileges", user.Privileges)
-	u.SetAdmin(user.Admin)
+	u.SetSliceAttr("privileges", store.PrivsToStr(user.Privileges))
 	return token.SetUserInfo(r, u)
 }

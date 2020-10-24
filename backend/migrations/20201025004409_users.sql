@@ -1,8 +1,14 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE SEQUENCE users_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 START 1 CACHE 1;
+CREATE OR REPLACE FUNCTION updated_at_refresh()
+    RETURNS TRIGGER AS $$
+BEGIN NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE 'plpgsql';
+
 CREATE TABLE "users" (
-     "id" integer DEFAULT nextval('users_id_seq') NOT NULL,
+     "id" UUID NOT NULL,
      "email" text NOT NULL,
      "password" text NOT NULL,
      "privileges" jsonb DEFAULT '{}'::jsonb,
@@ -12,10 +18,15 @@ CREATE TABLE "users" (
      CONSTRAINT "users_email_key" UNIQUE ("email"),
      CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 ) WITH (oids = false);
+
+CREATE TRIGGER users_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE PROCEDURE updated_at_refresh();
+
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP FUNCTION updated_at_refresh();
 DROP TABLE IF EXISTS "users" CASCADE;
-DROP SEQUENCE IF EXISTS users_id_seq;
 -- +goose StatementEnd
