@@ -3,13 +3,13 @@ package rest
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"runtime"
 	"strings"
 
 	"github.com/go-chi/render"
+	log "github.com/go-pkgz/lgr"
 )
 
 // ErrCode is used for client mapping and translation

@@ -13,7 +13,6 @@ type CommonOptionsCommander interface {
 // CommonOpts sets externally from main, shared across all commands
 type CommonOpts struct {
 	Version string
-	AttcURL string
 }
 
 // SMTPGroup defines options for SMTP server connection, used in auth and notify modules
@@ -32,5 +31,4 @@ type SMTPGroup struct {
 // The method called by main for each command
 func (c *CommonOpts) SetCommon(opts CommonOpts) {
 	c.Version = opts.Version
-	c.AttcURL = opts.AttcURL
 }

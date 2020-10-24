@@ -4,20 +4,18 @@ package main
 //noinspection GoRedundantImportAlias
 import (
 	"fmt"
-	"log"
 	"os"
 
-	"github.com/hashicorp/logutils"
+	log "github.com/go-pkgz/lgr"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/cmd"
 )
 
 // Opts describes cli arguments and flags to execute a command
 type Opts struct {
-	ServeCmd cmd.ServeCmd `command:"serve"`
+	ServerCmd cmd.Server `command:"server"`
 
-	AttcURL string `long:"url" env:"ATTC_URL" required:"true" description:"url to attc"`
-	Dbg     bool   `long:"dbg" env:"DEBUG" description:"turn on debug mode"`
+	Dbg bool `long:"dbg" env:"DEBUG" description:"turn on debug mode"`
 }
 
 var version = "unknown"
@@ -34,7 +32,6 @@ func main() {
 		c := command.(cmd.CommonOptionsCommander)
 		c.SetCommon(cmd.CommonOpts{
 			Version: version,
-			AttcURL: opts.AttcURL,
 		})
 
 		if err := command.Execute(args); err != nil {
@@ -54,19 +51,9 @@ func main() {
 }
 
 func setupLog(dbg bool) {
-	filter := &logutils.LevelFilter{
-		Levels:   []logutils.LogLevel{"DEBUG", "INFO", "WARN", "ERROR"},
-		MinLevel: "INFO",
-		Writer:   os.Stdout,
-	}
-
-	logFlags := log.Ldate | log.Ltime
-
 	if dbg {
-		logFlags = log.Ldate | log.Ltime | log.Lmicroseconds | log.Llongfile
-		filter.MinLevel = "DEBUG"
+		log.Setup(log.Debug, log.CallerFile, log.CallerFunc, log.Msec, log.LevelBraces)
+		return
 	}
-
-	log.SetFlags(logFlags)
-	log.SetOutput(filter)
+	log.Setup(log.Msec, log.LevelBraces)
 }

@@ -3,10 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"time"
-
-	"github.com/go-pkgz/rest/logger"
 )
 
 // Validatable describes structs needed to validate
@@ -80,17 +77,4 @@ func (h *Clock) UnmarshalJSON(b []byte) error {
 	}
 	*h = Clock(t)
 	return nil
-}
-
-// stdLogger to implement logger.Backend function to allow to log in middleware
-type stdLogger struct{}
-
-// StdLogger returns standard backend logger
-func StdLogger() logger.Backend {
-	return stdLogger{}
-}
-
-// Logf simply calls the standard logger
-func (s stdLogger) Logf(format string, args ...interface{}) {
-	log.Printf(format, args...)
 }
