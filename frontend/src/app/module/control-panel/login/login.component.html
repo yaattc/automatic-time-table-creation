@@ -1,0 +1,40 @@
+<div class="login-form">
+  <form
+    [formGroup]="loginForm"
+  >
+    <h1>LogIn</h1>
+    <hr>
+    <div class="p-field">
+      <label for="email" class="p-d-flex p-flex-column">
+        Email
+      </label>
+      <input
+        pInputText
+        id="email"
+        type="text"
+        placeholder="Email"
+        formControlName="email"
+      />
+    </div>
+    <div class="p-field">
+      <label for="password" class="p-d-flex p-flex-column">
+        Password
+      </label>
+      <input
+        pInputText
+        id="password"
+        type="password"
+        placeholder="Password"
+        formControlName="password"
+      />
+    </div>
+    <button pButton
+            label="Submit"
+            type="submit"
+            class="ui-button-info"
+            (click)="submitAuth()"
+            [disabled]="!loginForm.valid"
+    ></button>
+    <hr>
+  </form>
+</div>
