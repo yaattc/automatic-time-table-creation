@@ -36,7 +36,6 @@ type Server struct {
 		} `group:"ttl" namespace:"ttl" env-namespace:"TTL"`
 		Secret string `long:"secret" env:"SECRET" description:"secret for authentication tokens"`
 	} `group:"auth" namespace:"auth" env-namespace:"AUTH"`
-	AdminPwd  string `long:"admin_pwd" env:"ADMIN_PWD" default:"" description:"admin basic auth password"`
 	DBConnStr string `long:"db_conn_str" env:"DB_CONN_STR" required:"true" description:"connection string to db"`
 
 	Admin AdminGroup `group:"admin" namespace:"admin" env-namespace:"ADMIN"`
@@ -46,22 +45,22 @@ type Server struct {
 
 // AdminGroup defines options group for admin params
 type AdminGroup struct {
-	Type   string `long:"type" env:"TYPE" description:"type of admin store" choice:"shared" choice:"rpc" default:"shared"` //nolint
-	Shared struct {
-		Admins []string `long:"id" env:"ID" description:"admin(s) ids" env-delim:","`
-		Email  string   `long:"email" env:"EMAIL" default:"" description:"admin email"`
-	} `group:"shared" namespace:"shared" env-namespace:"SHARED"`
+	Email    string `long:"email" env:"EMAIL" description:"default admin email" required:"true"`
+	Password string `long:"password" env:"PASSWORD" description:"default admin password" required:"true"`
 }
 
 // Execute runs http web server
 func (s *Server) Execute(_ []string) error {
-
 	pg, err := engine.NewPostgres(s.DBConnStr)
 	if err != nil {
 		return errors.Wrapf(err, "failed to initialize postgres engine at %s: %v", s.DBConnStr, err)
 	}
 
 	ds := &service.DataStore{Engine: pg}
+
+	if err = ds.RegisterAdmin(s.Admin.Email, s.Admin.Password); err != nil {
+		return errors.Wrapf(err, "failed to register admin %s:%s", s.Admin.Email, s.Admin.Password)
+	}
 
 	authenticator := s.makeAuthenticator(ds)
 	srv := api.Rest{
@@ -108,7 +107,6 @@ func (s *Server) makeAuthenticator(ds *service.DataStore) *auth.Service {
 			return claims.User != nil
 		}),
 		AvatarStore: avatar.NewNoOp(),
-		AdminPasswd: s.AdminPwd,
 		Logger:      log.Default(),
 	})
 	authenticator.AddDirectProvider("local", provider.CredCheckerFunc(ds.CheckUserCredentials))

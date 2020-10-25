@@ -45,12 +45,24 @@ func TestPostgres_AddUser(t *testing.T) {
 		ID:         "00000000-0000-0000-0000-000000000002",
 		Email:      "foo@bar.com",
 		Privileges: []store.Privilege{store.PrivAddUsers, store.PrivListUsers, store.PrivReadUsers},
-	}, "blahblah")
+	}, "blahblah", false)
 	require.NoError(t, err)
 
 	row := srv.connPool.QueryRow(`SELECT id, email, privileges, password FROM users`)
 	var id, email, pwd string
 	var privs []store.Privilege
+	err = row.Scan(&id, &email, &privs, &pwd)
+	require.NoError(t, err)
+
+	err = srv.AddUser(store.User{
+		ID:         "00000000-0000-0000-0000-000000000002",
+		Email:      "foo1@bar.com",
+		Privileges: []store.Privilege{store.PrivListUsers, store.PrivReadUsers},
+	}, "blahblah", true)
+	require.NoError(t, err)
+
+	row = srv.connPool.QueryRow(`SELECT id, email, privileges, password FROM users`)
+	privs = []store.Privilege{}
 	err = row.Scan(&id, &email, &privs, &pwd)
 	require.NoError(t, err)
 }

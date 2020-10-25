@@ -32,17 +32,19 @@ services:
       DB_CONN_STR: '${DB_CONN_STR}'
       SERVICE_URL: '${SERVICE_URL}'
       SERVICE_PORT: '${SERVICE_PORT}'
+      EMAIL: '${ADMIN_EMAIL}'
+      PASSWORD: '${ADMIN_PASSWORD}'
     ports:
       - 8080:8080
     depends_on:
-      db:
-        condition: service_healthy
+      - db:
+          condition: service_healthy
     command: ["/entrypoint.sh", "server"]
 
   adminer:
     image: adminer
     depends_on:
-      db:
-        condition: service_healthy
+      - db:
+          condition: service_healthy
     ports:
       - 8081:8080

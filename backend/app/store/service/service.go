@@ -3,12 +3,16 @@
 package service
 
 import (
+	"crypto/sha1"
+	"log"
+
+	"github.com/go-pkgz/auth/token"
+
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store/engine"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -51,11 +55,27 @@ func (s *DataStore) AddUser(user store.User, password string) (err error) {
 	// hashing password
 	b, err := bcrypt.GenerateFromPassword([]byte(password), s.BCryptCost)
 	if err != nil {
-		return errors.Wrapf(err, "failed to hash %s user's password with bcrypt", user.ID)
+		return errors.Wrapf(err, "failed to hash %s user's password with bcrypt", user.Email)
 	}
 	// adding id
 	if user.ID == "" {
-		user.ID = uuid.New().String()
+		user.ID = "local_" + token.HashID(sha1.New(), user.Email) // fixme
 	}
-	return errors.Wrapf(s.Engine.AddUser(user, string(b)), "failed to add user %s to database", user.ID)
+	return errors.Wrapf(s.Engine.AddUser(user, string(b), false), "failed to add user %s to database", user.ID)
+}
+
+// RegisterAdmin in the database
+func (s *DataStore) RegisterAdmin(email string, password string) error {
+	// hashing password
+	b, err := bcrypt.GenerateFromPassword([]byte(password), s.BCryptCost)
+	if err != nil {
+		return errors.Wrapf(err, "failed to hash %s user's password with bcrypt", email)
+	}
+	u := store.User{
+		ID:         "local_" + token.HashID(sha1.New(), email), // fixme
+		Email:      email,
+		Privileges: []store.Privilege{store.PrivReadUsers, store.PrivEditUsers, store.PrivListUsers, store.PrivAddUsers},
+	}
+	log.Printf("[INFO] trying to register admin with %+v and pwd %s", u, password)
+	return errors.Wrapf(s.Engine.AddUser(u, string(b), true), "failed to add user %s to database", u.ID)
 }

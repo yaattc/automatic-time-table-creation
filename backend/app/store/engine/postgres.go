@@ -59,8 +59,12 @@ func (p *Postgres) GetPasswordHash(email string) (pwd string, err error) {
 }
 
 // AddUser to the database
-func (p *Postgres) AddUser(u store.User, pwd string) (err error) {
-	_, err = p.connPool.Exec("INSERT INTO users(id, email, password, privileges) "+
-		"VALUES ($1, $2, $3, $4)", u.ID, u.Email, pwd, u.Privileges)
+func (p *Postgres) AddUser(u store.User, pwd string, ignoreIfExists bool) (err error) {
+	query := "INSERT INTO users(id, email, password, privileges) VALUES ($1, $2, $3, $4)"
+	if ignoreIfExists {
+		query += " ON CONFLICT DO NOTHING"
+	}
+	_, err = p.connPool.Exec(query, u.ID, u.Email, pwd, u.Privileges)
+
 	return errors.Wrapf(err, "failed to add user %s into database", u.ID)
 }
