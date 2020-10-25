@@ -20,6 +20,7 @@
 **/.env
 .vscode
 db_data
+db
 bin/
 **/venv
 **/__pycache__

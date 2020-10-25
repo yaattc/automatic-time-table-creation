@@ -17,6 +17,12 @@ RUN \
     echo $version && \
     go build -mod=vendor -o /go/build/app -ldflags "-X 'main.version=${version}' -s -w" /srv/app
 
+COPY ./backend/migrations /srv/migrations
+
+RUN \
+    go get -u github.com/pressly/goose/cmd/goose && \
+    cd /srv/migrations
+
 COPY ./backend/scripts/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh

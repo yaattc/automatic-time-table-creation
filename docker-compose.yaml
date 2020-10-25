@@ -1,6 +1,21 @@
 version: "3.3"
 
 services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: '${PG_USER}'
+      POSTGRES_PASSWORD: '${PG_PWD}'
+      POSTGRES_DB: '${PG_DB}'
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build:
@@ -9,31 +24,25 @@ services:
     image: semior/attc:latest
     container_name: "attc"
     hostname: "attc"
-    volumes:
-      - ./db:/db # add your database location here
+#    volumes:
+#      - ./db:/db
     environment:
-      DEBUG: 'true'
-      LOCATION: '/db'
+      LOCATION: '${LOCATION}'
+      DEBUG: '${DEBUG}'
+      DB_CONN_STR: '${DB_CONN_STR}'
+      SERVICE_URL: '${SERVICE_URL}'
+      SERVICE_PORT: '${SERVICE_PORT}'
     ports:
       - 8080:8080
     depends_on:
-      - "db"
+      db:
+        condition: service_healthy
     command: ["/entrypoint.sh", "server"]
-
-  db:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: 'dvizz'
-      POSTGRES_DB: 'dvizz'
-      POSTGRES_PASSWORD: 'dvizzpwd'
-    volumes:
-      - ./db_data:/var/lib/postgresql/data
-    ports:
-      - 5432:5432
 
   adminer:
     image: adminer
     depends_on:
-      - "db"
+      db:
+        condition: service_healthy
     ports:
       - 8081:8080
