@@ -3,7 +3,7 @@
 package service
 
 import (
-	"crypto/sha1"
+	"crypto/sha1" // nolint
 	"log"
 
 	"github.com/go-pkgz/auth/token"
@@ -59,7 +59,7 @@ func (s *DataStore) AddUser(user store.User, password string) (err error) {
 	}
 	// adding id
 	if user.ID == "" {
-		user.ID = "local_" + token.HashID(sha1.New(), user.Email) // fixme
+		user.ID = "local_" + token.HashID(sha1.New(), user.Email) // nolint // fixme
 	}
 	return errors.Wrapf(s.Engine.AddUser(user, string(b), false), "failed to add user %s to database", user.ID)
 }
@@ -72,7 +72,7 @@ func (s *DataStore) RegisterAdmin(email string, password string) error {
 		return errors.Wrapf(err, "failed to hash %s user's password with bcrypt", email)
 	}
 	u := store.User{
-		ID:         "local_" + token.HashID(sha1.New(), email), // fixme
+		ID:         "local_" + token.HashID(sha1.New(), email), // nolint // fixme
 		Email:      email,
 		Privileges: []store.Privilege{store.PrivReadUsers, store.PrivEditUsers, store.PrivListUsers, store.PrivAddUsers},
 	}

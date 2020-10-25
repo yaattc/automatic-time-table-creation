@@ -10,9 +10,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    container:
-      image: semior/baseimage:latest
-
     services:
       postgres:
         image: postgres:10.8
