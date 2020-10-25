@@ -37,14 +37,14 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      - db:
-          condition: service_healthy
+      db:
+        condition: service_healthy
     command: ["/entrypoint.sh", "server"]
 
   adminer:
     image: adminer
     depends_on:
-      - db:
-          condition: service_healthy
+      db:
+        condition: service_healthy
     ports:
       - 8081:8080
