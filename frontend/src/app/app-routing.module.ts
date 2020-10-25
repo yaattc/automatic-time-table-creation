@@ -1,13 +1,14 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ControlPanelComponent } from './module/control-panel/control-panel.component';
-import { PANEL } from './constants/routes';
+import { PANEL, PANEL_LOGIN } from './constants/routes';
 
 const routes: Routes = [
   {
     path: PANEL,
-    loadChildren: () => import('./module/control-panel/control-panel.module').then(m => m.ControlPanelModule)
+    loadChildren: () =>
+      import('./module/control-panel/control-panel.module').then((m) => m.ControlPanelModule),
   },
+  // { path: '**', redirectTo: PANEL_LOGIN },
 ];
 
 @NgModule({
