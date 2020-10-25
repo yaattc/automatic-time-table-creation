@@ -6,9 +6,18 @@ import { ControlPanelRoutingModule } from './control-panel-routing.module';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { CreationProfTaComponent } from './creation-prof-ta/creation-prof-ta.component';
+import { ControlPanelComponent } from './control-panel.component';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { InputTextareaModule } from 'primeng/inputtextarea';
 
 @NgModule({
-  declarations: [LoginComponent, DashboardComponent],
+  declarations: [
+    ControlPanelComponent,
+    LoginComponent,
+    DashboardComponent,
+    CreationProfTaComponent,
+  ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -16,6 +25,8 @@ import { DashboardComponent } from './dashboard/dashboard.component';
     ButtonModule,
     InputTextModule,
     FormsModule,
+    RadioButtonModule,
+    InputTextareaModule,
   ],
 })
 export class ControlPanelModule {}

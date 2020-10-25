@@ -1,0 +1,89 @@
+<div class="name">
+  <h1>Add Professor/TA</h1>
+  <div class="form">
+    <div class="photo-and-role">
+      <div class="photo">
+        <img src="User.png" class="image">
+      </div>
+      <div *ngFor="let role of roles" class="role p-field-checkbox">
+        <p-radioButton [value]="role" [(ngModel)]="selectedRole"></p-radioButton>
+        <label [for]="role">{{role}}</label>
+      </div>
+    </div>
+    <form [formGroup]="creationForm">
+      <div class="input-content">
+        <div class="label">
+          <label for="name">
+            Name
+          </label>
+        </div>
+        <div class="input">
+          <input
+            id="name"
+            type="text"
+            pInputText
+            formControlName="name"
+            placeholder="Name"
+            style="width: 100%"
+          />
+        </div>
+      </div>
+      <div class="input-content">
+        <div class="label">
+          <label for="surname">
+            Surname
+          </label>
+        </div>
+        <div class="input">
+          <input
+            id="surname"
+            type="text"
+            pInputText
+            formControlName="surname"
+            placeholder="Surname"
+            style="width: 100%"
+          />
+        </div>
+      </div>
+      <div class="input-content">
+        <div class="label">
+          <label for="education">
+            Education
+          </label>
+        </div>
+        <div class="input">
+          <input
+            id="education"
+            type="text"
+            pInputText
+            formControlName="education"
+            placeholder="Education"
+            style="width: 100%"
+          />
+        </div>
+      </div>
+      <div class="input-content">
+        <div class="label">
+          <label for="about">
+            About
+          </label>
+        </div>
+        <div class="input">
+          <textarea
+            id="about"
+            type="text"
+            rows="5"
+            pInputTextarea
+            autoResize="autoResize"
+            formControlName="education"
+            placeholder="About"
+            style="width: 100%"
+          ></textarea>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="button">
+    <p-button label="Submit" styleClass="p-button-lg" (onClick)="submit()"></p-button>
+  </div>
+</div>
