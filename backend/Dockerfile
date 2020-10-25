@@ -19,7 +19,9 @@ RUN \
 
 COPY ./backend/migrations /srv/migrations
 
+# cd / is added due to unability to install user-wide packages in the application context
 RUN \
+    cd / && \
     go get -u github.com/pressly/goose/cmd/goose && \
     cd /srv/migrations
 
