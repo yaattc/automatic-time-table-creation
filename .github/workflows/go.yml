@@ -43,7 +43,7 @@ jobs:
           cd backend/migrations
           $(go env GOPATH)/bin/goose postgres $PG up
         env:
-          PG: postgres://postgres:postgres@postgres:${{ job.services.postgres.ports[5432] }}/test?sslmode=disable
+          PG: postgres://postgres:postgres@localhost:${{ job.services.postgres.ports[5432] }}/test?sslmode=disable
 
       - name: Install go
         uses: actions/setup-go@v1
@@ -57,7 +57,7 @@ jobs:
           cat $GITHUB_WORKSPACE/backend/profile.cov_tmp | grep -v "mock_" > $GITHUB_WORKSPACE/backend/profile.cov
         env:
           CGO_ENABLED: 0
-          DB_TEST: postgres://postgres:postgres@postgres:${{ job.services.postgres.ports[5432] }}/test?sslmode=disable
+          DB_TEST: postgres://postgres:postgres@localhost:${{ job.services.postgres.ports[5432] }}/test?sslmode=disable
 
       - name: Install golangci-lint
         run: |
