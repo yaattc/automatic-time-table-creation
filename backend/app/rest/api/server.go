@@ -2,9 +2,7 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 
@@ -13,6 +11,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httprate"
+	log "github.com/go-pkgz/lgr"
 	R "github.com/go-pkgz/rest"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/rest"
 )
@@ -23,19 +22,19 @@ type Rest struct {
 
 	Authenticator *auth.Service
 
-	http *http.Server
-	lock sync.Mutex
+	httpServer *http.Server
+	lock       sync.Mutex
 }
 
 // Run starts the web-server for listening
 func (s *Rest) Run(port int) {
 	s.lock.Lock()
-	s.http = s.makeHTTPServer(port, s.routes())
-	s.http.ErrorLog = log.New(os.Stdout, "", log.Flags())
+	s.httpServer = s.makeHTTPServer(port, s.routes())
+	s.httpServer.ErrorLog = log.ToStdLogger(log.Default(), "WARN")
 	s.lock.Unlock()
 
 	log.Printf("[INFO] started web server at port %d", port)
-	err := s.http.ListenAndServe()
+	err := s.httpServer.ListenAndServe()
 	log.Printf("[WARN] web server terminated reason: %s", err)
 }
 
@@ -57,7 +56,7 @@ func (s *Rest) routes() chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(R.AppInfo("attc", "yaattc", s.Version))
-	r.Use(R.Recoverer(rest.StdLogger()))
+	r.Use(R.Recoverer(log.Default()))
 	r.Use(R.Ping, middleware.RealIP)
 	r.Use(httprate.LimitByIP(100, 1*time.Minute))
 

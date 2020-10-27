@@ -10,6 +10,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:10.8
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
       - uses: actions/checkout@v2
 
@@ -22,10 +34,21 @@ jobs:
         env:
           DEBUG: ${{secrets.DEBUG}}
 
+      - name: Install goose
+        run: |
+          go get -u github.com/pressly/goose/cmd/goose
+
+      - name: Migrate database
+        run: |
+          cd backend/migrations
+          $(go env GOPATH)/bin/goose postgres $PG up
+        env:
+          PG: postgres://postgres:postgres@localhost:${{ job.services.postgres.ports[5432] }}/test?sslmode=disable
+
       - name: Install go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.14
+          go-version: 1.14.1
 
       - name: Run tests and extract coverage
         run: |
@@ -34,6 +57,7 @@ jobs:
           cat $GITHUB_WORKSPACE/backend/profile.cov_tmp | grep -v "mock_" > $GITHUB_WORKSPACE/backend/profile.cov
         env:
           CGO_ENABLED: 0
+          DB_TEST: postgres://postgres:postgres@localhost:${{ job.services.postgres.ports[5432] }}/test?sslmode=disable
 
       - name: Install golangci-lint
         run: |
