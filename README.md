@@ -22,9 +22,9 @@ In case of bad client request error might have `null` value.
 Supported error codes for client mapping:
 ```go
 const (
-	ErrInternal ErrCode = 0 // any internal error
-	ErrDecode   ErrCode = 1 // failed to unmarshal incoming request
-	ErrBadReq   ErrCode = 2 // request contains incorrect data or doesn't contain data
+	ErrInternal   ErrCode = 0 // any internal error
+	ErrDecode     ErrCode = 1 // failed to unmarshal incoming request
+	ErrBadRequest ErrCode = 2 // request contains incorrect data or doesn't contain data
 )
 ```
 

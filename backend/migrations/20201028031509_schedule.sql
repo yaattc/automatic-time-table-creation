@@ -1,0 +1,93 @@
+-- +goose Up
+-- +goose StatementBegin
+CREATE TABLE courses (
+    id UUID NOT NULL,
+    name TEXT NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE teachers (
+    id UUID NOT NULL,
+    name TEXT NOT NULL,
+    surname TEXT NOT NULL,
+
+    email TEXT NOT NULL,
+    degree TEXT NOT NULL,
+    about TEXT NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE teacher_preferences (
+    teacher_id UUID NOT NULL,
+    locations JSONB NOT NULL DEFAULT '[]',
+    CONSTRAINT FK_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id)
+);
+
+CREATE TABLE time_slots (
+    teacher_id UUID NOT NULL,
+    CONSTRAINT FK_preference FOREIGN KEY (teacher_id) REFERENCES teachers(id),
+
+    weekday INTEGER NOT NULL,
+    start TIME NOT NULL,
+    duration BIGINT NOT NULL
+);
+
+CREATE TABLE study_years (
+    id UUID NOT NULL,
+    name TEXT NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE groups (
+    id UUID NOT NULL,
+    study_year_id UUID NOT NULL,
+    name TEXT NOT NULL,
+
+    CONSTRAINT FK_study_year FOREIGN KEY (study_year_id) REFERENCES study_year(id),
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE classes (
+    id UUID NOT NULL,
+    course_id UUID NOT NULL,
+    group_id UUID NOT NULL,
+    teacher_id UUID NOT NULL,
+
+    title TEXT NOT NULL,
+    location TEXT NOT NULL DEFAULT '',
+
+    start_time TIMESTAMP NOT NULL,
+    duration BIGINT NOT NULL DEFAULT 5400000000000, -- 1.5 hours
+
+    repeats INTEGER NOT NULL,
+
+    CONSTRAINT FK_course FOREIGN KEY (course_id) REFERENCES courses(id),
+    CONSTRAINT FK_group FOREIGN KEY (group_id) REFERENCES groups(id),
+    CONSTRAINT FK_teacher FOREIGN KEY (teacher_id) REFERENCES teacher(id),
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE course_study_year_junction (
+    course_id UUID NOT NULL,
+    study_year_id UUID NOT NULL,
+
+    CONSTRAINT course_sy_pk PRIMARY KEY (course_id, study_year_id),
+    CONSTRAINT FK_course FOREIGN KEY (course_id) REFERENCES courses(id),
+    CONSTRAINT FK_study_year FOREIGN KEY (study_year_id) REFERENCES study_year(id)
+);
+
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS "teachers" CASCADE;
+DROP TABLE IF EXISTS "teacher_preferences" CASCADE;
+DROP TABLE IF EXISTS "time_slots" CASCADE;
+
+DROP TABLE IF EXISTS "study_years" CASCADE;
+DROP TABLE IF EXISTS "courses" CASCADE;
+
+DROP TABLE IF EXISTS "groups" CASCADE;
+DROP TABLE IF EXISTS "classes" CASCADE;
+DROP TABLE IF EXISTS "course_study_year_junction" CASCADE;
+-- +goose StatementEnd

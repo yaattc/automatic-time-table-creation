@@ -1,5 +1,8 @@
 # cloud.google.com/go v0.34.0
 cloud.google.com/go/compute/metadata
+# github.com/Semior001/timetype v0.1.1
+## explicit
+github.com/Semior001/timetype
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
 # github.com/cockroachdb/apd v1.1.0
@@ -44,6 +47,9 @@ github.com/go-stack/stack
 github.com/golang/protobuf/proto
 # github.com/golang/snappy v0.0.1
 github.com/golang/snappy
+# github.com/google/uuid v1.1.2
+## explicit
+github.com/google/uuid
 # github.com/jackc/fake v0.0.0-20150926172116-812a484cc733
 ## explicit
 # github.com/jackc/pgx v3.6.2+incompatible
@@ -87,6 +93,7 @@ github.com/xdg/stringprep
 # go.etcd.io/bbolt v1.3.4
 go.etcd.io/bbolt
 # go.mongodb.org/mongo-driver v1.3.2
+## explicit
 go.mongodb.org/mongo-driver/bson
 go.mongodb.org/mongo-driver/bson/bsoncodec
 go.mongodb.org/mongo-driver/bson/bsonoptions
