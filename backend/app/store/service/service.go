@@ -6,6 +6,10 @@ import (
 	"crypto/sha1" // nolint
 	"log"
 
+	"github.com/google/uuid"
+
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/teacher"
+
 	"github.com/go-pkgz/auth/token"
 
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
@@ -18,8 +22,40 @@ import (
 
 // DataStore wraps all stores with common and additional methods
 type DataStore struct {
-	UserRepository user.Interface
-	BCryptCost     int
+	UserRepository    user.Interface
+	TeacherRepository teacher.Interface
+	BCryptCost        int
+}
+
+// AddTeacher to the database
+func (s *DataStore) AddTeacher(teacher store.Teacher) (teacherID string, err error) {
+	if teacher.ID == "" {
+		teacher.ID = uuid.New().String()
+	}
+	if err := s.TeacherRepository.AddTeacher(teacher); err != nil {
+		return "", errors.Wrapf(err, "failed to add teacher to database %+v", teacher)
+	}
+	return teacher.ID, nil
+}
+
+// DeleteTeacher from the database by its id
+func (s *DataStore) DeleteTeacher(teacherID string) error {
+	return errors.Wrapf(s.TeacherRepository.DeleteTeacher(teacherID), "failed to delete teacher %s", teacherID)
+}
+
+// ListTeachers returns all teachers that are registered in the database
+func (s *DataStore) ListTeachers() ([]store.TeacherDetails, error) {
+	return s.TeacherRepository.ListTeachers()
+}
+
+// GetTeacherFull returns all data about the requested teacher, including teacher preferences
+func (s *DataStore) GetTeacherFull(teacherID string) (store.Teacher, error) {
+	return s.TeacherRepository.GetTeacherFull(teacherID)
+}
+
+// SetTeacherPreferences sets preferences for the given teacher
+func (s *DataStore) SetTeacherPreferences(teacherID string, pref store.TeacherPreferences) error {
+	return s.TeacherRepository.SetPreferences(teacherID, pref)
 }
 
 // GetUserEmail returns the email of the specified user

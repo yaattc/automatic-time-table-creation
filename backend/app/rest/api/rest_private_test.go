@@ -56,7 +56,7 @@ func Test_private_addTeacherCtrl(t *testing.T) {
 			expected.ID = uuid.New().String()
 			return expected.ID, nil
 		},
-		GetTeacherFunc: func(teacherID string) (store.Teacher, error) {
+		GetTeacherFullFunc: func(teacherID string) (store.Teacher, error) {
 			assert.Equal(t, expected.ID, teacherID)
 			return expected, nil
 		},
@@ -183,10 +183,13 @@ func Test_private_listTeachersCtrl(t *testing.T) {
 		},
 	}
 	ps := &privStoreMock{
-		ListTeachersFunc: func() ([]store.Teacher, error) {
-			return tss, nil
+		ListTeachersFunc: func() (res []store.TeacherDetails, _ error) {
+			for _, t := range tss {
+				res = append(res, t.TeacherDetails)
+			}
+			return res, nil
 		},
-		GetTeacherFunc: func(teacherID string) (store.Teacher, error) {
+		GetTeacherFullFunc: func(teacherID string) (store.Teacher, error) {
 			assert.Equal(t, tss[0].ID, teacherID)
 			return tss[0], nil
 		},
@@ -208,14 +211,14 @@ func Test_private_listTeachersCtrl(t *testing.T) {
 	defer resp.Body.Close()
 
 	type resTyp struct {
-		Teachers []store.Teacher `json:"teachers"`
+		Teachers []store.TeacherDetails `json:"teachers"`
 	}
 
 	var res resTyp
 	err = render.DecodeJSON(resp.Body, &res)
 	require.NoError(t, err)
 
-	assert.Equal(t, resTyp{Teachers: []store.Teacher{tss[0]}}, res)
+	assert.Equal(t, resTyp{Teachers: []store.TeacherDetails{tss[0].TeacherDetails}}, res)
 
 	// checking "get list of teachers"
 
@@ -231,8 +234,7 @@ func Test_private_listTeachersCtrl(t *testing.T) {
 	err = render.DecodeJSON(resp.Body, &res)
 	require.NoError(t, err)
 
-	assert.Equal(t, resTyp{Teachers: tss}, res)
-
+	assert.Equal(t, resTyp{Teachers: []store.TeacherDetails{tss[0].TeacherDetails, tss[1].TeacherDetails}}, res)
 }
 
 func Test_private_setTeacherPreferencesCtrl(t *testing.T) {
@@ -271,12 +273,12 @@ func Test_private_setTeacherPreferencesCtrl(t *testing.T) {
 		},
 	}
 	ps := &privStoreMock{
-		SetPreferencesFunc: func(teacherID string, pref store.TeacherPreferences) error {
+		SetTeacherPreferencesFunc: func(teacherID string, pref store.TeacherPreferences) error {
 			assert.Equal(t, expected.ID, teacherID)
 			assert.Equal(t, expected.Preferences, pref)
 			return nil
 		},
-		GetTeacherFunc: func(teacherID string) (store.Teacher, error) {
+		GetTeacherFullFunc: func(teacherID string) (store.Teacher, error) {
 			assert.Equal(t, expected.ID, teacherID)
 			return expected, nil
 		},

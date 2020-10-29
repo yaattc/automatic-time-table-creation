@@ -1,10 +1,6 @@
 package user
 
 import (
-	"time"
-
-	log "github.com/go-pkgz/lgr"
-
 	"github.com/jackc/pgx"
 	"github.com/pkg/errors"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
@@ -17,29 +13,9 @@ type Postgres struct {
 }
 
 // NewPostgres returns the new instance of Postgres
-func NewPostgres(connStr string) (*Postgres, error) {
-	connConf, err := pgx.ParseConnectionString(connStr)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse pg user Store with connstr %s", connStr)
-	}
-
-	p, err := pgx.NewConnPool(pgx.ConnPoolConfig{
-		ConnConfig:     connConf,
-		MaxConnections: 5,
-		AfterConnect: func(conn *pgx.Conn) error {
-			// todo no-op yet
-			return nil
-		},
-		AcquireTimeout: time.Minute,
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to initialize pg user Store with connstr %s", connStr)
-	}
-
-	log.Printf("[INFO] initialized postgres connection pool to %s:%d", connConf.Host, connConf.Port)
-
+func NewPostgres(connPool *pgx.ConnPool, connConf pgx.ConnConfig) (*Postgres, error) {
 	return &Postgres{
-		connPool: p,
+		connPool: connPool,
 		connConf: connConf,
 	}, nil
 }

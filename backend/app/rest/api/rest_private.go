@@ -24,9 +24,9 @@ type private struct {
 type privStore interface {
 	AddTeacher(teacher store.Teacher) (teacherID string, err error)
 	DeleteTeacher(teacherID string) error
-	ListTeachers() ([]store.Teacher, error)
-	GetTeacher(teacherID string) (store.Teacher, error)
-	SetPreferences(teacherID string, pref store.TeacherPreferences) error
+	ListTeachers() ([]store.TeacherDetails, error)
+	GetTeacherFull(teacherID string) (store.Teacher, error)
+	SetTeacherPreferences(teacherID string, pref store.TeacherPreferences) error
 }
 
 // POST /teacher - adds teacher
@@ -45,7 +45,7 @@ func (s *private) addTeacherCtrl(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	finalTeacher, err := s.dataService.GetTeacher(id)
+	finalTeacher, err := s.dataService.GetTeacherFull(id)
 	if err != nil {
 		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't load added teacher", rest.ErrInternal)
 		return
@@ -90,7 +90,7 @@ func (s *private) listTeachersCtrl(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get particular teacher
-	teacher, err := s.dataService.GetTeacher(teacherID)
+	teacher, err := s.dataService.GetTeacherFull(teacherID)
 	if err != nil {
 		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't load teacher", rest.ErrInternal)
 		return
@@ -108,12 +108,12 @@ func (s *private) setTeacherPreferencesCtrl(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := s.dataService.SetPreferences(teacherID, pref); err != nil {
+	if err := s.dataService.SetTeacherPreferences(teacherID, pref); err != nil {
 		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't set preferences for teacher", rest.ErrInternal)
 		return
 	}
 
-	finalTeacher, err := s.dataService.GetTeacher(teacherID)
+	finalTeacher, err := s.dataService.GetTeacherFull(teacherID)
 	if err != nil {
 		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't load updated teacher", rest.ErrInternal)
 		return

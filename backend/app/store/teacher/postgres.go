@@ -13,6 +13,14 @@ type Postgres struct {
 	connConf pgx.ConnConfig //nolint:structcheck,unused
 }
 
+// NewPostgres returns the new instance of Postgres
+func NewPostgres(connPool *pgx.ConnPool, connConf pgx.ConnConfig) (*Postgres, error) {
+	return &Postgres{
+		connPool: connPool,
+		connConf: connConf,
+	}, nil
+}
+
 // AddTeacher to database
 func (p *Postgres) AddTeacher(teacher store.Teacher) error {
 	_, err := p.connPool.Exec(
@@ -34,7 +42,7 @@ func (p *Postgres) DeleteTeacher(teacherID string) error {
 }
 
 // ListTeachers from the database
-func (p *Postgres) ListTeachers() ([]store.Teacher, error) {
+func (p *Postgres) ListTeachers() ([]store.TeacherDetails, error) {
 	tx, err := p.connPool.Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to begin transaction")
@@ -61,18 +69,14 @@ func (p *Postgres) ListTeachers() ([]store.Teacher, error) {
 		ids = append(ids, id)
 	}
 
-	var res []store.Teacher
+	var res []store.TeacherDetails
 	// taking teachers' preferences
 	for _, id := range ids {
-		tp, err := p.getTeacherPreferences(id, tx)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to load preferences for teacher %s", id)
-		}
 		td, err := p.getTeacherDetails(id, tx)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to load teacher details for %s", id)
 		}
-		res = append(res, store.Teacher{Preferences: tp, TeacherDetails: td})
+		res = append(res, td)
 	}
 	return res, nil
 }

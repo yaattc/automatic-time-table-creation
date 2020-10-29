@@ -6,7 +6,7 @@ import "github.com/yaattc/automatic-time-table-creation/backend/app/store"
 type Interface interface {
 	AddTeacher(teacher store.Teacher) error
 	DeleteTeacher(teacherID string) error
-	ListTeachers() ([]store.Teacher, error)
+	ListTeachers() ([]store.TeacherDetails, error)
 	GetTeacherFull(teacherID string) (store.Teacher, error)
 	SetPreferences(teacherID string, pref store.TeacherPreferences) error
 }

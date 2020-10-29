@@ -24,14 +24,14 @@ var _ privStore = &privStoreMock{}
 //             DeleteTeacherFunc: func(teacherID string) error {
 // 	               panic("mock out the DeleteTeacher method")
 //             },
-//             GetTeacherFunc: func(teacherID string) (store.Teacher, error) {
-// 	               panic("mock out the GetTeacher method")
+//             GetTeacherFullFunc: func(teacherID string) (store.Teacher, error) {
+// 	               panic("mock out the GetTeacherFull method")
 //             },
-//             ListTeachersFunc: func() ([]store.Teacher, error) {
+//             ListTeachersFunc: func() ([]store.TeacherDetails, error) {
 // 	               panic("mock out the ListTeachers method")
 //             },
-//             SetPreferencesFunc: func(teacherID string, pref store.TeacherPreferences) error {
-// 	               panic("mock out the SetPreferences method")
+//             SetTeacherPreferencesFunc: func(teacherID string, pref store.TeacherPreferences) error {
+// 	               panic("mock out the SetTeacherPreferences method")
 //             },
 //         }
 //
@@ -46,14 +46,14 @@ type privStoreMock struct {
 	// DeleteTeacherFunc mocks the DeleteTeacher method.
 	DeleteTeacherFunc func(teacherID string) error
 
-	// GetTeacherFunc mocks the GetTeacher method.
-	GetTeacherFunc func(teacherID string) (store.Teacher, error)
+	// GetTeacherFullFunc mocks the GetTeacherFull method.
+	GetTeacherFullFunc func(teacherID string) (store.Teacher, error)
 
 	// ListTeachersFunc mocks the ListTeachers method.
-	ListTeachersFunc func() ([]store.Teacher, error)
+	ListTeachersFunc func() ([]store.TeacherDetails, error)
 
-	// SetPreferencesFunc mocks the SetPreferences method.
-	SetPreferencesFunc func(teacherID string, pref store.TeacherPreferences) error
+	// SetTeacherPreferencesFunc mocks the SetTeacherPreferences method.
+	SetTeacherPreferencesFunc func(teacherID string, pref store.TeacherPreferences) error
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -67,27 +67,27 @@ type privStoreMock struct {
 			// TeacherID is the teacherID argument value.
 			TeacherID string
 		}
-		// GetTeacher holds details about calls to the GetTeacher method.
-		GetTeacher []struct {
+		// GetTeacherFull holds details about calls to the GetTeacherFull method.
+		GetTeacherFull []struct {
 			// TeacherID is the teacherID argument value.
 			TeacherID string
 		}
 		// ListTeachers holds details about calls to the ListTeachers method.
 		ListTeachers []struct {
 		}
-		// SetPreferences holds details about calls to the SetPreferences method.
-		SetPreferences []struct {
+		// SetTeacherPreferences holds details about calls to the SetTeacherPreferences method.
+		SetTeacherPreferences []struct {
 			// TeacherID is the teacherID argument value.
 			TeacherID string
 			// Pref is the pref argument value.
 			Pref store.TeacherPreferences
 		}
 	}
-	lockAddTeacher     sync.RWMutex
-	lockDeleteTeacher  sync.RWMutex
-	lockGetTeacher     sync.RWMutex
-	lockListTeachers   sync.RWMutex
-	lockSetPreferences sync.RWMutex
+	lockAddTeacher            sync.RWMutex
+	lockDeleteTeacher         sync.RWMutex
+	lockGetTeacherFull        sync.RWMutex
+	lockListTeachers          sync.RWMutex
+	lockSetTeacherPreferences sync.RWMutex
 }
 
 // AddTeacher calls AddTeacherFunc.
@@ -152,39 +152,39 @@ func (mock *privStoreMock) DeleteTeacherCalls() []struct {
 	return calls
 }
 
-// GetTeacher calls GetTeacherFunc.
-func (mock *privStoreMock) GetTeacher(teacherID string) (store.Teacher, error) {
-	if mock.GetTeacherFunc == nil {
-		panic("privStoreMock.GetTeacherFunc: method is nil but privStore.GetTeacher was just called")
+// GetTeacherFull calls GetTeacherFullFunc.
+func (mock *privStoreMock) GetTeacherFull(teacherID string) (store.Teacher, error) {
+	if mock.GetTeacherFullFunc == nil {
+		panic("privStoreMock.GetTeacherFullFunc: method is nil but privStore.GetTeacherFull was just called")
 	}
 	callInfo := struct {
 		TeacherID string
 	}{
 		TeacherID: teacherID,
 	}
-	mock.lockGetTeacher.Lock()
-	mock.calls.GetTeacher = append(mock.calls.GetTeacher, callInfo)
-	mock.lockGetTeacher.Unlock()
-	return mock.GetTeacherFunc(teacherID)
+	mock.lockGetTeacherFull.Lock()
+	mock.calls.GetTeacherFull = append(mock.calls.GetTeacherFull, callInfo)
+	mock.lockGetTeacherFull.Unlock()
+	return mock.GetTeacherFullFunc(teacherID)
 }
 
-// GetTeacherCalls gets all the calls that were made to GetTeacher.
+// GetTeacherFullCalls gets all the calls that were made to GetTeacherFull.
 // Check the length with:
-//     len(mockedprivStore.GetTeacherCalls())
-func (mock *privStoreMock) GetTeacherCalls() []struct {
+//     len(mockedprivStore.GetTeacherFullCalls())
+func (mock *privStoreMock) GetTeacherFullCalls() []struct {
 	TeacherID string
 } {
 	var calls []struct {
 		TeacherID string
 	}
-	mock.lockGetTeacher.RLock()
-	calls = mock.calls.GetTeacher
-	mock.lockGetTeacher.RUnlock()
+	mock.lockGetTeacherFull.RLock()
+	calls = mock.calls.GetTeacherFull
+	mock.lockGetTeacherFull.RUnlock()
 	return calls
 }
 
 // ListTeachers calls ListTeachersFunc.
-func (mock *privStoreMock) ListTeachers() ([]store.Teacher, error) {
+func (mock *privStoreMock) ListTeachers() ([]store.TeacherDetails, error) {
 	if mock.ListTeachersFunc == nil {
 		panic("privStoreMock.ListTeachersFunc: method is nil but privStore.ListTeachers was just called")
 	}
@@ -209,10 +209,10 @@ func (mock *privStoreMock) ListTeachersCalls() []struct {
 	return calls
 }
 
-// SetPreferences calls SetPreferencesFunc.
-func (mock *privStoreMock) SetPreferences(teacherID string, pref store.TeacherPreferences) error {
-	if mock.SetPreferencesFunc == nil {
-		panic("privStoreMock.SetPreferencesFunc: method is nil but privStore.SetPreferences was just called")
+// SetTeacherPreferences calls SetTeacherPreferencesFunc.
+func (mock *privStoreMock) SetTeacherPreferences(teacherID string, pref store.TeacherPreferences) error {
+	if mock.SetTeacherPreferencesFunc == nil {
+		panic("privStoreMock.SetTeacherPreferencesFunc: method is nil but privStore.SetTeacherPreferences was just called")
 	}
 	callInfo := struct {
 		TeacherID string
@@ -221,16 +221,16 @@ func (mock *privStoreMock) SetPreferences(teacherID string, pref store.TeacherPr
 		TeacherID: teacherID,
 		Pref:      pref,
 	}
-	mock.lockSetPreferences.Lock()
-	mock.calls.SetPreferences = append(mock.calls.SetPreferences, callInfo)
-	mock.lockSetPreferences.Unlock()
-	return mock.SetPreferencesFunc(teacherID, pref)
+	mock.lockSetTeacherPreferences.Lock()
+	mock.calls.SetTeacherPreferences = append(mock.calls.SetTeacherPreferences, callInfo)
+	mock.lockSetTeacherPreferences.Unlock()
+	return mock.SetTeacherPreferencesFunc(teacherID, pref)
 }
 
-// SetPreferencesCalls gets all the calls that were made to SetPreferences.
+// SetTeacherPreferencesCalls gets all the calls that were made to SetTeacherPreferences.
 // Check the length with:
-//     len(mockedprivStore.SetPreferencesCalls())
-func (mock *privStoreMock) SetPreferencesCalls() []struct {
+//     len(mockedprivStore.SetTeacherPreferencesCalls())
+func (mock *privStoreMock) SetTeacherPreferencesCalls() []struct {
 	TeacherID string
 	Pref      store.TeacherPreferences
 } {
@@ -238,8 +238,8 @@ func (mock *privStoreMock) SetPreferencesCalls() []struct {
 		TeacherID string
 		Pref      store.TeacherPreferences
 	}
-	mock.lockSetPreferences.RLock()
-	calls = mock.calls.SetPreferences
-	mock.lockSetPreferences.RUnlock()
+	mock.lockSetTeacherPreferences.RLock()
+	calls = mock.calls.SetTeacherPreferences
+	mock.lockSetTeacherPreferences.RUnlock()
 	return calls
 }

@@ -4,6 +4,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/teacher"
+
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 
 	"github.com/pkg/errors"
@@ -51,12 +53,23 @@ type AdminGroup struct {
 
 // Execute runs http web server
 func (s *Server) Execute(_ []string) error {
-	pg, err := user.NewPostgres(s.DBConnStr)
+	pgpool, pgconf, err := preparePostgres(s.DBConnStr)
 	if err != nil {
-		return errors.Wrapf(err, "failed to initialize postgres user at %s: %v", s.DBConnStr, err)
+		return err
 	}
 
-	ds := &service.DataStore{UserRepository: pg}
+	// initializing repositories
+	ur, err := user.NewPostgres(pgpool, pgconf)
+	if err != nil {
+		return errors.Wrapf(err, "failed to initialize postgres user repository at %s", s.DBConnStr)
+	}
+
+	tr, err := teacher.NewPostgres(pgpool, pgconf)
+	if err != nil {
+		return errors.Wrapf(err, "failed to initialize postgres teacher repository at %s", s.DBConnStr)
+	}
+
+	ds := &service.DataStore{UserRepository: ur, TeacherRepository: tr}
 
 	if err = ds.RegisterAdmin(s.Admin.Email, s.Admin.Password); err != nil {
 		return errors.Wrapf(err, "failed to register admin %s:%s", s.Admin.Email, s.Admin.Password)
@@ -66,6 +79,7 @@ func (s *Server) Execute(_ []string) error {
 	srv := api.Rest{
 		Version:       s.Version,
 		Authenticator: authenticator,
+		DataStore:     ds,
 	}
 
 	srv.Run(s.Port)

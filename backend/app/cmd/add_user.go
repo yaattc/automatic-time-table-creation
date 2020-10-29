@@ -26,12 +26,18 @@ type AddUser struct {
 
 // Execute runs http web server
 func (a *AddUser) Execute(_ []string) error {
-	pg, err := user.NewPostgres(a.DBConnStr)
+	pgpool, pgconf, err := preparePostgres(a.DBConnStr)
 	if err != nil {
-		return errors.Wrapf(err, "failed to initialize postgres user at %s: %v", a.DBConnStr, err)
+		return err
 	}
 
-	ds := &service.DataStore{UserRepository: pg}
+	// initializing repositories
+	ur, err := user.NewPostgres(pgpool, pgconf)
+	if err != nil {
+		return errors.Wrapf(err, "failed to initialize postgres user repository at %s", a.DBConnStr)
+	}
+
+	ds := &service.DataStore{UserRepository: ur}
 
 	var p []store.Privilege
 
