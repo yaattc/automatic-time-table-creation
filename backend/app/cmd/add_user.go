@@ -5,8 +5,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
-	"github.com/yaattc/automatic-time-table-creation/backend/app/store/engine"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store/service"
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/user"
 )
 
 // AddUser adds user to the database with the specified user data
@@ -26,9 +26,9 @@ type AddUser struct {
 
 // Execute runs http web server
 func (a *AddUser) Execute(_ []string) error {
-	pg, err := engine.NewPostgres(a.DBConnStr)
+	pg, err := user.NewPostgres(a.DBConnStr)
 	if err != nil {
-		return errors.Wrapf(err, "failed to initialize postgres engine at %s: %v", a.DBConnStr, err)
+		return errors.Wrapf(err, "failed to initialize postgres user at %s: %v", a.DBConnStr, err)
 	}
 
 	ds := &service.DataStore{Engine: pg}

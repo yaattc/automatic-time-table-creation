@@ -7,7 +7,7 @@ import (
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 
 	"github.com/pkg/errors"
-	"github.com/yaattc/automatic-time-table-creation/backend/app/store/engine"
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/user"
 
 	"github.com/go-pkgz/auth/provider"
 
@@ -51,9 +51,9 @@ type AdminGroup struct {
 
 // Execute runs http web server
 func (s *Server) Execute(_ []string) error {
-	pg, err := engine.NewPostgres(s.DBConnStr)
+	pg, err := user.NewPostgres(s.DBConnStr)
 	if err != nil {
-		return errors.Wrapf(err, "failed to initialize postgres engine at %s: %v", s.DBConnStr, err)
+		return errors.Wrapf(err, "failed to initialize postgres user at %s: %v", s.DBConnStr, err)
 	}
 
 	ds := &service.DataStore{Engine: pg}

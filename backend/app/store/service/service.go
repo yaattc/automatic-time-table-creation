@@ -1,5 +1,5 @@
-// Package service wraps engine interfaces with common logic unrelated to any particular engine implementation.
-// All consumers should be using service.DataStore and not the naked engine!
+// Package service wraps user interfaces with common logic unrelated to any particular user implementation.
+// All consumers should be using service.DataStore and not the naked repositories!
 package service
 
 import (
@@ -11,14 +11,14 @@ import (
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/yaattc/automatic-time-table-creation/backend/app/store/engine"
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/user"
 
 	"github.com/pkg/errors"
 )
 
 // DataStore wraps all stores with common and additional methods
 type DataStore struct {
-	Engine     engine.Interface
+	Engine     user.Interface
 	BCryptCost int
 }
 

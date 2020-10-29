@@ -1,8 +1,10 @@
-package engine
+package user
 
 import (
+	"log"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -83,9 +85,27 @@ func insertTestUsers(t *testing.T, srv *Postgres) {
 }
 
 func preparePgStore(t *testing.T) *Postgres {
-	p, err := NewPostgres(os.Getenv("DB_TEST"))
+	// initializing connection with postgres
+	connStr := os.Getenv("DB_TEST")
+	connConf, err := pgx.ParseConnectionString(connStr)
 	require.NoError(t, err)
 
+	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig:     connConf,
+		MaxConnections: 5,
+		AcquireTimeout: time.Minute,
+	})
+	require.NoError(t, err)
+
+	log.Printf("[INFO] initialized postgres connection pool to %s:%d", connConf.Host, connConf.Port)
+
+	p := &Postgres{
+		connPool: pool,
+		connConf: connConf,
+	}
+	require.NoError(t, err)
+
+	// setting cleanups
 	cleanupStorage(t, p.connPool)
 	t.Cleanup(func() {
 		cleanupStorage(t, p.connPool)
