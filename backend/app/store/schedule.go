@@ -80,6 +80,7 @@ type Teacher struct {
 // TeacherPreferences describes teacher's preferences in generating the schedule.
 type TeacherPreferences struct {
 	TimeSlots []TimeSlot `json:"time_slots"` // preferable time slots for teaching
+	Staff     []Teacher  `json:"staff"`      // preferable teaching staff
 	Locations []Location `json:"rooms"`      // preferable rooms for teaching
 }
 

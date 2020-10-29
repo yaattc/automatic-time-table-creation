@@ -23,7 +23,15 @@ CREATE TABLE teacher_preferences (
     CONSTRAINT FK_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id)
 );
 
-CREATE TABLE time_slots (
+CREATE TABLE teacher_preferences_staff (
+    teacher_id UUID NOT NULL,
+    staff_id UUID NOT NULL,
+    CONSTRAINT ts_pk PRIMARY KEY (teacher_id, staff_id),
+    CONSTRAINT FK_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id),
+    CONSTRAINT FK_staff FOREIGN KEY (staff_id) REFERENCES teachers(id)
+);
+
+CREATE TABLE teacher_preferences_time_slots (
     teacher_id UUID NOT NULL,
     CONSTRAINT FK_preference FOREIGN KEY (teacher_id) REFERENCES teachers(id),
 
@@ -82,7 +90,8 @@ CREATE TABLE course_study_year_junction (
 -- +goose StatementBegin
 DROP TABLE IF EXISTS "teachers" CASCADE;
 DROP TABLE IF EXISTS "teacher_preferences" CASCADE;
-DROP TABLE IF EXISTS "time_slots" CASCADE;
+DROP TABLE IF EXISTS "teacher_preferences_time_slots" CASCADE;
+DROP TABLE IF EXISTS "teacher_preferences_staff" CASCADE;
 
 DROP TABLE IF EXISTS "study_years" CASCADE;
 DROP TABLE IF EXISTS "courses" CASCADE;

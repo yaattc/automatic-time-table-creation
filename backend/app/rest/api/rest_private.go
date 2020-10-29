@@ -3,11 +3,14 @@ package api
 import (
 	"net/http"
 
+	"github.com/go-chi/chi"
+
 	log "github.com/go-pkgz/lgr"
 
 	"github.com/go-chi/render"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/rest"
 
+	R "github.com/go-pkgz/rest"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 )
 
@@ -22,6 +25,7 @@ type privStore interface {
 	DeleteTeacher(teacherID string) error
 	ListTeachers() ([]store.Teacher, error)
 	GetTeacher(teacherID string) (store.Teacher, error)
+	SetPreferences(teacherID string, pref store.TeacherPreferences) error
 }
 
 // POST /teacher - adds teacher
@@ -65,5 +69,54 @@ func (s *private) deleteTeacherCtrl(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("[DEBUG] removed teacher %s", teacherID)
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, rest.JSON{"deleted": true})
+	render.JSON(w, r, R.JSON{"deleted": true})
+}
+
+// GET /teacher?id=teacherID - list teachers, shrink query parameter "id" to list all
+func (s *private) listTeachersCtrl(w http.ResponseWriter, r *http.Request) {
+	teacherID := r.URL.Query().Get("id")
+
+	// get all teachers
+	if teacherID == "" {
+		ts, err := s.dataService.ListTeachers()
+		if err != nil {
+			rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't load teachers", rest.ErrInternal)
+			return
+		}
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, R.JSON{"teachers": ts})
+		return
+	}
+
+	// get particular teacher
+	teacher, err := s.dataService.GetTeacher(teacherID)
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't load teacher", rest.ErrInternal)
+		return
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, R.JSON{"teachers": []store.Teacher{teacher}})
+}
+
+// POST /teacher/{id}/preferences - set teacher preferences
+func (s *private) setTeacherPreferencesCtrl(w http.ResponseWriter, r *http.Request) {
+	teacherID := chi.URLParam(r, "id")
+	pref := store.TeacherPreferences{}
+	if err := render.DecodeJSON(http.MaxBytesReader(w, r.Body, hardBodyLimit), &pref); err != nil {
+		rest.SendErrorJSON(w, r, http.StatusBadRequest, err, "can't bind preferences", rest.ErrDecode)
+		return
+	}
+
+	if err := s.dataService.SetPreferences(teacherID, pref); err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't set preferences for teacher", rest.ErrInternal)
+		return
+	}
+
+	finalTeacher, err := s.dataService.GetTeacher(teacherID)
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't load updated teacher", rest.ErrInternal)
+		return
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, finalTeacher)
 }
