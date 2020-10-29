@@ -26,6 +26,8 @@ type Rest struct {
 	lock       sync.Mutex
 }
 
+const hardBodyLimit = 1024 * 64 // limit size of body
+
 // Run starts the web-server for listening
 func (s *Rest) Run(port int) {
 	s.lock.Lock()
@@ -49,7 +51,7 @@ func (s *Rest) makeHTTPServer(port int, routes chi.Router) *http.Server {
 
 // notFound returns standard 404 not found message
 func (s *Rest) notFound(w http.ResponseWriter, r *http.Request) {
-	rest.SendErrorJSON(w, r, http.StatusNotFound, nil, "not found", rest.ErrBadReq)
+	rest.SendErrorJSON(w, r, http.StatusNotFound, nil, "not found", rest.ErrBadRequest)
 }
 
 func (s *Rest) routes() chi.Router {
