@@ -25,12 +25,14 @@ import (
 
 func Test_private_addTeacherCtrl(t *testing.T) {
 	expected := store.Teacher{
-		ID:      "this should be changed, as this field is immutable for user",
-		Name:    "foo",
-		Surname: "bar",
-		Email:   "foo@bar.com",
-		Degree:  "graduate",
-		About:   "some details about teacher",
+		TeacherDetails: store.TeacherDetails{
+			ID:      "this should be changed, as this field is immutable for user",
+			Name:    "foo",
+			Surname: "bar",
+			Email:   "foo@bar.com",
+			Degree:  "graduate",
+			About:   "some details about teacher",
+		},
 		Preferences: store.TeacherPreferences{
 			TimeSlots: []store.TimeSlot{
 				{
@@ -114,12 +116,15 @@ func Test_private_deleteTeacherCtrl(t *testing.T) {
 func Test_private_listTeachersCtrl(t *testing.T) {
 	tss := []store.Teacher{
 		{
-			ID:      "someFancyID",
-			Name:    "foo",
-			Surname: "bar",
-			Email:   "foo@bar.com",
-			Degree:  "graduate",
-			About:   "some details about teacher",
+			TeacherDetails: store.TeacherDetails{
+
+				ID:      "someFancyID",
+				Name:    "foo",
+				Surname: "bar",
+				Email:   "foo@bar.com",
+				Degree:  "graduate",
+				About:   "some details about teacher",
+			},
 			Preferences: store.TeacherPreferences{
 				TimeSlots: []store.TimeSlot{
 					{
@@ -145,12 +150,14 @@ func Test_private_listTeachersCtrl(t *testing.T) {
 			},
 		},
 		{
-			ID:      "someFancyID2",
-			Name:    "Nikolay",
-			Surname: "Shilov",
-			Email:   "s.nikolay@idontknowemail.com",
-			Degree:  "graduate",
-			About:   "some details about Nikolay Shilov",
+			TeacherDetails: store.TeacherDetails{
+				ID:      "someFancyID2",
+				Name:    "Nikolay",
+				Surname: "Shilov",
+				Email:   "s.nikolay@idontknowemail.com",
+				Degree:  "graduate",
+				About:   "some details about Nikolay Shilov",
+			},
 			Preferences: store.TeacherPreferences{
 				TimeSlots: []store.TimeSlot{{
 					Weekday:  time.Monday,
@@ -230,12 +237,15 @@ func Test_private_listTeachersCtrl(t *testing.T) {
 
 func Test_private_setTeacherPreferencesCtrl(t *testing.T) {
 	expected := store.Teacher{
-		ID:      "someFancyID",
-		Name:    "foo",
-		Surname: "bar",
-		Email:   "foo@bar.com",
-		Degree:  "graduate",
-		About:   "some details about teacher",
+		TeacherDetails: store.TeacherDetails{
+
+			ID:      "someFancyID",
+			Name:    "foo",
+			Surname: "bar",
+			Email:   "foo@bar.com",
+			Degree:  "graduate",
+			About:   "some details about teacher",
+		},
 		Preferences: store.TeacherPreferences{
 			TimeSlots: []store.TimeSlot{
 				{

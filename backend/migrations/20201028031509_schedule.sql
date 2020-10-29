@@ -18,26 +18,27 @@ CREATE TABLE teachers (
 );
 
 CREATE TABLE teacher_preferences (
-    teacher_id UUID NOT NULL,
+    teacher_id UUID NOT NULL UNIQUE,
     locations JSONB NOT NULL DEFAULT '[]',
-    CONSTRAINT FK_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id)
+    CONSTRAINT FK_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE
 );
 
 CREATE TABLE teacher_preferences_staff (
     teacher_id UUID NOT NULL,
     staff_id UUID NOT NULL,
     CONSTRAINT ts_pk PRIMARY KEY (teacher_id, staff_id),
-    CONSTRAINT FK_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id),
-    CONSTRAINT FK_staff FOREIGN KEY (staff_id) REFERENCES teachers(id)
+    CONSTRAINT FK_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE ,
+    CONSTRAINT FK_staff FOREIGN KEY (staff_id) REFERENCES teachers(id) ON DELETE CASCADE
 );
 
 CREATE TABLE teacher_preferences_time_slots (
     teacher_id UUID NOT NULL,
-    CONSTRAINT FK_preference FOREIGN KEY (teacher_id) REFERENCES teachers(id),
+    CONSTRAINT FK_preference FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE ,
 
     weekday INTEGER NOT NULL,
     start TIME NOT NULL,
-    duration BIGINT NOT NULL
+    duration BIGINT NOT NULL,
+    location TEXT NOT NULL
 );
 
 CREATE TABLE study_years (
@@ -51,7 +52,7 @@ CREATE TABLE groups (
     study_year_id UUID NOT NULL,
     name TEXT NOT NULL,
 
-    CONSTRAINT FK_study_year FOREIGN KEY (study_year_id) REFERENCES study_year(id),
+    CONSTRAINT FK_study_year FOREIGN KEY (study_year_id) REFERENCES study_years(id) ON DELETE CASCADE ,
     PRIMARY KEY (id)
 );
 
@@ -69,9 +70,9 @@ CREATE TABLE classes (
 
     repeats INTEGER NOT NULL,
 
-    CONSTRAINT FK_course FOREIGN KEY (course_id) REFERENCES courses(id),
-    CONSTRAINT FK_group FOREIGN KEY (group_id) REFERENCES groups(id),
-    CONSTRAINT FK_teacher FOREIGN KEY (teacher_id) REFERENCES teacher(id),
+    CONSTRAINT FK_course FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    CONSTRAINT FK_group FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
+    CONSTRAINT FK_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE,
     PRIMARY KEY (id)
 );
 
@@ -80,8 +81,8 @@ CREATE TABLE course_study_year_junction (
     study_year_id UUID NOT NULL,
 
     CONSTRAINT course_sy_pk PRIMARY KEY (course_id, study_year_id),
-    CONSTRAINT FK_course FOREIGN KEY (course_id) REFERENCES courses(id),
-    CONSTRAINT FK_study_year FOREIGN KEY (study_year_id) REFERENCES study_year(id)
+    CONSTRAINT FK_course FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    CONSTRAINT FK_study_year FOREIGN KEY (study_year_id) REFERENCES study_years(id) ON DELETE CASCADE
 );
 
 -- +goose StatementEnd

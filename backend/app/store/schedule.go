@@ -58,13 +58,21 @@ type Group struct {
 	Name string `json:"name"`
 }
 
-// PrepareUntrusted sets zero values for all fields that are immutable for user
-func (g *Group) PrepareUntrusted() {
-	g.ID = ""
-}
-
 // Teacher describes a basic teacher with its own name and surname
 type Teacher struct {
+	Preferences TeacherPreferences `json:"preferences"`
+	TeacherDetails
+}
+
+// PrepareUntrusted sets zero values for all fields that are immutable for user
+func (t *Teacher) PrepareUntrusted() {
+	t.ID = ""
+	t.Preferences = TeacherPreferences{}
+}
+
+// TeacherDetails describes a data that relates to one particular teacher
+// to exclude the recursion problems
+type TeacherDetails struct {
 	ID      string `json:"id"`
 	Name    string `json:"name"`
 	Surname string `json:"surname"`
@@ -73,21 +81,14 @@ type Teacher struct {
 
 	Degree string `json:"degree"`
 	About  string `json:"about"`
-
-	Preferences TeacherPreferences `json:"preferences"`
 }
 
 // TeacherPreferences describes teacher's preferences in generating the schedule.
+// When setting the teacher preferences, in Staff all fields will be ignored except the IDs
 type TeacherPreferences struct {
-	TimeSlots []TimeSlot `json:"time_slots"` // preferable time slots for teaching
-	Staff     []Teacher  `json:"staff"`      // preferable teaching staff
-	Locations []Location `json:"rooms"`      // preferable rooms for teaching
-}
-
-// PrepareUntrusted sets zero values for all fields that are immutable for user
-func (t *Teacher) PrepareUntrusted() {
-	t.ID = ""
-	t.Preferences = TeacherPreferences{}
+	TimeSlots []TimeSlot       `json:"time_slots"` // preferable time slots for teaching
+	Staff     []TeacherDetails `json:"staff"`      // preferable teaching staff
+	Locations []Location       `json:"rooms"`      // preferable rooms for teaching
 }
 
 // TimeSlot describes a particular period of time in a week

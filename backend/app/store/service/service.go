@@ -18,13 +18,13 @@ import (
 
 // DataStore wraps all stores with common and additional methods
 type DataStore struct {
-	Engine     user.Interface
-	BCryptCost int
+	UserRepository user.Interface
+	BCryptCost     int
 }
 
 // GetUserEmail returns the email of the specified user
 func (s *DataStore) GetUserEmail(id string) (email string, err error) {
-	u, err := s.Engine.GetUser(id)
+	u, err := s.UserRepository.GetUser(id)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to read email of %s", id)
 	}
@@ -33,7 +33,7 @@ func (s *DataStore) GetUserEmail(id string) (email string, err error) {
 
 // GetUserPrivs returns the list of privileges of the specified user
 func (s *DataStore) GetUserPrivs(id string) (privs []store.Privilege, err error) {
-	u, err := s.Engine.GetUser(id)
+	u, err := s.UserRepository.GetUser(id)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read privs of %s", id)
 	}
@@ -42,7 +42,7 @@ func (s *DataStore) GetUserPrivs(id string) (privs []store.Privilege, err error)
 
 // CheckUserCredentials with the given username and password
 func (s *DataStore) CheckUserCredentials(email string, password string) (ok bool, err error) {
-	userpwd, err := s.Engine.GetPasswordHash(email)
+	userpwd, err := s.UserRepository.GetPasswordHash(email)
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to validate user")
 	}
@@ -61,7 +61,7 @@ func (s *DataStore) AddUser(user store.User, password string) (err error) {
 	if user.ID == "" {
 		user.ID = "local_" + token.HashID(sha1.New(), user.Email) // nolint // fixme
 	}
-	return errors.Wrapf(s.Engine.AddUser(user, string(b), false), "failed to add user %s to database", user.ID)
+	return errors.Wrapf(s.UserRepository.AddUser(user, string(b), false), "failed to add user %s to database", user.ID)
 }
 
 // RegisterAdmin in the database
@@ -77,5 +77,5 @@ func (s *DataStore) RegisterAdmin(email string, password string) error {
 		Privileges: []store.Privilege{store.PrivReadUsers, store.PrivEditUsers, store.PrivListUsers, store.PrivAddUsers},
 	}
 	log.Printf("[INFO] trying to register admin with %+v and pwd %s", u, password)
-	return errors.Wrapf(s.Engine.AddUser(u, string(b), true), "failed to add user %s to database", u.ID)
+	return errors.Wrapf(s.UserRepository.AddUser(u, string(b), true), "failed to add user %s to database", u.ID)
 }

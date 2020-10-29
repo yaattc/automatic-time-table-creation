@@ -31,7 +31,7 @@ func (a *AddUser) Execute(_ []string) error {
 		return errors.Wrapf(err, "failed to initialize postgres user at %s: %v", a.DBConnStr, err)
 	}
 
-	ds := &service.DataStore{Engine: pg}
+	ds := &service.DataStore{UserRepository: pg}
 
 	var p []store.Privilege
 

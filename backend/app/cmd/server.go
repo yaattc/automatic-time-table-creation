@@ -56,7 +56,7 @@ func (s *Server) Execute(_ []string) error {
 		return errors.Wrapf(err, "failed to initialize postgres user at %s: %v", s.DBConnStr, err)
 	}
 
-	ds := &service.DataStore{Engine: pg}
+	ds := &service.DataStore{UserRepository: pg}
 
 	if err = ds.RegisterAdmin(s.Admin.Email, s.Admin.Password); err != nil {
 		return errors.Wrapf(err, "failed to register admin %s:%s", s.Admin.Email, s.Admin.Password)
