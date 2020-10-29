@@ -10,7 +10,7 @@ import (
 // Postgres implements Interface
 type Postgres struct {
 	connPool *pgx.ConnPool
-	connConf pgx.ConnConfig
+	connConf pgx.ConnConfig //nolint:structcheck,unused
 }
 
 // AddTeacher to database

@@ -14,6 +14,7 @@ import (
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 )
 
+//nolint:unused
 type private struct {
 	dataService privStore
 }
