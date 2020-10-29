@@ -25,7 +25,13 @@ func NewPostgres(connPool *pgx.ConnPool, connConf pgx.ConnConfig) (*Postgres, er
 func (p *Postgres) AddTeacher(teacher store.Teacher) error {
 	_, err := p.connPool.Exec(
 		`INSERT INTO teachers("id", "name", "surname", "email", "degree", "about") 
-					VALUES ($1, $2, $3, $4, $5, $6)`,
+					VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) 
+					DO UPDATE SET 
+						name = $2
+						surname = $3
+						email = $4
+						degree = $5
+						about = $6`,
 		teacher.ID,
 		teacher.Name,
 		teacher.Surname,

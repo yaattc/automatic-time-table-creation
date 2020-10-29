@@ -71,3 +71,169 @@ const (
       ```
     - Body: `empty`
 
+- `POST /api/v1/teacher` - add/update (in case if `id` is empty) teacher.
+  - Body (weekday counts from 0 - Sunday, 6 - Saturday):
+    ```json
+    {
+      "id": "uuid",
+      "name": "Ivan",
+      "surname": "Konyukhov",
+      "email": "i.konyukhov@innopolis.ru",
+      "degree": "Dr.",
+      "about": "A good professor :)"
+    }
+    ```
+  - Response - updated or added teacher, in case of adding `preferences` might be shrinked: 
+    ```json
+    {
+      "id": "uuid",
+      "name": "Ivan",
+      "surname": "Konyukhov",
+      "email": "i.konyukhov@innopolis.ru",
+      "degree": "Dr.",
+      "about": "A good professor :)",
+      "preferences": {
+        "time_slots": [
+            {
+              "weekday": 1,
+              "start": "19:24:00.000000",
+              "duration": "1h30m0s",
+              "location": "room #108"
+            }
+        ],
+        "staff": [
+          {
+            "id": "uuid",
+            "name": "Nursultan",
+            "surname": "Askarbekuly",
+            "email": "n.askarbekuly@innopolis.ru",
+            "degree": "Mr.",
+            "about": "A good TA"
+          }
+        ],
+        "locations": [
+          "room #108",
+          "room #109",
+          "room #231"
+        ]
+      }
+    }
+    ```
+
+- `DELETE /api/v1/teacher?id=teacherID` - delete teacher
+  - Body: `empty`
+  - Response:
+    ```json
+    {
+      "deleted": true
+    }
+    ```
+
+- `GET /api/v1/teacher?id=teacherID` - list teachers or get a teacher
+  - Body: `empty`
+  - Response (in case if `teacherID` is not provided, the preferences will be shrinked):
+    ```json
+    {
+      "teachers": [
+        {
+          "id": "uuid",
+          "name": "Ivan",
+          "surname": "Konyukhov",
+          "email": "i.konyukhov@innopolis.ru",
+          "degree": "Dr.",
+          "about": "A good professor :)",
+          "preferences": {
+            "time_slots": [
+                {
+                  "weekday": 1,
+                  "start": "19:24:00.000000",
+                  "duration": "1h30m0s",
+                  "location": "room #108"
+                }
+            ],
+            "staff": [
+              {
+                "id": "uuid",
+                "name": "Nursultan",
+                "surname": "Askarbekuly",
+                "email": "n.askarbekuly@innopolis.ru",
+                "degree": "Mr.",
+                "about": "A good TA"
+              }
+            ],
+            "locations": [
+              "room #108",
+              "room #109",
+              "room #231"
+            ]
+          }
+        }
+      ]
+    }
+    ```
+
+- `POST /teacher/{id}/preferences` - set teacher preferences
+  - Body:
+    ```json
+    {
+      "time_slots": [
+          {
+            "weekday": 1,
+            "start": "19:24:00.000000",
+            "duration": "1h30m0s",
+            "location": "room #108"
+          }
+      ],
+      "staff": [
+        {
+          "id": "uuid",
+          "name": "Nursultan",
+          "surname": "Askarbekuly",
+          "email": "n.askarbekuly@innopolis.ru",
+          "degree": "Mr.",
+          "about": "A good TA"
+        }
+      ],
+      "locations": [
+        "room #108",
+        "room #109",
+        "room #231"
+      ]
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "id": "uuid",
+      "name": "Ivan",
+      "surname": "Konyukhov",
+      "email": "i.konyukhov@innopolis.ru",
+      "degree": "Dr.",
+      "about": "A good professor :)",
+      "preferences": {
+        "time_slots": [
+            {
+              "weekday": 1,
+              "start": "19:24:00.000000",
+              "duration": "1h30m0s",
+              "location": "room #108"
+            }
+        ],
+        "staff": [
+          {
+            "id": "uuid",
+            "name": "Nursultan",
+            "surname": "Askarbekuly",
+            "email": "n.askarbekuly@innopolis.ru",
+            "degree": "Mr.",
+            "about": "A good TA"
+          }
+        ],
+        "locations": [
+          "room #108",
+          "room #109",
+          "room #231"
+        ]
+      }
+    }
+    ```

@@ -60,7 +60,7 @@ type Group struct {
 
 // Teacher describes a basic teacher with its own name and surname
 type Teacher struct {
-	Preferences TeacherPreferences `json:"preferences"`
+	Preferences TeacherPreferences `json:"preferences,omitempty"`
 	TeacherDetails
 }
 
