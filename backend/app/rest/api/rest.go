@@ -90,7 +90,7 @@ func (s *Rest) routes() chi.Router {
 		rapi.Post("/teacher", s.privRest.addTeacherCtrl)
 		rapi.Delete("/teacher", s.privRest.deleteTeacherCtrl)
 		rapi.Get("/teacher", s.privRest.listTeachersCtrl)
-		rapi.Post("/teacher/{id}", s.privRest.setTeacherPreferencesCtrl)
+		rapi.Post("/teacher/{id}/preferences", s.privRest.setTeacherPreferencesCtrl)
 	})
 
 	return r

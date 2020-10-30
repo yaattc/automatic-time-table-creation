@@ -27,10 +27,10 @@ func (p *Postgres) AddTeacher(teacher store.Teacher) error {
 		`INSERT INTO teachers("id", "name", "surname", "email", "degree", "about") 
 					VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) 
 					DO UPDATE SET 
-						name = $2
-						surname = $3
-						email = $4
-						degree = $5
+						name = $2,
+						surname = $3,
+						email = $4,
+						degree = $5,
 						about = $6`,
 		teacher.ID,
 		teacher.Name,
@@ -38,7 +38,7 @@ func (p *Postgres) AddTeacher(teacher store.Teacher) error {
 		teacher.Email,
 		teacher.Degree,
 		teacher.About)
-	return errors.Wrapf(err, "failed to insert teacher %+v", teacher)
+	return errors.Wrap(err, "failed to insert teacher")
 }
 
 // DeleteTeacher from the database
@@ -54,8 +54,13 @@ func (p *Postgres) ListTeachers() ([]store.TeacherDetails, error) {
 		return nil, errors.Wrap(err, "failed to begin transaction")
 	}
 	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Printf("[DEBUG] failed to rollback transaction on listing teachers: %v", err)
+		}
+	}()
+	defer func() {
 		if err := tx.Commit(); err != nil {
-			log.Printf("[WARN] failed to commit transaction on listing teachers")
+			log.Printf("[WARN] failed to commit transaction on listing teachers: %v", err)
 		}
 	}()
 
@@ -95,8 +100,13 @@ func (p *Postgres) GetTeacherFull(teacherID string) (store.Teacher, error) {
 		return store.Teacher{}, errors.Wrap(err, "failed to begin transaction")
 	}
 	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Printf("[DEBUG] failed to rollback transaction on get full teacher detail: %v", err)
+		}
+	}()
+	defer func() {
 		if err := tx.Commit(); err != nil {
-			log.Printf("[WARN] failed to commit transaction on listing teachers")
+			log.Printf("[WARN] failed to commit transaction on get full teacher detail: %v", err)
 		}
 	}()
 
@@ -168,12 +178,17 @@ func (p *Postgres) getStaffPreferences(teacherID string, tx *pgx.Tx) ([]store.Te
 	}
 	defer rows.Close()
 
-	var tds []store.TeacherDetails
+	var tIDs []string
 	for rows.Next() {
 		var tID string
 		if err = rows.Scan(&tID); err != nil {
 			return nil, errors.Wrapf(err, "failed to scan staff for %s", teacherID)
 		}
+		tIDs = append(tIDs, tID)
+	}
+
+	var tds []store.TeacherDetails
+	for _, tID := range tIDs {
 		t, err := p.getTeacherDetails(tID, tx)
 		if err != nil {
 			return nil, err
@@ -201,14 +216,20 @@ func (p *Postgres) SetPreferences(teacherID string, pref store.TeacherPreference
 		return errors.Wrap(err, "failed to begin transaction")
 	}
 	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Printf("[DEBUG] failed to rollback transaction on set preferences: %v", err)
+		}
+	}()
+	defer func() {
 		if err := tx.Commit(); err != nil {
-			log.Printf("[WARN] failed to commit transaction on listing teachers")
+			log.Printf("[WARN] failed to commit transaction on set preferences: %v", err)
 		}
 	}()
 
 	// setting staff preferences
 	for _, t := range pref.Staff {
-		_, err := p.connPool.Exec(`INSERT INTO teacher_preferences_staff("teacher_id", "staff_id") VALUES ($1, $2)`,
+		_, err := p.connPool.Exec(`INSERT INTO teacher_preferences_staff("teacher_id", "staff_id") VALUES ($1, $2) 
+										ON CONFLICT (teacher_id, staff_id) DO UPDATE SET teacher_id = $1, staff_id = $2`,
 			teacherID, t.ID)
 		if err != nil {
 			return errors.Wrapf(err, "failed to insert a staff preference for %s with the staff %s", teacherID, t.ID)

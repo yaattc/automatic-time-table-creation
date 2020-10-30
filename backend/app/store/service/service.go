@@ -33,7 +33,7 @@ func (s *DataStore) AddTeacher(teacher store.Teacher) (teacherID string, err err
 		teacher.ID = uuid.New().String()
 	}
 	if err := s.TeacherRepository.AddTeacher(teacher); err != nil {
-		return "", errors.Wrapf(err, "failed to add teacher to database %+v", teacher)
+		return "", errors.Wrapf(err, "failed to add teacher %s %s to database", teacher.Name, teacher.Surname)
 	}
 	return teacher.ID, nil
 }

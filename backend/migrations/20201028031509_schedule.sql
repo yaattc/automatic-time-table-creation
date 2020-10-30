@@ -17,16 +17,30 @@ CREATE TABLE teachers (
     PRIMARY KEY (id)
 );
 
+
 CREATE TABLE teacher_preferences (
     teacher_id UUID NOT NULL UNIQUE,
-    locations JSONB NOT NULL DEFAULT '[]',
+    locations JSONB,
     CONSTRAINT FK_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE
 );
+
+CREATE OR REPLACE FUNCTION create_prefs_on_teacher_insert()
+    RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO teacher_preferences("teacher_id", "locations") VALUES (NEW.id, NULL) ON CONFLICT DO NOTHING;
+    RETURN NEW;
+END;
+$$ LANGUAGE 'plpgsql';
+
+CREATE TRIGGER teachers_create_preferences
+    AFTER INSERT ON teachers
+    FOR EACH ROW EXECUTE PROCEDURE create_prefs_on_teacher_insert();
 
 CREATE TABLE teacher_preferences_staff (
     teacher_id UUID NOT NULL,
     staff_id UUID NOT NULL,
     CONSTRAINT ts_pk PRIMARY KEY (teacher_id, staff_id),
+    CONSTRAINT teacher_staff UNIQUE (teacher_id, staff_id),
     CONSTRAINT FK_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE ,
     CONSTRAINT FK_staff FOREIGN KEY (staff_id) REFERENCES teachers(id) ON DELETE CASCADE
 );

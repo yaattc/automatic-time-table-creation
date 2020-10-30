@@ -115,6 +115,7 @@ func (s *Server) makeAuthenticator(ds *service.DataStore) *auth.Service {
 		TokenDuration:  s.Auth.TTL.JWT,
 		CookieDuration: s.Auth.TTL.Cookie,
 		JWTQuery:       "jwt",
+		DisableXSRF:    true,
 		Issuer:         "attc",
 		URL:            strings.TrimSuffix(s.ServiceURL, "/"),
 		Validator: token.ValidatorFunc(func(token string, claims token.Claims) bool { // check on each auth call (in middleware)
