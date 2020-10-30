@@ -62,12 +62,50 @@ func (h *Clock) UnmarshalJSON(b []byte) error {
 	if !ok {
 		return ErrInvalidClock
 	}
-	t, err := time.Parse(ISO8601ClockMicro, val)
+	t, err := TryParseTime(val, ISO8601Clock, ISO8601ClockMicro)
 	if err != nil {
-		return wrapExternalErr(err)
+		return err
 	}
 	*h = Clock(t)
 	return nil
+}
+
+// TryParseTime tries to parse the value as a time.Time in several
+// formats, it doesn't
+func TryParseTime(val string, formats ...string) (time.Time, error) {
+	ue := UnknownFormatError{Layouts: formats, Val: val}
+	for _, fm := range formats {
+		t, err := time.Parse(fm, val)
+		if err == nil {
+			return t, nil
+		}
+		ue.Errors = append(ue.Errors, err)
+	}
+	return time.Time{}, &ue
+}
+
+// UnknownFormatError composes all errors got from all attempts
+// to parse in different layouts
+type UnknownFormatError struct {
+	Errors  []error
+	Layouts []string
+	Val     string
+}
+
+// Error returns the string representation of a UnknownFormatError.
+func (e *UnknownFormatError) Error() string {
+	lts := ""
+	for i := range e.Layouts {
+		lts += quote(e.Layouts[i])
+		if i < len(e.Layouts)-1 {
+			lts += ", "
+		}
+	}
+	return fmt.Sprintf("timetype: failed to parse "+quote(e.Val)+" in layouts: [%s]", lts)
+}
+
+func quote(s string) string {
+	return "\"" + s + "\""
 }
 
 // Scan the given SQL value as Clock
@@ -78,15 +116,15 @@ func (h *Clock) Scan(src interface{}) (err error) {
 	case time.Time:
 		*h = Clock(v)
 	case string:
-		t, err := time.Parse(ISO8601ClockMicro, v)
+		t, err := TryParseTime(v, ISO8601Clock, ISO8601ClockMicro)
 		if err != nil {
-			return wrapExternalErr(err)
+			return err
 		}
 		*h = Clock(t)
 	case []byte:
-		t, err := time.Parse(ISO8601ClockMicro, string(v))
+		t, err := TryParseTime(string(v), ISO8601Clock, ISO8601ClockMicro)
 		if err != nil {
-			return wrapExternalErr(err)
+			return err
 		}
 		*h = Clock(t)
 	default:

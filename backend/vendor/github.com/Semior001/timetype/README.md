@@ -1,7 +1,10 @@
 # timetype ![Go](https://github.com/Semior001/timetype/workflows/Go/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/Semior001/timetype/badge.svg?branch=master)](https://coveralls.io/github/Semior001/timetype?branch=master) [![go report card](https://goreportcard.com/badge/github.com/semior001/timetype)](https://goreportcard.com/report/github.com/semior001/timetype) [![PkgGoDev](https://pkg.go.dev/badge/github.com/Semior001/timetype)](https://pkg.go.dev/github.com/Semior001/timetype)
-Package adds some time types for easier work, serialize and deserialize them and some helper functions. Types satisfy the `fmt.GoStringer` and `fmt.Stringer` interfaces for easier debugging and `sql.Scanner` and `sql.Valuer` to allow to use this types with the SQL drivers.  
+Package adds some time types for easier work, serialize and deserialize them and some helper functions. Types satisfy the `fmt.GoStringer` and `fmt.Stringer` interfaces for easier debugging and `sql.Scanner` and `sql.Valuer` to allow to use this types with the SQL drivers.   
 
 ## `timetype.Clock`
+
+The type implements `sql.Scanner` and `json.Unmarshaler` and tries to read the time value in two formats: ISO8601 for times without date 
+and ISO8601 with micro precision without date.
 
 ```go
 // Clock is a wrapper for time.time to allow parsing datetime stamp with time only in
@@ -39,14 +42,18 @@ func ParseWeekday(s string) (time.Weekday, error)
 ```go
 // Parsing errors
 var (
-	ErrInvalidClock    = errors.New("timetype: invalid clock")
-	ErrInvalidDuration = errors.New("timetype: invalid duration")
-    ErrInvalidWeekday = errors.New("timetype: invalid weekday")
+    ErrInvalidClock    = errors.New("timetype: invalid clock")
+    ErrInvalidDuration = errors.New("timetype: invalid duration")
+    ErrInvalidWeekday  = errors.New("timetype: invalid weekday")
+    ErrUnknownFormat   = errors.New("timetype: unknown format")
 )
 ```
 
 ## Time formats
 ```go
-// ISO8601Clock describes time layout in ISO 8601 standard
-const ISO8601Clock = "15:04:05"
+// Templates to parse clocks
+const (
+	ISO8601Clock      = "15:04:05"
+	ISO8601ClockMicro = "15:04:05.000000"
+)
 ```

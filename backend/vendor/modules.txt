@@ -1,6 +1,6 @@
 # cloud.google.com/go v0.34.0
 cloud.google.com/go/compute/metadata
-# github.com/Semior001/timetype v0.1.1
+# github.com/Semior001/timetype v0.1.2
 ## explicit
 github.com/Semior001/timetype
 # github.com/cespare/xxhash/v2 v2.1.1
@@ -93,7 +93,6 @@ github.com/xdg/stringprep
 # go.etcd.io/bbolt v1.3.4
 go.etcd.io/bbolt
 # go.mongodb.org/mongo-driver v1.3.2
-## explicit
 go.mongodb.org/mongo-driver/bson
 go.mongodb.org/mongo-driver/bson/bsoncodec
 go.mongodb.org/mongo-driver/bson/bsonoptions
