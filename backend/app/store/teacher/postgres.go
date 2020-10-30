@@ -22,8 +22,8 @@ func NewPostgres(connPool *pgx.ConnPool, connConf pgx.ConnConfig) (*Postgres, er
 }
 
 // AddTeacher to database
-func (p *Postgres) AddTeacher(teacher store.TeacherDetails) error {
-	_, err := p.connPool.Exec(
+func (p *Postgres) AddTeacher(teacher store.TeacherDetails) (string, error) {
+	row := p.connPool.QueryRow(
 		`INSERT INTO teachers("id", "name", "surname", "email", "degree", "about") 
 					VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) 
 					DO UPDATE SET 
@@ -31,14 +31,18 @@ func (p *Postgres) AddTeacher(teacher store.TeacherDetails) error {
 						surname = $3,
 						email = $4,
 						degree = $5,
-						about = $6`,
+						about = $6
+					RETURNING id`,
 		teacher.ID,
 		teacher.Name,
 		teacher.Surname,
 		teacher.Email,
 		teacher.Degree,
 		teacher.About)
-	return errors.Wrap(err, "failed to insert teacher")
+	var id string
+	err := row.Scan(&id)
+
+	return id, errors.Wrap(err, "failed to insert teacher")
 }
 
 // DeleteTeacher from the database

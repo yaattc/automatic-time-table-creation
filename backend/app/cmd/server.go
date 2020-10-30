@@ -71,9 +71,11 @@ func (s *Server) Execute(_ []string) error {
 
 	ds := &service.DataStore{UserRepository: ur, TeacherRepository: tr}
 
-	if err = ds.RegisterAdmin(s.Admin.Email, s.Admin.Password); err != nil {
+	adminID, err := ds.RegisterAdmin(s.Admin.Email, s.Admin.Password)
+	if err != nil {
 		return errors.Wrapf(err, "failed to register admin %s:%s", s.Admin.Email, s.Admin.Password)
 	}
+	log.Printf("[DEBUG] registered admin %s with id %s", s.Admin.Email, adminID)
 
 	authenticator := s.makeAuthenticator(ds)
 	srv := api.Rest{

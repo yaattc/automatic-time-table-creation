@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/pkg/errors"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
@@ -45,10 +46,11 @@ func (a *AddUser) Execute(_ []string) error {
 		return errors.Wrapf(err, "failed to unmarshal list of privileges %s", a.User.Privileges)
 	}
 
-	err = ds.AddUser(store.User{
+	id, err := ds.AddUser(store.User{
 		ID:         a.User.ID,
 		Email:      a.User.Email,
 		Privileges: p,
 	}, a.User.Password)
+	log.Printf("[INFO] registered user with id %s", id)
 	return errors.Wrap(err, "failed to add user")
 }

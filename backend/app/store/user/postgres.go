@@ -1,6 +1,8 @@
 package user
 
 import (
+	"strings"
+
 	"github.com/jackc/pgx"
 	"github.com/pkg/errors"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
@@ -35,12 +37,17 @@ func (p *Postgres) GetPasswordHash(email string) (pwd string, err error) {
 }
 
 // AddUser to the database
-func (p *Postgres) AddUser(u store.User, pwd string, ignoreIfExists bool) (err error) {
-	query := "INSERT INTO users(id, email, password, privileges) VALUES ($1, $2, $3, $4)"
-	if ignoreIfExists {
-		query += " ON CONFLICT DO NOTHING"
-	}
-	_, err = p.connPool.Exec(query, u.ID, u.Email, pwd, u.Privileges)
+func (p *Postgres) AddUser(u store.User, pwd string, ignoreIfExists bool) (id string, err error) {
+	query := `INSERT INTO users(id, email, password, privileges) VALUES ($1, $2, $3, $4) RETURNING id`
+	id = u.ID
 
-	return errors.Wrapf(err, "failed to add user %s into database", u.ID)
+	if ignoreIfExists {
+		query = strings.TrimSuffix(query, `RETURNING id`) +
+			` ON CONFLICT (email) DO UPDATE SET email=EXCLUDED.email RETURNING id`
+	}
+
+	row := p.connPool.QueryRow(query, u.ID, u.Email, pwd, u.Privileges)
+	err = row.Scan(&id)
+
+	return id, errors.Wrapf(err, "failed to add user %s into database", u.ID)
 }

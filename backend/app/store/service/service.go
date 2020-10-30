@@ -32,16 +32,16 @@ func (s *DataStore) AddTeacher(teacher store.Teacher) (teacherID string, err err
 	if teacher.ID == "" {
 		teacher.ID = uuid.New().String()
 	}
-	if err := s.TeacherRepository.AddTeacher(teacher.TeacherDetails); err != nil {
+	if teacherID, err = s.TeacherRepository.AddTeacher(teacher.TeacherDetails); err != nil {
 		return "", errors.Wrapf(err, "failed to add teacher %s %s to database", teacher.Name, teacher.Surname)
 	}
 	if !teacher.Preferences.Empty() {
-		if err := s.TeacherRepository.SetPreferences(teacher.ID, teacher.Preferences); err != nil {
+		if err = s.TeacherRepository.SetPreferences(teacher.ID, teacher.Preferences); err != nil {
 			return "", errors.Wrapf(err,
 				"failed to set preferences for teacher %s %s during the addition", teacher.Name, teacher.Surname)
 		}
 	}
-	return teacher.ID, nil
+	return teacherID, nil
 }
 
 // DeleteTeacher from the database by its id
@@ -93,25 +93,30 @@ func (s *DataStore) CheckUserCredentials(email string, password string) (ok bool
 }
 
 // AddUser to the database, hash its password and give it an ID, if needed
-func (s *DataStore) AddUser(user store.User, password string) (err error) {
+func (s *DataStore) AddUser(user store.User, password string) (id string, err error) {
 	// hashing password
 	b, err := bcrypt.GenerateFromPassword([]byte(password), s.BCryptCost)
 	if err != nil {
-		return errors.Wrapf(err, "failed to hash %s user's password with bcrypt", user.Email)
+		return "", errors.Wrapf(err, "failed to hash %s user's password with bcrypt", user.Email)
 	}
 	// adding id
 	if user.ID == "" {
 		user.ID = "local_" + token.HashID(sha1.New(), user.Email) // nolint // fixme
 	}
-	return errors.Wrapf(s.UserRepository.AddUser(user, string(b), false), "failed to add user %s to database", user.ID)
+
+	if id, err = s.UserRepository.AddUser(user, string(b), false); err != nil {
+		return "", errors.Wrapf(err, "failed to add user %s to database", user.ID)
+	}
+
+	return id, nil
 }
 
 // RegisterAdmin in the database
-func (s *DataStore) RegisterAdmin(email string, password string) error {
+func (s *DataStore) RegisterAdmin(email string, password string) (id string, err error) {
 	// hashing password
 	b, err := bcrypt.GenerateFromPassword([]byte(password), s.BCryptCost)
 	if err != nil {
-		return errors.Wrapf(err, "failed to hash %s user's password with bcrypt", email)
+		return "", errors.Wrapf(err, "failed to hash %s user's password with bcrypt", email)
 	}
 	u := store.User{
 		ID:         "local_" + token.HashID(sha1.New(), email), // nolint // fixme
@@ -119,5 +124,9 @@ func (s *DataStore) RegisterAdmin(email string, password string) error {
 		Privileges: []store.Privilege{store.PrivReadUsers, store.PrivEditUsers, store.PrivListUsers, store.PrivAddUsers},
 	}
 	log.Printf("[INFO] trying to register admin with %+v and pwd %s", u, password)
-	return errors.Wrapf(s.UserRepository.AddUser(u, string(b), true), "failed to add user %s to database", u.ID)
+	if id, err = s.UserRepository.AddUser(u, string(b), true); err != nil {
+		return "", errors.Wrapf(err, "failed to add user %s to database", u.ID)
+	}
+
+	return id, nil
 }

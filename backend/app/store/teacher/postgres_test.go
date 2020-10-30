@@ -6,6 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
+	"github.com/Semior001/timetype"
+
 	"github.com/jackc/pgx"
 	"github.com/stretchr/testify/require"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
@@ -22,13 +26,62 @@ func TestPostgres_AddTeacher(t *testing.T) {
 		Degree:  "nope",
 		About:   "Not a teacher but a man",
 	}
-	err := srv.AddTeacher(expected)
+	id, err := srv.AddTeacher(expected)
 	require.NoError(t, err)
+	assert.Equal(t, expected.ID, id)
 
 	actual := store.TeacherDetails{}
 	row := srv.connPool.QueryRow(`SELECT id, name, surname, email, degree, about FROM teachers`)
 	err = row.Scan(&actual.ID, &actual.Name, &actual.Surname, &actual.Email, &actual.Degree, &actual.About)
 	require.NoError(t, err)
+}
+
+func TestPostgres_DeleteTeacher(t *testing.T) {
+	// fixme tests should be independent
+	srv := preparePgStore(t)
+	teacher := store.Teacher{
+		TeacherDetails: store.TeacherDetails{
+			ID:      "00000000-0000-0000-0000-000000000001",
+			Name:    "foo",
+			Surname: "bar",
+			Email:   "foo@bar.com",
+			Degree:  "graduate",
+			About:   "some details about teacher",
+		},
+		Preferences: store.TeacherPreferences{
+			TimeSlots: []store.TimeSlot{
+				{
+					Weekday:  time.Monday,
+					Start:    timetype.NewClock(20, 0, 0, 0, time.UTC),
+					Duration: timetype.Duration(1*time.Hour + 30*time.Minute),
+					Location: "room 108",
+				},
+				{
+					Weekday:  time.Tuesday,
+					Start:    timetype.NewClock(10, 0, 0, 0, time.UTC),
+					Duration: timetype.Duration(1*time.Hour + 30*time.Minute),
+					Location: "room 109",
+				},
+				{
+					Weekday:  time.Friday,
+					Start:    timetype.NewClock(15, 0, 0, 0, time.UTC),
+					Duration: timetype.Duration(1*time.Hour + 30*time.Minute),
+					Location: "room 102",
+				},
+			},
+			Locations: []store.Location{"108", "102", "109"},
+		},
+	}
+	id, err := srv.AddTeacher(teacher.TeacherDetails)
+	require.NoError(t, err)
+	assert.Equal(t, teacher.ID, id)
+
+	err = srv.SetPreferences(teacher.ID, teacher.Preferences)
+	require.NoError(t, err)
+
+	err = srv.DeleteTeacher(teacher.ID)
+	require.NoError(t, err)
+
 }
 
 func preparePgStore(t *testing.T) *Postgres {
