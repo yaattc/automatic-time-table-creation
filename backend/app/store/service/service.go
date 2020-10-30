@@ -32,8 +32,14 @@ func (s *DataStore) AddTeacher(teacher store.Teacher) (teacherID string, err err
 	if teacher.ID == "" {
 		teacher.ID = uuid.New().String()
 	}
-	if err := s.TeacherRepository.AddTeacher(teacher); err != nil {
+	if err := s.TeacherRepository.AddTeacher(teacher.TeacherDetails); err != nil {
 		return "", errors.Wrapf(err, "failed to add teacher %s %s to database", teacher.Name, teacher.Surname)
+	}
+	if !teacher.Preferences.Empty() {
+		if err := s.TeacherRepository.SetPreferences(teacher.ID, teacher.Preferences); err != nil {
+			return "", errors.Wrapf(err,
+				"failed to set preferences for teacher %s %s during the addition", teacher.Name, teacher.Surname)
+		}
 	}
 	return teacher.ID, nil
 }

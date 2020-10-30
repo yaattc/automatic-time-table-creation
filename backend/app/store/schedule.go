@@ -91,6 +91,11 @@ type TeacherPreferences struct {
 	Locations []Location       `json:"rooms"`      // preferable rooms for teaching
 }
 
+// Empty checks whether the preferences are empty or not
+func (p TeacherPreferences) Empty() bool {
+	return len(p.TimeSlots) < 1 && len(p.Staff) < 1 && len(p.Locations) < 1
+}
+
 // TimeSlot describes a particular period of time in a week
 type TimeSlot struct {
 	Weekday  time.Weekday      `json:"weekday"`  // a weekday of time slot

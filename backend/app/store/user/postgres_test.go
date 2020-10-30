@@ -99,10 +99,7 @@ func preparePgStore(t *testing.T) *Postgres {
 
 	log.Printf("[INFO] initialized postgres connection pool to %s:%d", connConf.Host, connConf.Port)
 
-	p := &Postgres{
-		connPool: pool,
-		connConf: connConf,
-	}
+	p, err := NewPostgres(pool, connConf)
 	require.NoError(t, err)
 
 	// setting cleanups
