@@ -4,10 +4,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/teacher"
+
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 
 	"github.com/pkg/errors"
-	"github.com/yaattc/automatic-time-table-creation/backend/app/store/engine"
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/user"
 
 	"github.com/go-pkgz/auth/provider"
 
@@ -51,21 +53,35 @@ type AdminGroup struct {
 
 // Execute runs http web server
 func (s *Server) Execute(_ []string) error {
-	pg, err := engine.NewPostgres(s.DBConnStr)
+	pgpool, pgconf, err := preparePostgres(s.DBConnStr)
 	if err != nil {
-		return errors.Wrapf(err, "failed to initialize postgres engine at %s: %v", s.DBConnStr, err)
+		return err
 	}
 
-	ds := &service.DataStore{Engine: pg}
+	// initializing repositories
+	ur, err := user.NewPostgres(pgpool, pgconf)
+	if err != nil {
+		return errors.Wrapf(err, "failed to initialize postgres user repository at %s", s.DBConnStr)
+	}
 
-	if err = ds.RegisterAdmin(s.Admin.Email, s.Admin.Password); err != nil {
+	tr, err := teacher.NewPostgres(pgpool, pgconf)
+	if err != nil {
+		return errors.Wrapf(err, "failed to initialize postgres teacher repository at %s", s.DBConnStr)
+	}
+
+	ds := &service.DataStore{UserRepository: ur, TeacherRepository: tr}
+
+	adminID, err := ds.RegisterAdmin(s.Admin.Email, s.Admin.Password)
+	if err != nil {
 		return errors.Wrapf(err, "failed to register admin %s:%s", s.Admin.Email, s.Admin.Password)
 	}
+	log.Printf("[DEBUG] registered admin %s with id %s", s.Admin.Email, adminID)
 
 	authenticator := s.makeAuthenticator(ds)
 	srv := api.Rest{
 		Version:       s.Version,
 		Authenticator: authenticator,
+		DataStore:     ds,
 	}
 
 	srv.Run(s.Port)
@@ -101,6 +117,7 @@ func (s *Server) makeAuthenticator(ds *service.DataStore) *auth.Service {
 		TokenDuration:  s.Auth.TTL.JWT,
 		CookieDuration: s.Auth.TTL.Cookie,
 		JWTQuery:       "jwt",
+		DisableXSRF:    true,
 		Issuer:         "attc",
 		URL:            strings.TrimSuffix(s.ServiceURL, "/"),
 		Validator: token.ValidatorFunc(func(token string, claims token.Claims) bool { // check on each auth call (in middleware)

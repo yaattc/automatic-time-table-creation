@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/render"
 	log "github.com/go-pkgz/lgr"
+	R "github.com/go-pkgz/rest"
 )
 
 // ErrCode is used for client mapping and translation
@@ -17,9 +18,9 @@ type ErrCode int
 
 // All error codes
 const (
-	ErrInternal ErrCode = 0 // any internal error
-	ErrDecode   ErrCode = 1 // failed to unmarshal incoming request
-	ErrBadReq   ErrCode = 2 // request contains incorrect data or doesn't contain data
+	ErrInternal   ErrCode = 0 // any internal error
+	ErrDecode     ErrCode = 1 // failed to unmarshal incoming request
+	ErrBadRequest ErrCode = 2 // request contains incorrect data or doesn't contain data
 )
 
 // SendErrorJSON makes {error: blah, details: blah} json body and responds with error code
@@ -28,11 +29,11 @@ func SendErrorJSON(w http.ResponseWriter, r *http.Request, httpStatusCode int, e
 
 	if err != nil {
 		log.Printf("[WARN] %s", errDetailsMsg(r, httpStatusCode, err, errMsg))
-		render.JSON(w, r, JSON{"error": err.Error(), "details": errMsg, "code": errCode})
+		render.JSON(w, r, R.JSON{"error": err.Error(), "details": errMsg, "code": errCode})
 		return
 	}
 
-	render.JSON(w, r, JSON{"error": nil, "details": errMsg, "code": errCode})
+	render.JSON(w, r, R.JSON{"error": nil, "details": errMsg, "code": errCode})
 }
 
 func errDetailsMsg(r *http.Request, code int, err error, msg string) string {

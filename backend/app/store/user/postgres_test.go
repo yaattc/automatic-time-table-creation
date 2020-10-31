@@ -1,8 +1,10 @@
-package engine
+package user
 
 import (
+	"log"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -41,25 +43,29 @@ func TestPostgres_GetUser(t *testing.T) {
 func TestPostgres_AddUser(t *testing.T) {
 	srv := preparePgStore(t)
 
-	err := srv.AddUser(store.User{
+	id, err := srv.AddUser(store.User{
 		ID:         "00000000-0000-0000-0000-000000000002",
 		Email:      "foo@bar.com",
 		Privileges: []store.Privilege{store.PrivAddUsers, store.PrivListUsers, store.PrivReadUsers},
 	}, "blahblah", false)
 	require.NoError(t, err)
+	assert.Equal(t, "00000000-0000-0000-0000-000000000002", id)
 
 	row := srv.connPool.QueryRow(`SELECT id, email, privileges, password FROM users`)
-	var id, email, pwd string
+	var email, pwd string
 	var privs []store.Privilege
 	err = row.Scan(&id, &email, &privs, &pwd)
 	require.NoError(t, err)
 
-	err = srv.AddUser(store.User{
-		ID:         "00000000-0000-0000-0000-000000000002",
-		Email:      "foo1@bar.com",
+	id, err = srv.AddUser(store.User{
+		ID:         "00000000-0000-0000-0000-000000000003",
+		Email:      "foo@bar.com",
 		Privileges: []store.Privilege{store.PrivListUsers, store.PrivReadUsers},
 	}, "blahblah", true)
 	require.NoError(t, err)
+	// user with the same email already exists, it should ignore the new ID value and return
+	// the ID of the older row
+	assert.Equal(t, "00000000-0000-0000-0000-000000000002", id)
 
 	row = srv.connPool.QueryRow(`SELECT id, email, privileges, password FROM users`)
 	privs = []store.Privilege{}
@@ -83,9 +89,24 @@ func insertTestUsers(t *testing.T, srv *Postgres) {
 }
 
 func preparePgStore(t *testing.T) *Postgres {
-	p, err := NewPostgres(os.Getenv("DB_TEST"))
+	// initializing connection with postgres
+	connStr := os.Getenv("DB_TEST")
+	connConf, err := pgx.ParseConnectionString(connStr)
 	require.NoError(t, err)
 
+	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig:     connConf,
+		MaxConnections: 5,
+		AcquireTimeout: time.Minute,
+	})
+	require.NoError(t, err)
+
+	log.Printf("[INFO] initialized postgres connection pool to %s:%d", connConf.Host, connConf.Port)
+
+	p, err := NewPostgres(pool, connConf)
+	require.NoError(t, err)
+
+	// setting cleanups
 	cleanupStorage(t, p.connPool)
 	t.Cleanup(func() {
 		cleanupStorage(t, p.connPool)

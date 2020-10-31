@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/pkg/errors"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
-	"github.com/yaattc/automatic-time-table-creation/backend/app/store/engine"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store/service"
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/user"
 )
 
 // AddUser adds user to the database with the specified user data
@@ -26,12 +27,18 @@ type AddUser struct {
 
 // Execute runs http web server
 func (a *AddUser) Execute(_ []string) error {
-	pg, err := engine.NewPostgres(a.DBConnStr)
+	pgpool, pgconf, err := preparePostgres(a.DBConnStr)
 	if err != nil {
-		return errors.Wrapf(err, "failed to initialize postgres engine at %s: %v", a.DBConnStr, err)
+		return err
 	}
 
-	ds := &service.DataStore{Engine: pg}
+	// initializing repositories
+	ur, err := user.NewPostgres(pgpool, pgconf)
+	if err != nil {
+		return errors.Wrapf(err, "failed to initialize postgres user repository at %s", a.DBConnStr)
+	}
+
+	ds := &service.DataStore{UserRepository: ur}
 
 	var p []store.Privilege
 
@@ -39,10 +46,11 @@ func (a *AddUser) Execute(_ []string) error {
 		return errors.Wrapf(err, "failed to unmarshal list of privileges %s", a.User.Privileges)
 	}
 
-	err = ds.AddUser(store.User{
+	id, err := ds.AddUser(store.User{
 		ID:         a.User.ID,
 		Email:      a.User.Email,
 		Privileges: p,
 	}, a.User.Password)
+	log.Printf("[INFO] registered user with id %s", id)
 	return errors.Wrap(err, "failed to add user")
 }

@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/service"
+
 	"github.com/go-pkgz/auth"
 
 	"github.com/go-chi/chi"
@@ -24,7 +26,12 @@ type Rest struct {
 
 	httpServer *http.Server
 	lock       sync.Mutex
+	DataStore  *service.DataStore
+
+	privRest private
 }
+
+const hardBodyLimit = 1024 * 64 // limit size of body
 
 // Run starts the web-server for listening
 func (s *Rest) Run(port int) {
@@ -49,7 +56,14 @@ func (s *Rest) makeHTTPServer(port int, routes chi.Router) *http.Server {
 
 // notFound returns standard 404 not found message
 func (s *Rest) notFound(w http.ResponseWriter, r *http.Request) {
-	rest.SendErrorJSON(w, r, http.StatusNotFound, nil, "not found", rest.ErrBadReq)
+	rest.SendErrorJSON(w, r, http.StatusNotFound, nil, "not found", rest.ErrBadRequest)
+}
+
+func (s *Rest) controllerGroups() private {
+	privGroup := private{
+		dataService: s.DataStore,
+	}
+	return privGroup
 }
 
 func (s *Rest) routes() chi.Router {
@@ -63,6 +77,7 @@ func (s *Rest) routes() chi.Router {
 	r.NotFound(s.notFound)
 
 	authHandler, _ := s.Authenticator.Handlers()
+	s.privRest = s.controllerGroups()
 
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Timeout(5 * time.Second))
@@ -72,7 +87,10 @@ func (s *Rest) routes() chi.Router {
 	m := s.Authenticator.Middleware()
 
 	r.With(m.Auth).Route("/api/v1", func(rapi chi.Router) {
-		// todo add routes
+		rapi.Post("/teacher", s.privRest.addTeacherCtrl)
+		rapi.Delete("/teacher", s.privRest.deleteTeacherCtrl)
+		rapi.Get("/teacher", s.privRest.listTeachersCtrl)
+		rapi.Post("/teacher/{id}/preferences", s.privRest.setTeacherPreferencesCtrl)
 	})
 
 	return r
