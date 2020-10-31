@@ -27,6 +27,10 @@ type privStore interface {
 	ListTeachers() ([]store.TeacherDetails, error)
 	GetTeacherFull(teacherID string) (store.Teacher, error)
 	SetTeacherPreferences(teacherID string, pref store.TeacherPreferences) error
+
+	AddGroup(name string) (id string, err error)
+	ListGroups() ([]store.Group, error)
+	DeleteGroup(id string) error
 }
 
 // POST /teacher - adds teacher

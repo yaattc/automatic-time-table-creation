@@ -18,14 +18,23 @@ var _ privStore = &privStoreMock{}
 //
 //         // make and configure a mocked privStore
 //         mockedprivStore := &privStoreMock{
+//             AddGroupFunc: func(name string) (string, error) {
+// 	               panic("mock out the AddGroup method")
+//             },
 //             AddTeacherFunc: func(teacher store.Teacher) (string, error) {
 // 	               panic("mock out the AddTeacher method")
+//             },
+//             DeleteGroupFunc: func(id string) error {
+// 	               panic("mock out the DeleteGroup method")
 //             },
 //             DeleteTeacherFunc: func(teacherID string) error {
 // 	               panic("mock out the DeleteTeacher method")
 //             },
 //             GetTeacherFullFunc: func(teacherID string) (store.Teacher, error) {
 // 	               panic("mock out the GetTeacherFull method")
+//             },
+//             ListGroupsFunc: func() ([]store.Group, error) {
+// 	               panic("mock out the ListGroups method")
 //             },
 //             ListTeachersFunc: func() ([]store.TeacherDetails, error) {
 // 	               panic("mock out the ListTeachers method")
@@ -40,14 +49,23 @@ var _ privStore = &privStoreMock{}
 //
 //     }
 type privStoreMock struct {
+	// AddGroupFunc mocks the AddGroup method.
+	AddGroupFunc func(name string) (string, error)
+
 	// AddTeacherFunc mocks the AddTeacher method.
 	AddTeacherFunc func(teacher store.Teacher) (string, error)
+
+	// DeleteGroupFunc mocks the DeleteGroup method.
+	DeleteGroupFunc func(id string) error
 
 	// DeleteTeacherFunc mocks the DeleteTeacher method.
 	DeleteTeacherFunc func(teacherID string) error
 
 	// GetTeacherFullFunc mocks the GetTeacherFull method.
 	GetTeacherFullFunc func(teacherID string) (store.Teacher, error)
+
+	// ListGroupsFunc mocks the ListGroups method.
+	ListGroupsFunc func() ([]store.Group, error)
 
 	// ListTeachersFunc mocks the ListTeachers method.
 	ListTeachersFunc func() ([]store.TeacherDetails, error)
@@ -57,10 +75,20 @@ type privStoreMock struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// AddGroup holds details about calls to the AddGroup method.
+		AddGroup []struct {
+			// Name is the name argument value.
+			Name string
+		}
 		// AddTeacher holds details about calls to the AddTeacher method.
 		AddTeacher []struct {
 			// Teacher is the teacher argument value.
 			Teacher store.Teacher
+		}
+		// DeleteGroup holds details about calls to the DeleteGroup method.
+		DeleteGroup []struct {
+			// ID is the id argument value.
+			ID string
 		}
 		// DeleteTeacher holds details about calls to the DeleteTeacher method.
 		DeleteTeacher []struct {
@@ -71,6 +99,9 @@ type privStoreMock struct {
 		GetTeacherFull []struct {
 			// TeacherID is the teacherID argument value.
 			TeacherID string
+		}
+		// ListGroups holds details about calls to the ListGroups method.
+		ListGroups []struct {
 		}
 		// ListTeachers holds details about calls to the ListTeachers method.
 		ListTeachers []struct {
@@ -83,11 +114,45 @@ type privStoreMock struct {
 			Pref store.TeacherPreferences
 		}
 	}
+	lockAddGroup              sync.RWMutex
 	lockAddTeacher            sync.RWMutex
+	lockDeleteGroup           sync.RWMutex
 	lockDeleteTeacher         sync.RWMutex
 	lockGetTeacherFull        sync.RWMutex
+	lockListGroups            sync.RWMutex
 	lockListTeachers          sync.RWMutex
 	lockSetTeacherPreferences sync.RWMutex
+}
+
+// AddGroup calls AddGroupFunc.
+func (mock *privStoreMock) AddGroup(name string) (string, error) {
+	if mock.AddGroupFunc == nil {
+		panic("privStoreMock.AddGroupFunc: method is nil but privStore.AddGroup was just called")
+	}
+	callInfo := struct {
+		Name string
+	}{
+		Name: name,
+	}
+	mock.lockAddGroup.Lock()
+	mock.calls.AddGroup = append(mock.calls.AddGroup, callInfo)
+	mock.lockAddGroup.Unlock()
+	return mock.AddGroupFunc(name)
+}
+
+// AddGroupCalls gets all the calls that were made to AddGroup.
+// Check the length with:
+//     len(mockedprivStore.AddGroupCalls())
+func (mock *privStoreMock) AddGroupCalls() []struct {
+	Name string
+} {
+	var calls []struct {
+		Name string
+	}
+	mock.lockAddGroup.RLock()
+	calls = mock.calls.AddGroup
+	mock.lockAddGroup.RUnlock()
+	return calls
 }
 
 // AddTeacher calls AddTeacherFunc.
@@ -118,6 +183,37 @@ func (mock *privStoreMock) AddTeacherCalls() []struct {
 	mock.lockAddTeacher.RLock()
 	calls = mock.calls.AddTeacher
 	mock.lockAddTeacher.RUnlock()
+	return calls
+}
+
+// DeleteGroup calls DeleteGroupFunc.
+func (mock *privStoreMock) DeleteGroup(id string) error {
+	if mock.DeleteGroupFunc == nil {
+		panic("privStoreMock.DeleteGroupFunc: method is nil but privStore.DeleteGroup was just called")
+	}
+	callInfo := struct {
+		ID string
+	}{
+		ID: id,
+	}
+	mock.lockDeleteGroup.Lock()
+	mock.calls.DeleteGroup = append(mock.calls.DeleteGroup, callInfo)
+	mock.lockDeleteGroup.Unlock()
+	return mock.DeleteGroupFunc(id)
+}
+
+// DeleteGroupCalls gets all the calls that were made to DeleteGroup.
+// Check the length with:
+//     len(mockedprivStore.DeleteGroupCalls())
+func (mock *privStoreMock) DeleteGroupCalls() []struct {
+	ID string
+} {
+	var calls []struct {
+		ID string
+	}
+	mock.lockDeleteGroup.RLock()
+	calls = mock.calls.DeleteGroup
+	mock.lockDeleteGroup.RUnlock()
 	return calls
 }
 
@@ -180,6 +276,32 @@ func (mock *privStoreMock) GetTeacherFullCalls() []struct {
 	mock.lockGetTeacherFull.RLock()
 	calls = mock.calls.GetTeacherFull
 	mock.lockGetTeacherFull.RUnlock()
+	return calls
+}
+
+// ListGroups calls ListGroupsFunc.
+func (mock *privStoreMock) ListGroups() ([]store.Group, error) {
+	if mock.ListGroupsFunc == nil {
+		panic("privStoreMock.ListGroupsFunc: method is nil but privStore.ListGroups was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockListGroups.Lock()
+	mock.calls.ListGroups = append(mock.calls.ListGroups, callInfo)
+	mock.lockListGroups.Unlock()
+	return mock.ListGroupsFunc()
+}
+
+// ListGroupsCalls gets all the calls that were made to ListGroups.
+// Check the length with:
+//     len(mockedprivStore.ListGroupsCalls())
+func (mock *privStoreMock) ListGroupsCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockListGroups.RLock()
+	calls = mock.calls.ListGroups
+	mock.lockListGroups.RUnlock()
 	return calls
 }
 
