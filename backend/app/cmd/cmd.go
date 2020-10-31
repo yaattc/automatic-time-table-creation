@@ -48,10 +48,6 @@ func preparePostgres(connStr string) (*pgx.ConnPool, pgx.ConnConfig, error) {
 	p, err := pgx.NewConnPool(pgx.ConnPoolConfig{
 		ConnConfig:     connConf,
 		MaxConnections: 5,
-		AfterConnect: func(conn *pgx.Conn) error {
-			// todo no-op yet
-			return nil
-		},
 		AcquireTimeout: time.Minute,
 	})
 	if err != nil {

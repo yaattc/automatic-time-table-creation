@@ -36,10 +36,52 @@ func TestPostgres_AddTeacher(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestPostgres_DeleteTeacher(t *testing.T) {
-	// fixme tests should be independent
+func TestPostgres_GetTeacherFull(t *testing.T) {
 	srv := preparePgStore(t)
-	teacher := store.Teacher{
+	setupTestTeachers(t, srv)
+	tch, err := srv.GetTeacherFull(tchs[0].ID)
+	require.NoError(t, err)
+	assert.Equal(t, tchs[0], tch)
+}
+
+func TestPostgres_ListTeachers(t *testing.T) {
+	srv := preparePgStore(t)
+	setupTestTeachers(t, srv)
+	l, err := srv.ListTeachers()
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []store.TeacherDetails{
+		tchs[0].TeacherDetails,
+		tchs[1].TeacherDetails,
+		tchs[2].TeacherDetails,
+	}, l)
+}
+
+func TestPostgres_DeleteTeacherAndSetPrefs(t *testing.T) {
+	srv := preparePgStore(t)
+	setupTestTeachers(t, srv)
+
+	err := srv.DeleteTeacher(tchs[0].ID)
+	require.NoError(t, err)
+	var cnt int
+	row := srv.connPool.QueryRow(`SELECT COUNT(*) FROM teachers`)
+	err = row.Scan(&cnt)
+	require.NoError(t, err)
+	assert.Equal(t, 2, cnt)
+
+	row = srv.connPool.QueryRow(`SELECT COUNT(*) FROM teacher_preferences_staff`)
+	err = row.Scan(&cnt)
+	require.NoError(t, err)
+	assert.Zero(t, cnt)
+
+	row = srv.connPool.QueryRow(`SELECT COUNT(*) FROM teacher_preferences_time_slots`)
+	err = row.Scan(&cnt)
+	require.NoError(t, err)
+	assert.Zero(t, cnt)
+
+}
+
+var tchs = []store.Teacher{
+	{
 		TeacherDetails: store.TeacherDetails{
 			ID:      "00000000-0000-0000-0000-000000000001",
 			Name:    "foo",
@@ -70,18 +112,61 @@ func TestPostgres_DeleteTeacher(t *testing.T) {
 				},
 			},
 			Locations: []store.Location{"108", "102", "109"},
+			Staff: []store.TeacherDetails{
+				{
+					ID:      "00000000-0000-0000-0000-000000000002",
+					Name:    "Ivan",
+					Surname: "Konyukhov",
+					Email:   "i.konyukhov@innopolis.ru",
+					Degree:  "Dr.",
+					About:   "Good man",
+				},
+				{
+					ID:      "00000000-0000-0000-0000-000000000003",
+					Name:    "Nikolay",
+					Surname: "Shilov",
+					Email:   "n.shilov@innopolis.ru",
+					Degree:  "Prof.",
+					About:   "???",
+				},
+			},
 		},
-	}
-	id, err := srv.AddTeacher(teacher.TeacherDetails)
-	require.NoError(t, err)
-	assert.Equal(t, teacher.ID, id)
+	},
+	{
+		TeacherDetails: store.TeacherDetails{
+			ID:      "00000000-0000-0000-0000-000000000002",
+			Name:    "Ivan",
+			Surname: "Konyukhov",
+			Email:   "i.konyukhov@innopolis.ru",
+			Degree:  "Dr.",
+			About:   "Good man",
+		},
+	},
+	{
+		TeacherDetails: store.TeacherDetails{
+			ID:      "00000000-0000-0000-0000-000000000003",
+			Name:    "Nikolay",
+			Surname: "Shilov",
+			Email:   "n.shilov@innopolis.ru",
+			Degree:  "Prof.",
+			About:   "???",
+		},
+	},
+}
 
-	err = srv.SetPreferences(teacher.ID, teacher.Preferences)
+func setupTestTeachers(t *testing.T, srv *Postgres) {
+	id, err := srv.AddTeacher(tchs[0].TeacherDetails)
+	require.NoError(t, err)
+	assert.Equal(t, tchs[0].ID, id)
+
+	_, err = srv.AddTeacher(tchs[1].TeacherDetails)
 	require.NoError(t, err)
 
-	err = srv.DeleteTeacher(teacher.ID)
+	_, err = srv.AddTeacher(tchs[2].TeacherDetails)
 	require.NoError(t, err)
 
+	err = srv.SetPreferences(tchs[0].ID, tchs[0].Preferences)
+	require.NoError(t, err)
 }
 
 func preparePgStore(t *testing.T) *Postgres {

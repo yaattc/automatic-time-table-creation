@@ -5,7 +5,6 @@ package store
 type Privilege string
 
 // Default user privileges
-// todo it should be tree (example: you can't edit user without reading him)
 const (
 	PrivAddUsers  Privilege = "add_users"
 	PrivReadUsers Privilege = "read_users"
