@@ -30,7 +30,7 @@ func TestPostgres_AddGroup(t *testing.T) {
 	assert.Equal(t, "00000000-0000-0000-0000-000000000003", id)
 
 	var g store.Group
-	row := srv.connPool.QueryRow(`SELECT id, name FROM group`)
+	row := srv.connPool.QueryRow(`SELECT id, name FROM groups`)
 	err = row.Scan(&g.ID, &g.Name)
 	assert.Equal(t, "00000000-0000-0000-0000-000000000003", g.ID)
 	assert.Equal(t, "B20-05", g.Name)

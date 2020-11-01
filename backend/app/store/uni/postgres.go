@@ -31,6 +31,7 @@ func (p *Postgres) AddGroup(g store.Group) (id string, err error) {
 // ListGroups registered in the database
 func (p *Postgres) ListGroups() (res []store.Group, err error) {
 	err = pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
+
 		return nil
 	}))
 	return res, err

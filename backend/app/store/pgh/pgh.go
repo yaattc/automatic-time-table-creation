@@ -23,33 +23,33 @@ func (f TxerFunc) Do(tx *pgx.Tx) error { return f(tx) }
 
 // Tx is a wrapper for transactions to simplify their usage
 func Tx(pool *pgx.ConnPool, f Txer) error {
-	ferr := &multierror.Error{}
+	merr := &multierror.Error{}
 
 	tx, err := pool.Begin()
 	if err != nil {
-		ferr = multierror.Append(ferr, errors.Wrap(err, "failed to start tx"))
-		return ferr
+		merr = multierror.Append(merr, errors.Wrap(err, "failed to start tx"))
+		return merr
 	}
 
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			ferr = multierror.Append(ferr, err)
+			merr = multierror.Append(merr, err)
 			log.Printf("[DEBUG] failed to rollback transaction: %v", err)
 		}
 	}()
 
 	if err = f.Do(tx); err != nil {
-		ferr = multierror.Append(ferr, err)
-		return ferr
+		merr = multierror.Append(merr, err)
+		return merr
 	}
 
 	if err := tx.Commit(); err != nil {
-		ferr = multierror.Append(ferr, err)
+		merr = multierror.Append(merr, err)
 		log.Printf("[WARN] failed to commit transaction: %v", err)
 	}
 
-	if ferr.Len() < 1 {
+	if merr.Len() < 1 {
 		return nil
 	}
-	return ferr
+	return merr
 }
