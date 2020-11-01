@@ -153,3 +153,30 @@ func (s *private) addGroup(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, finalGroup)
 }
+
+// GET /group - list groups
+func (s *private) listGroups(w http.ResponseWriter, r *http.Request) {
+	tg, err := s.dataService.ListGroups()
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't load teachers", rest.ErrInternal)
+		return
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, R.JSON{"groups": tg})
+}
+
+// DELETE /group?id=groupID - removes group
+func (s *private) deleteGroup(w http.ResponseWriter, r *http.Request) {
+	groupID := r.URL.Query().Get("id")
+	if groupID == "" {
+		rest.SendErrorJSON(w, r, http.StatusBadRequest, nil, "group id must be provided", rest.ErrBadRequest)
+		return
+	}
+	if err := s.dataService.DeleteGroup(groupID); err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't delete teacher", rest.ErrInternal)
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, R.JSON{"deleted": true})
+}
