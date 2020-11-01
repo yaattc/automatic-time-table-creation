@@ -91,6 +91,7 @@ func (s *Rest) routes() chi.Router {
 		rapi.Delete("/teacher", s.privRest.deleteTeacherCtrl)
 		rapi.Get("/teacher", s.privRest.listTeachersCtrl)
 		rapi.Post("/teacher/{id}/preferences", s.privRest.setTeacherPreferencesCtrl)
+		rapi.Post("/group", s.privRest.addGroup)
 	})
 
 	return r
