@@ -21,8 +21,10 @@ type TxerFunc func(tx *pgx.Tx) error
 // Do implements Txer.Do
 func (f TxerFunc) Do(tx *pgx.Tx) error { return f(tx) }
 
-// Tx is a wrapper for transactions to simplify their usage
-func Tx(pool *pgx.ConnPool, f Txer) error {
+// Tx is a wrapper for transactions to simplify their usage. In case if there was something
+// wrong during the transaction, rollback will be issued. This function returns
+// a multierror.Error, so it is possible to work with each error separately
+func Tx(pool *pgx.ConnPool, fun Txer) error {
 	merr := &multierror.Error{}
 
 	tx, err := pool.Begin()
@@ -38,7 +40,7 @@ func Tx(pool *pgx.ConnPool, f Txer) error {
 		}
 	}()
 
-	if err = f.Do(tx); err != nil {
+	if err = fun.Do(tx); err != nil {
 		merr = multierror.Append(merr, err)
 		return merr
 	}
