@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yaattc/automatic-time-table-creation/backend/app/store/group"
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/uni"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -189,9 +189,21 @@ func TestDataStore_PassThroughMethods(t *testing.T) {
 		Locations: []store.Location{"108", "102", "109"},
 	}
 	grps := []store.Group{
-		{ID: "some awesome group ID", Name: "B20-01", StudyYearName: "BS - Year 1 (Computer Engineering)"},
-		{ID: "some awesome group ID 2", Name: "B20-02", StudyYearName: "BS - Year 1 (Computer Engineering)"},
-		{ID: "some awesome group ID 3", Name: "B19-03", StudyYearName: "BS - Year 2"},
+		{
+			ID:        "some awesome group ID",
+			Name:      "B20-01",
+			StudyYear: store.StudyYear{ID: "some awesome sy ID", Name: "BS - Year 1 (Computer Engineering)"},
+		},
+		{
+			ID:        "some awesome group ID 2",
+			Name:      "B20-02",
+			StudyYear: store.StudyYear{ID: "some awesome sy ID", Name: "BS - Year 1 (Computer Engineering)"},
+		},
+		{
+			ID:        "some awesome group ID 3",
+			Name:      "B19-03",
+			StudyYear: store.StudyYear{ID: "some awesome sy ID 2", Name: "BS - Year 2"},
+		},
 	}
 
 	srv := DataStore{UserRepository: &user.InterfaceMock{
@@ -216,12 +228,13 @@ func TestDataStore_PassThroughMethods(t *testing.T) {
 		ListTeachersFunc: func() ([]store.TeacherDetails, error) {
 			return []store.TeacherDetails{tch[0].TeacherDetails, tch[1].TeacherDetails}, nil
 		},
-	}, GroupRepository: &group.InterfaceMock{
-		AddGroupFunc: func(id string, name string) (string, error) {
-			assert.NotEmpty(t, id)
-			grps[0].ID = id
-			assert.Equal(t, grps[0].Name, name)
-			return id, nil
+	}, GroupRepository: &uni.InterfaceMock{
+		AddGroupFunc: func(g store.Group) (string, error) {
+			assert.NotEmpty(t, g.ID)
+			grps[0].ID = g.ID
+			assert.Equal(t, grps[0].Name, g.Name)
+			assert.Equal(t, grps[0].StudyYear.ID, g.StudyYear.ID)
+			return g.ID, nil
 		},
 		DeleteGroupFunc: func(id string) error {
 			assert.Equal(t, grps[1].ID, id)
@@ -253,7 +266,7 @@ func TestDataStore_PassThroughMethods(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, usr.Privileges, privs)
 
-	id, err := srv.AddGroup(grps[0].Name)
+	id, err := srv.AddGroup(grps[0].Name, "some awesome sy ID")
 	require.NoError(t, err)
 	assert.Equal(t, grps[0].ID, id)
 

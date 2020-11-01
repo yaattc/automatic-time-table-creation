@@ -6,7 +6,7 @@ import (
 	"crypto/sha1" // nolint
 	"log"
 
-	"github.com/yaattc/automatic-time-table-creation/backend/app/store/group"
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/uni"
 
 	"github.com/google/uuid"
 
@@ -26,7 +26,7 @@ import (
 type DataStore struct {
 	UserRepository    user.Interface
 	TeacherRepository teacher.Interface
-	GroupRepository   group.Interface
+	GroupRepository   uni.Interface
 	BCryptCost        int
 }
 
@@ -135,14 +135,15 @@ func (s *DataStore) RegisterAdmin(email string, password string) (id string, err
 }
 
 // AddGroup to the database
-func (s *DataStore) AddGroup(name string) (id string, err error) {
-	if id, err = s.GroupRepository.AddGroup(uuid.New().String(), name); err != nil {
+func (s *DataStore) AddGroup(name string, studyYearID string) (id string, err error) {
+	g := store.Group{ID: uuid.New().String(), Name: name, StudyYear: store.StudyYear{ID: studyYearID}}
+	if id, err = s.GroupRepository.AddGroup(g); err != nil {
 		return "", errors.Wrapf(err, "failed to add group with name %s", name)
 	}
 	return id, nil
 }
 
-// ListGroup registered in the database
+// ListGroups registered in the database
 func (s *DataStore) ListGroups() ([]store.Group, error) {
 	g, err := s.GroupRepository.ListGroups()
 	if err != nil {

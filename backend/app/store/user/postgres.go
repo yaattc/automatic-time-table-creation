@@ -11,7 +11,7 @@ import (
 // Postgres implements Interface with postgres queries
 type Postgres struct {
 	connPool *pgx.ConnPool
-	connConf pgx.ConnConfig
+	connConf pgx.ConnConfig //nolint:structcheck,unused
 }
 
 // NewPostgres returns the new instance of Postgres

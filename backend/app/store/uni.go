@@ -52,7 +52,13 @@ type Class struct {
 
 // Group describes a basic students group, e.g. "BS19-04"
 type Group struct {
-	ID            string `json:"id"`
-	Name          string `json:"name"`            // name of this group, e.g. "BS19-04"
-	StudyYearName string `json:"study_year_name"` // name of the study year, e.g. "BS - Year 1 (Computer Engineering)"							"
+	ID        string    `json:"id"`
+	Name      string    `json:"name"` // name of this group, e.g. "BS19-04"
+	StudyYear StudyYear `json:"study_year"`
+}
+
+// StudyYear describes a particular study year like "BS - Year 1 (Computer Science)"
+type StudyYear struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
