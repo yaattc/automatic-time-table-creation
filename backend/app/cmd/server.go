@@ -4,6 +4,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/uni"
+
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store/teacher"
 
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
@@ -36,7 +38,8 @@ type Server struct {
 			JWT    time.Duration `long:"jwt" env:"JWT" default:"5m" description:"jwt TTL"`
 			Cookie time.Duration `long:"cookie" env:"COOKIE" default:"200h" description:"auth cookie TTL"`
 		} `group:"ttl" namespace:"ttl" env-namespace:"TTL"`
-		Secret string `long:"secret" env:"SECRET" description:"secret for authentication tokens"`
+		Secret     string `long:"secret" env:"SECRET" description:"secret for authentication tokens"`
+		BCryptCost int    `long:"bcrypt_cost" env:"BCRYPT_COST" description:"bcrypt cost for hashing user password" default:"10"`
 	} `group:"auth" namespace:"auth" env-namespace:"AUTH"`
 	DBConnStr string `long:"db_conn_str" env:"DB_CONN_STR" required:"true" description:"connection string to db"`
 
@@ -69,7 +72,17 @@ func (s *Server) Execute(_ []string) error {
 		return errors.Wrapf(err, "failed to initialize postgres teacher repository at %s", s.DBConnStr)
 	}
 
-	ds := &service.DataStore{UserRepository: ur, TeacherRepository: tr}
+	uor, err := uni.NewPostgres(pgpool, pgconf)
+	if err != nil {
+		return errors.Wrapf(err, "failed to initialize postgres university organization repository at %s", s.DBConnStr)
+	}
+
+	ds := &service.DataStore{
+		UserRepository:    ur,
+		TeacherRepository: tr,
+		UniOrgRepository:  uor,
+		BCryptCost:        s.Auth.BCryptCost,
+	}
 
 	adminID, err := ds.RegisterAdmin(s.Admin.Email, s.Admin.Password)
 	if err != nil {
