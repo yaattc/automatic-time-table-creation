@@ -30,6 +30,12 @@ var _ Interface = &InterfaceMock{}
 //             DeleteStudyYearFunc: func(studyYearID string) error {
 // 	               panic("mock out the DeleteStudyYear method")
 //             },
+//             GetGroupFunc: func(id string) (store.Group, error) {
+// 	               panic("mock out the GetGroup method")
+//             },
+//             GetStudyYearFunc: func(id string) (store.StudyYear, error) {
+// 	               panic("mock out the GetStudyYear method")
+//             },
 //             ListGroupsFunc: func() ([]store.Group, error) {
 // 	               panic("mock out the ListGroups method")
 //             },
@@ -51,6 +57,12 @@ type InterfaceMock struct {
 
 	// DeleteStudyYearFunc mocks the DeleteStudyYear method.
 	DeleteStudyYearFunc func(studyYearID string) error
+
+	// GetGroupFunc mocks the GetGroup method.
+	GetGroupFunc func(id string) (store.Group, error)
+
+	// GetStudyYearFunc mocks the GetStudyYear method.
+	GetStudyYearFunc func(id string) (store.StudyYear, error)
 
 	// ListGroupsFunc mocks the ListGroups method.
 	ListGroupsFunc func() ([]store.Group, error)
@@ -77,6 +89,16 @@ type InterfaceMock struct {
 			// StudyYearID is the studyYearID argument value.
 			StudyYearID string
 		}
+		// GetGroup holds details about calls to the GetGroup method.
+		GetGroup []struct {
+			// ID is the id argument value.
+			ID string
+		}
+		// GetStudyYear holds details about calls to the GetStudyYear method.
+		GetStudyYear []struct {
+			// ID is the id argument value.
+			ID string
+		}
 		// ListGroups holds details about calls to the ListGroups method.
 		ListGroups []struct {
 		}
@@ -85,6 +107,8 @@ type InterfaceMock struct {
 	lockAddStudyYear    sync.RWMutex
 	lockDeleteGroup     sync.RWMutex
 	lockDeleteStudyYear sync.RWMutex
+	lockGetGroup        sync.RWMutex
+	lockGetStudyYear    sync.RWMutex
 	lockListGroups      sync.RWMutex
 }
 
@@ -209,6 +233,68 @@ func (mock *InterfaceMock) DeleteStudyYearCalls() []struct {
 	mock.lockDeleteStudyYear.RLock()
 	calls = mock.calls.DeleteStudyYear
 	mock.lockDeleteStudyYear.RUnlock()
+	return calls
+}
+
+// GetGroup calls GetGroupFunc.
+func (mock *InterfaceMock) GetGroup(id string) (store.Group, error) {
+	if mock.GetGroupFunc == nil {
+		panic("InterfaceMock.GetGroupFunc: method is nil but Interface.GetGroup was just called")
+	}
+	callInfo := struct {
+		ID string
+	}{
+		ID: id,
+	}
+	mock.lockGetGroup.Lock()
+	mock.calls.GetGroup = append(mock.calls.GetGroup, callInfo)
+	mock.lockGetGroup.Unlock()
+	return mock.GetGroupFunc(id)
+}
+
+// GetGroupCalls gets all the calls that were made to GetGroup.
+// Check the length with:
+//     len(mockedInterface.GetGroupCalls())
+func (mock *InterfaceMock) GetGroupCalls() []struct {
+	ID string
+} {
+	var calls []struct {
+		ID string
+	}
+	mock.lockGetGroup.RLock()
+	calls = mock.calls.GetGroup
+	mock.lockGetGroup.RUnlock()
+	return calls
+}
+
+// GetStudyYear calls GetStudyYearFunc.
+func (mock *InterfaceMock) GetStudyYear(id string) (store.StudyYear, error) {
+	if mock.GetStudyYearFunc == nil {
+		panic("InterfaceMock.GetStudyYearFunc: method is nil but Interface.GetStudyYear was just called")
+	}
+	callInfo := struct {
+		ID string
+	}{
+		ID: id,
+	}
+	mock.lockGetStudyYear.Lock()
+	mock.calls.GetStudyYear = append(mock.calls.GetStudyYear, callInfo)
+	mock.lockGetStudyYear.Unlock()
+	return mock.GetStudyYearFunc(id)
+}
+
+// GetStudyYearCalls gets all the calls that were made to GetStudyYear.
+// Check the length with:
+//     len(mockedInterface.GetStudyYearCalls())
+func (mock *InterfaceMock) GetStudyYearCalls() []struct {
+	ID string
+} {
+	var calls []struct {
+		ID string
+	}
+	mock.lockGetStudyYear.RLock()
+	calls = mock.calls.GetStudyYear
+	mock.lockGetStudyYear.RUnlock()
 	return calls
 }
 

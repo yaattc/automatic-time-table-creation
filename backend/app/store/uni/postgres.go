@@ -69,3 +69,20 @@ func (p *Postgres) DeleteStudyYear(studyYearID string) error {
 	_, err := p.connPool.Exec(`DELETE FROM study_years WHERE id = $1`, studyYearID)
 	return errors.Wrapf(err, "failed to remove study year with id %s", studyYearID)
 }
+
+// GetGroup from the database
+func (p *Postgres) GetGroup(id string) (g store.Group, err error) {
+	row := p.connPool.QueryRow(`SELECT groups.id, groups.name, groups.study_year_id, study_years.name 
+										FROM groups
+										LEFT JOIN study_years ON groups.study_year_id = study_years.id
+										WHERE groups.id = $1`, id)
+	err = row.Scan(&g.ID, &g.Name, &g.StudyYear.ID, &g.StudyYear.Name)
+	return g, errors.Wrapf(err, "failed to select group %s", id)
+}
+
+// GetStudyYear by its id
+func (p *Postgres) GetStudyYear(id string) (sy store.StudyYear, err error) {
+	row := p.connPool.QueryRow(`SELECT id, name FROM study_years WHERE id = $1`, id)
+	err = row.Scan(&sy.ID, &sy.Name)
+	return sy, errors.Wrapf(err, "failed to get study year %s", id)
+}

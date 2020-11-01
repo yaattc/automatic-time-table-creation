@@ -98,6 +98,7 @@ func TestPostgres_ListGroups(t *testing.T) {
 	srv := preparePgStore(t)
 	_, err := srv.connPool.Exec(`INSERT INTO study_years("id", "name") VALUES ($1, $2)`,
 		"00000000-0000-0000-0000-000000000001", "BS - Year 1 (Computer Science)")
+	require.NoError(t, err)
 
 	_, err = srv.connPool.Exec(`INSERT INTO groups("id", "study_year_id", "name") VALUES ($1, $2, $3)`,
 		"00000000-0000-0000-0000-100000000001", "00000000-0000-0000-0000-000000000001", "B20-01")
@@ -148,6 +149,39 @@ func TestPostgres_ListGroups(t *testing.T) {
 			StudyYear: store.StudyYear{ID: "00000000-0000-0000-0000-000000000001", Name: "BS - Year 1 (Computer Science)"},
 		},
 	}, gs)
+}
+
+func TestPostgres_GetGroup(t *testing.T) {
+	srv := preparePgStore(t)
+	_, err := srv.connPool.Exec(`INSERT INTO study_years("id", "name") VALUES ($1, $2)`,
+		"00000000-0000-0000-0000-000000000001", "BS - Year 1 (Computer Science)")
+	require.NoError(t, err)
+
+	_, err = srv.connPool.Exec(`INSERT INTO groups("id", "study_year_id", "name") VALUES ($1, $2, $3)`,
+		"00000000-0000-0000-0000-100000000001", "00000000-0000-0000-0000-000000000001", "B20-01")
+	require.NoError(t, err)
+
+	g, err := srv.GetGroup("00000000-0000-0000-0000-100000000001")
+	require.NoError(t, err)
+	assert.Equal(t, store.Group{
+		ID:   "00000000-0000-0000-0000-100000000001",
+		Name: "B20-01",
+		StudyYear: store.StudyYear{
+			ID:   "00000000-0000-0000-0000-000000000001",
+			Name: "BS - Year 1 (Computer Science)",
+		},
+	}, g)
+}
+
+func TestPostgres_GetStudyYear(t *testing.T) {
+	srv := preparePgStore(t)
+	_, err := srv.connPool.Exec(`INSERT INTO study_years("id", "name") VALUES ($1, $2)`,
+		"00000000-0000-0000-0000-000000000001", "BS - Year 1 (Computer Science)")
+	require.NoError(t, err)
+
+	sy, err := srv.GetStudyYear("00000000-0000-0000-0000-000000000001")
+	require.NoError(t, err)
+	assert.Equal(t, store.StudyYear{ID: "00000000-0000-0000-0000-000000000001", Name: "BS - Year 1 (Computer Science)"}, sy)
 }
 
 func preparePgStore(t *testing.T) *Postgres {

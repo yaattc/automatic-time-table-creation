@@ -57,6 +57,11 @@ type Group struct {
 	StudyYear StudyYear `json:"study_year"`
 }
 
+// PrepareUntrusted sets zero values to all immutable for user fields
+func (g *Group) PrepareUntrusted() {
+	g.ID = ""
+}
+
 // StudyYear describes a particular study year like "BS - Year 1 (Computer Science)"
 type StudyYear struct {
 	ID   string `json:"id"`

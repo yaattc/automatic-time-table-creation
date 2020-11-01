@@ -10,7 +10,10 @@ import "github.com/yaattc/automatic-time-table-creation/backend/app/store"
 type Interface interface {
 	AddGroup(g store.Group) (id string, err error)
 	ListGroups() ([]store.Group, error)
+	GetGroup(id string) (g store.Group, err error)
 	DeleteGroup(id string) error
+
 	AddStudyYear(sy store.StudyYear) (id string, err error)
+	GetStudyYear(id string) (sy store.StudyYear, err error)
 	DeleteStudyYear(studyYearID string) error
 }

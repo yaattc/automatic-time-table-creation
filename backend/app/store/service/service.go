@@ -70,19 +70,13 @@ func (s *DataStore) SetTeacherPreferences(teacherID string, pref store.TeacherPr
 // GetUserEmail returns the email of the specified user
 func (s *DataStore) GetUserEmail(id string) (email string, err error) {
 	u, err := s.UserRepository.GetUser(id)
-	if err != nil {
-		return "", errors.Wrapf(err, "failed to read email of %s", id)
-	}
-	return u.Email, nil
+	return u.Email, errors.Wrapf(err, "failed to read email of %s", id)
 }
 
 // GetUserPrivs returns the list of privileges of the specified user
 func (s *DataStore) GetUserPrivs(id string) (privs []store.Privilege, err error) {
 	u, err := s.UserRepository.GetUser(id)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read privs of %s", id)
-	}
-	return u.Privileges, nil
+	return u.Privileges, errors.Wrapf(err, "failed to read privs of %s", id)
 }
 
 // CheckUserCredentials with the given username and password
@@ -107,11 +101,8 @@ func (s *DataStore) AddUser(user store.User, password string) (id string, err er
 		user.ID = "local_" + token.HashID(sha1.New(), user.Email) // nolint
 	}
 
-	if id, err = s.UserRepository.AddUser(user, string(b), false); err != nil {
-		return "", errors.Wrapf(err, "failed to add user %s to database", user.ID)
-	}
-
-	return id, nil
+	id, err = s.UserRepository.AddUser(user, string(b), false)
+	return id, errors.Wrapf(err, "failed to add user %s to database", user.ID)
 }
 
 // RegisterAdmin in the database
@@ -127,29 +118,27 @@ func (s *DataStore) RegisterAdmin(email string, password string) (id string, err
 		Privileges: []store.Privilege{store.PrivReadUsers, store.PrivEditUsers, store.PrivListUsers, store.PrivAddUsers},
 	}
 	log.Printf("[INFO] trying to register admin with %+v and pwd %s", u, password)
-	if id, err = s.UserRepository.AddUser(u, string(b), true); err != nil {
-		return "", errors.Wrapf(err, "failed to add user %s to database", u.ID)
-	}
-
-	return id, nil
+	id, err = s.UserRepository.AddUser(u, string(b), true)
+	return id, errors.Wrapf(err, "failed to add user %s to database", u.ID)
 }
 
 // AddGroup to the database
 func (s *DataStore) AddGroup(name string, studyYearID string) (id string, err error) {
 	g := store.Group{ID: uuid.New().String(), Name: name, StudyYear: store.StudyYear{ID: studyYearID}}
-	if id, err = s.GroupRepository.AddGroup(g); err != nil {
-		return "", errors.Wrapf(err, "failed to add group with name %s", name)
-	}
-	return id, nil
+	id, err = s.GroupRepository.AddGroup(g)
+	return id, errors.Wrapf(err, "failed to add group with name %s", name)
+}
+
+// GetGroup from the database
+func (s *DataStore) GetGroup(id string) (store.Group, error) {
+	g, err := s.GroupRepository.GetGroup(id)
+	return g, errors.Wrapf(err, "failed to get group with id %s", id)
 }
 
 // ListGroups registered in the database
 func (s *DataStore) ListGroups() ([]store.Group, error) {
 	g, err := s.GroupRepository.ListGroups()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to list groups")
-	}
-	return g, nil
+	return g, errors.Wrap(err, "failed to list groups")
 }
 
 // DeleteGroup from the database

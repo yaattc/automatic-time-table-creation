@@ -30,6 +30,7 @@ type privStore interface {
 
 	AddGroup(name string, studyYearID string) (id string, err error)
 	ListGroups() ([]store.Group, error)
+	GetGroup(groupID string) (store.Group, error)
 	DeleteGroup(id string) error
 }
 
@@ -124,4 +125,31 @@ func (s *private) setTeacherPreferencesCtrl(w http.ResponseWriter, r *http.Reque
 	}
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, finalTeacher)
+}
+
+// POST /group - add group
+func (s *private) addGroup(w http.ResponseWriter, r *http.Request) {
+	var reqBody struct {
+		Name        string `json:"name"`
+		StudyYearID string `json:"study_year_id"`
+	}
+	if err := render.DecodeJSON(http.MaxBytesReader(w, r.Body, hardBodyLimit), &reqBody); err != nil {
+		rest.SendErrorJSON(w, r, http.StatusBadRequest, err, "can't bind group", rest.ErrDecode)
+		return
+	}
+
+	id, err := s.dataService.AddGroup(reqBody.Name, reqBody.StudyYearID)
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't add group", rest.ErrInternal)
+		return
+	}
+
+	finalGroup, err := s.dataService.GetGroup(id)
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't load added group", rest.ErrInternal)
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, finalGroup)
 }
