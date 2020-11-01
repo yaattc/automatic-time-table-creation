@@ -21,11 +21,17 @@ var _ privStore = &privStoreMock{}
 //             AddGroupFunc: func(name string, studyYearID string) (string, error) {
 // 	               panic("mock out the AddGroup method")
 //             },
+//             AddStudyYearFunc: func(sy store.StudyYear) (string, error) {
+// 	               panic("mock out the AddStudyYear method")
+//             },
 //             AddTeacherFunc: func(teacher store.Teacher) (string, error) {
 // 	               panic("mock out the AddTeacher method")
 //             },
 //             DeleteGroupFunc: func(id string) error {
 // 	               panic("mock out the DeleteGroup method")
+//             },
+//             DeleteStudyYearFunc: func(studyYearID string) error {
+// 	               panic("mock out the DeleteStudyYear method")
 //             },
 //             DeleteTeacherFunc: func(teacherID string) error {
 // 	               panic("mock out the DeleteTeacher method")
@@ -33,11 +39,17 @@ var _ privStore = &privStoreMock{}
 //             GetGroupFunc: func(groupID string) (store.Group, error) {
 // 	               panic("mock out the GetGroup method")
 //             },
+//             GetStudyYearFunc: func(id string) (store.StudyYear, error) {
+// 	               panic("mock out the GetStudyYear method")
+//             },
 //             GetTeacherFullFunc: func(teacherID string) (store.Teacher, error) {
 // 	               panic("mock out the GetTeacherFull method")
 //             },
 //             ListGroupsFunc: func() ([]store.Group, error) {
 // 	               panic("mock out the ListGroups method")
+//             },
+//             ListStudyYearsFunc: func() ([]store.StudyYear, error) {
+// 	               panic("mock out the ListStudyYears method")
 //             },
 //             ListTeachersFunc: func() ([]store.TeacherDetails, error) {
 // 	               panic("mock out the ListTeachers method")
@@ -55,11 +67,17 @@ type privStoreMock struct {
 	// AddGroupFunc mocks the AddGroup method.
 	AddGroupFunc func(name string, studyYearID string) (string, error)
 
+	// AddStudyYearFunc mocks the AddStudyYear method.
+	AddStudyYearFunc func(sy store.StudyYear) (string, error)
+
 	// AddTeacherFunc mocks the AddTeacher method.
 	AddTeacherFunc func(teacher store.Teacher) (string, error)
 
 	// DeleteGroupFunc mocks the DeleteGroup method.
 	DeleteGroupFunc func(id string) error
+
+	// DeleteStudyYearFunc mocks the DeleteStudyYear method.
+	DeleteStudyYearFunc func(studyYearID string) error
 
 	// DeleteTeacherFunc mocks the DeleteTeacher method.
 	DeleteTeacherFunc func(teacherID string) error
@@ -67,11 +85,17 @@ type privStoreMock struct {
 	// GetGroupFunc mocks the GetGroup method.
 	GetGroupFunc func(groupID string) (store.Group, error)
 
+	// GetStudyYearFunc mocks the GetStudyYear method.
+	GetStudyYearFunc func(id string) (store.StudyYear, error)
+
 	// GetTeacherFullFunc mocks the GetTeacherFull method.
 	GetTeacherFullFunc func(teacherID string) (store.Teacher, error)
 
 	// ListGroupsFunc mocks the ListGroups method.
 	ListGroupsFunc func() ([]store.Group, error)
+
+	// ListStudyYearsFunc mocks the ListStudyYears method.
+	ListStudyYearsFunc func() ([]store.StudyYear, error)
 
 	// ListTeachersFunc mocks the ListTeachers method.
 	ListTeachersFunc func() ([]store.TeacherDetails, error)
@@ -88,6 +112,11 @@ type privStoreMock struct {
 			// StudyYearID is the studyYearID argument value.
 			StudyYearID string
 		}
+		// AddStudyYear holds details about calls to the AddStudyYear method.
+		AddStudyYear []struct {
+			// Sy is the sy argument value.
+			Sy store.StudyYear
+		}
 		// AddTeacher holds details about calls to the AddTeacher method.
 		AddTeacher []struct {
 			// Teacher is the teacher argument value.
@@ -97,6 +126,11 @@ type privStoreMock struct {
 		DeleteGroup []struct {
 			// ID is the id argument value.
 			ID string
+		}
+		// DeleteStudyYear holds details about calls to the DeleteStudyYear method.
+		DeleteStudyYear []struct {
+			// StudyYearID is the studyYearID argument value.
+			StudyYearID string
 		}
 		// DeleteTeacher holds details about calls to the DeleteTeacher method.
 		DeleteTeacher []struct {
@@ -108,6 +142,11 @@ type privStoreMock struct {
 			// GroupID is the groupID argument value.
 			GroupID string
 		}
+		// GetStudyYear holds details about calls to the GetStudyYear method.
+		GetStudyYear []struct {
+			// ID is the id argument value.
+			ID string
+		}
 		// GetTeacherFull holds details about calls to the GetTeacherFull method.
 		GetTeacherFull []struct {
 			// TeacherID is the teacherID argument value.
@@ -115,6 +154,9 @@ type privStoreMock struct {
 		}
 		// ListGroups holds details about calls to the ListGroups method.
 		ListGroups []struct {
+		}
+		// ListStudyYears holds details about calls to the ListStudyYears method.
+		ListStudyYears []struct {
 		}
 		// ListTeachers holds details about calls to the ListTeachers method.
 		ListTeachers []struct {
@@ -128,12 +170,16 @@ type privStoreMock struct {
 		}
 	}
 	lockAddGroup              sync.RWMutex
+	lockAddStudyYear          sync.RWMutex
 	lockAddTeacher            sync.RWMutex
 	lockDeleteGroup           sync.RWMutex
+	lockDeleteStudyYear       sync.RWMutex
 	lockDeleteTeacher         sync.RWMutex
 	lockGetGroup              sync.RWMutex
+	lockGetStudyYear          sync.RWMutex
 	lockGetTeacherFull        sync.RWMutex
 	lockListGroups            sync.RWMutex
+	lockListStudyYears        sync.RWMutex
 	lockListTeachers          sync.RWMutex
 	lockSetTeacherPreferences sync.RWMutex
 }
@@ -170,6 +216,37 @@ func (mock *privStoreMock) AddGroupCalls() []struct {
 	mock.lockAddGroup.RLock()
 	calls = mock.calls.AddGroup
 	mock.lockAddGroup.RUnlock()
+	return calls
+}
+
+// AddStudyYear calls AddStudyYearFunc.
+func (mock *privStoreMock) AddStudyYear(sy store.StudyYear) (string, error) {
+	if mock.AddStudyYearFunc == nil {
+		panic("privStoreMock.AddStudyYearFunc: method is nil but privStore.AddStudyYear was just called")
+	}
+	callInfo := struct {
+		Sy store.StudyYear
+	}{
+		Sy: sy,
+	}
+	mock.lockAddStudyYear.Lock()
+	mock.calls.AddStudyYear = append(mock.calls.AddStudyYear, callInfo)
+	mock.lockAddStudyYear.Unlock()
+	return mock.AddStudyYearFunc(sy)
+}
+
+// AddStudyYearCalls gets all the calls that were made to AddStudyYear.
+// Check the length with:
+//     len(mockedprivStore.AddStudyYearCalls())
+func (mock *privStoreMock) AddStudyYearCalls() []struct {
+	Sy store.StudyYear
+} {
+	var calls []struct {
+		Sy store.StudyYear
+	}
+	mock.lockAddStudyYear.RLock()
+	calls = mock.calls.AddStudyYear
+	mock.lockAddStudyYear.RUnlock()
 	return calls
 }
 
@@ -235,6 +312,37 @@ func (mock *privStoreMock) DeleteGroupCalls() []struct {
 	return calls
 }
 
+// DeleteStudyYear calls DeleteStudyYearFunc.
+func (mock *privStoreMock) DeleteStudyYear(studyYearID string) error {
+	if mock.DeleteStudyYearFunc == nil {
+		panic("privStoreMock.DeleteStudyYearFunc: method is nil but privStore.DeleteStudyYear was just called")
+	}
+	callInfo := struct {
+		StudyYearID string
+	}{
+		StudyYearID: studyYearID,
+	}
+	mock.lockDeleteStudyYear.Lock()
+	mock.calls.DeleteStudyYear = append(mock.calls.DeleteStudyYear, callInfo)
+	mock.lockDeleteStudyYear.Unlock()
+	return mock.DeleteStudyYearFunc(studyYearID)
+}
+
+// DeleteStudyYearCalls gets all the calls that were made to DeleteStudyYear.
+// Check the length with:
+//     len(mockedprivStore.DeleteStudyYearCalls())
+func (mock *privStoreMock) DeleteStudyYearCalls() []struct {
+	StudyYearID string
+} {
+	var calls []struct {
+		StudyYearID string
+	}
+	mock.lockDeleteStudyYear.RLock()
+	calls = mock.calls.DeleteStudyYear
+	mock.lockDeleteStudyYear.RUnlock()
+	return calls
+}
+
 // DeleteTeacher calls DeleteTeacherFunc.
 func (mock *privStoreMock) DeleteTeacher(teacherID string) error {
 	if mock.DeleteTeacherFunc == nil {
@@ -297,6 +405,37 @@ func (mock *privStoreMock) GetGroupCalls() []struct {
 	return calls
 }
 
+// GetStudyYear calls GetStudyYearFunc.
+func (mock *privStoreMock) GetStudyYear(id string) (store.StudyYear, error) {
+	if mock.GetStudyYearFunc == nil {
+		panic("privStoreMock.GetStudyYearFunc: method is nil but privStore.GetStudyYear was just called")
+	}
+	callInfo := struct {
+		ID string
+	}{
+		ID: id,
+	}
+	mock.lockGetStudyYear.Lock()
+	mock.calls.GetStudyYear = append(mock.calls.GetStudyYear, callInfo)
+	mock.lockGetStudyYear.Unlock()
+	return mock.GetStudyYearFunc(id)
+}
+
+// GetStudyYearCalls gets all the calls that were made to GetStudyYear.
+// Check the length with:
+//     len(mockedprivStore.GetStudyYearCalls())
+func (mock *privStoreMock) GetStudyYearCalls() []struct {
+	ID string
+} {
+	var calls []struct {
+		ID string
+	}
+	mock.lockGetStudyYear.RLock()
+	calls = mock.calls.GetStudyYear
+	mock.lockGetStudyYear.RUnlock()
+	return calls
+}
+
 // GetTeacherFull calls GetTeacherFullFunc.
 func (mock *privStoreMock) GetTeacherFull(teacherID string) (store.Teacher, error) {
 	if mock.GetTeacherFullFunc == nil {
@@ -351,6 +490,32 @@ func (mock *privStoreMock) ListGroupsCalls() []struct {
 	mock.lockListGroups.RLock()
 	calls = mock.calls.ListGroups
 	mock.lockListGroups.RUnlock()
+	return calls
+}
+
+// ListStudyYears calls ListStudyYearsFunc.
+func (mock *privStoreMock) ListStudyYears() ([]store.StudyYear, error) {
+	if mock.ListStudyYearsFunc == nil {
+		panic("privStoreMock.ListStudyYearsFunc: method is nil but privStore.ListStudyYears was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockListStudyYears.Lock()
+	mock.calls.ListStudyYears = append(mock.calls.ListStudyYears, callInfo)
+	mock.lockListStudyYears.Unlock()
+	return mock.ListStudyYearsFunc()
+}
+
+// ListStudyYearsCalls gets all the calls that were made to ListStudyYears.
+// Check the length with:
+//     len(mockedprivStore.ListStudyYearsCalls())
+func (mock *privStoreMock) ListStudyYearsCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockListStudyYears.RLock()
+	calls = mock.calls.ListStudyYears
+	mock.lockListStudyYears.RUnlock()
 	return calls
 }
 

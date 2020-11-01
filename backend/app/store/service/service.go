@@ -22,11 +22,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+// todo looks ugly, rewrite
 // DataStore wraps all stores with common and additional methods
 type DataStore struct {
 	UserRepository    user.Interface
 	TeacherRepository teacher.Interface
-	GroupRepository   uni.Interface
+	UniOrgRepository  uni.Interface
 	BCryptCost        int
 }
 
@@ -125,23 +126,43 @@ func (s *DataStore) RegisterAdmin(email string, password string) (id string, err
 // AddGroup to the database
 func (s *DataStore) AddGroup(name string, studyYearID string) (id string, err error) {
 	g := store.Group{ID: uuid.New().String(), Name: name, StudyYear: store.StudyYear{ID: studyYearID}}
-	id, err = s.GroupRepository.AddGroup(g)
+	id, err = s.UniOrgRepository.AddGroup(g)
 	return id, errors.Wrapf(err, "failed to add group with name %s", name)
 }
 
 // GetGroup from the database
 func (s *DataStore) GetGroup(id string) (store.Group, error) {
-	g, err := s.GroupRepository.GetGroup(id)
+	g, err := s.UniOrgRepository.GetGroup(id)
 	return g, errors.Wrapf(err, "failed to get group with id %s", id)
 }
 
 // ListGroups registered in the database
 func (s *DataStore) ListGroups() ([]store.Group, error) {
-	g, err := s.GroupRepository.ListGroups()
+	g, err := s.UniOrgRepository.ListGroups()
 	return g, errors.Wrap(err, "failed to list groups")
 }
 
 // DeleteGroup from the database
 func (s *DataStore) DeleteGroup(id string) error {
-	return errors.Wrapf(s.GroupRepository.DeleteGroup(id), "failed to delete group %s", id)
+	return errors.Wrapf(s.UniOrgRepository.DeleteGroup(id), "failed to delete group %s", id)
+}
+
+// AddStudyYear to the database
+func (s *DataStore) AddStudyYear(sy store.StudyYear) (id string, err error) {
+	return s.UniOrgRepository.AddStudyYear(sy)
+}
+
+// GetStudyYear by its id
+func (s *DataStore) GetStudyYear(id string) (sy store.StudyYear, err error) {
+	return s.UniOrgRepository.GetStudyYear(id)
+}
+
+// DeleteStudyYear by its id
+func (s *DataStore) DeleteStudyYear(studyYearID string) error {
+	return s.UniOrgRepository.DeleteStudyYear(studyYearID)
+}
+
+// ListStudyYears that are registered in the database
+func (s *DataStore) ListStudyYears() ([]store.StudyYear, error) {
+	return s.UniOrgRepository.ListStudyYears()
 }

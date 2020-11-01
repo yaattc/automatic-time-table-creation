@@ -39,6 +39,9 @@ var _ Interface = &InterfaceMock{}
 //             ListGroupsFunc: func() ([]store.Group, error) {
 // 	               panic("mock out the ListGroups method")
 //             },
+//             ListStudyYearsFunc: func() ([]store.StudyYear, error) {
+// 	               panic("mock out the ListStudyYears method")
+//             },
 //         }
 //
 //         // use mockedInterface in code that requires Interface
@@ -66,6 +69,9 @@ type InterfaceMock struct {
 
 	// ListGroupsFunc mocks the ListGroups method.
 	ListGroupsFunc func() ([]store.Group, error)
+
+	// ListStudyYearsFunc mocks the ListStudyYears method.
+	ListStudyYearsFunc func() ([]store.StudyYear, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -102,6 +108,9 @@ type InterfaceMock struct {
 		// ListGroups holds details about calls to the ListGroups method.
 		ListGroups []struct {
 		}
+		// ListStudyYears holds details about calls to the ListStudyYears method.
+		ListStudyYears []struct {
+		}
 	}
 	lockAddGroup        sync.RWMutex
 	lockAddStudyYear    sync.RWMutex
@@ -110,6 +119,7 @@ type InterfaceMock struct {
 	lockGetGroup        sync.RWMutex
 	lockGetStudyYear    sync.RWMutex
 	lockListGroups      sync.RWMutex
+	lockListStudyYears  sync.RWMutex
 }
 
 // AddGroup calls AddGroupFunc.
@@ -321,5 +331,31 @@ func (mock *InterfaceMock) ListGroupsCalls() []struct {
 	mock.lockListGroups.RLock()
 	calls = mock.calls.ListGroups
 	mock.lockListGroups.RUnlock()
+	return calls
+}
+
+// ListStudyYears calls ListStudyYearsFunc.
+func (mock *InterfaceMock) ListStudyYears() ([]store.StudyYear, error) {
+	if mock.ListStudyYearsFunc == nil {
+		panic("InterfaceMock.ListStudyYearsFunc: method is nil but Interface.ListStudyYears was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockListStudyYears.Lock()
+	mock.calls.ListStudyYears = append(mock.calls.ListStudyYears, callInfo)
+	mock.lockListStudyYears.Unlock()
+	return mock.ListStudyYearsFunc()
+}
+
+// ListStudyYearsCalls gets all the calls that were made to ListStudyYears.
+// Check the length with:
+//     len(mockedInterface.ListStudyYearsCalls())
+func (mock *InterfaceMock) ListStudyYearsCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockListStudyYears.RLock()
+	calls = mock.calls.ListStudyYears
+	mock.lockListStudyYears.RUnlock()
 	return calls
 }

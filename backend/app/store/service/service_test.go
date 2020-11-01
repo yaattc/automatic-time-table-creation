@@ -228,7 +228,7 @@ func TestDataStore_PassThroughMethods(t *testing.T) {
 		ListTeachersFunc: func() ([]store.TeacherDetails, error) {
 			return []store.TeacherDetails{tch[0].TeacherDetails, tch[1].TeacherDetails}, nil
 		},
-	}, GroupRepository: &uni.InterfaceMock{
+	}, UniOrgRepository: &uni.InterfaceMock{
 		AddGroupFunc: func(g store.Group) (string, error) {
 			assert.NotEmpty(t, g.ID)
 			grps[0].ID = g.ID

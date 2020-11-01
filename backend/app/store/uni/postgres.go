@@ -86,3 +86,23 @@ func (p *Postgres) GetStudyYear(id string) (sy store.StudyYear, err error) {
 	err = row.Scan(&sy.ID, &sy.Name)
 	return sy, errors.Wrapf(err, "failed to get study year %s", id)
 }
+
+// ListStudyYears from the database
+func (p *Postgres) ListStudyYears() (res []store.StudyYear, err error) {
+	err = pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
+		rows, err := tx.Query(`SELECT id, name FROM study_years`)
+		if err != nil {
+			return errors.Wrap(err, "failed to query list all study years")
+		}
+		var s store.StudyYear
+		for rows.Next() {
+			s = store.StudyYear{}
+			if err = rows.Scan(&s.ID, &s.Name); err != nil {
+				return errors.Wrap(err, "failed to scan study year")
+			}
+			res = append(res, s)
+		}
+		return nil
+	}))
+	return res, err
+}

@@ -94,6 +94,32 @@ func TestPostgres_DeleteStudyYear(t *testing.T) {
 	assert.Zero(t, cnt)
 }
 
+func TestPostgres_ListStudyYears(t *testing.T) {
+	srv := preparePgStore(t)
+	expected := []store.StudyYear{
+		{ID: "00000000-0000-0000-0000-000000000001", Name: "BS - Year 1 (Computer Science)"},
+		{ID: "00000000-0000-0000-0000-000000000002", Name: "MS - Year 1 (Computer Science)"},
+		{ID: "00000000-0000-0000-0000-000000000003", Name: "BS - Year 2 (Computer Science)"},
+		{ID: "00000000-0000-0000-0000-000000000004", Name: "MS - Year 2 (Computer Science)"},
+		{ID: "00000000-0000-0000-0000-000000000005", Name: "BS - Year 3 (Computer Science)"},
+	}
+
+	addStudyYear := func(sy store.StudyYear) {
+		_, err := srv.connPool.Exec(`INSERT INTO study_years("id", "name") VALUES ($1, $2)`,
+			sy.ID, sy.Name)
+		require.NoError(t, err)
+	}
+
+	for _, sy := range expected {
+		addStudyYear(sy)
+	}
+
+	sys, err := srv.ListStudyYears()
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, expected, sys)
+}
+
 func TestPostgres_ListGroups(t *testing.T) {
 	srv := preparePgStore(t)
 	_, err := srv.connPool.Exec(`INSERT INTO study_years("id", "name") VALUES ($1, $2)`,
