@@ -22,8 +22,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// todo looks ugly, rewrite
 // DataStore wraps all stores with common and additional methods
+// todo looks ugly, rewrite
 type DataStore struct {
 	UserRepository    user.Interface
 	TeacherRepository teacher.Interface
@@ -71,12 +71,14 @@ func (s *DataStore) SetTeacherPreferences(teacherID string, pref store.TeacherPr
 // GetUserEmail returns the email of the specified user
 func (s *DataStore) GetUserEmail(id string) (email string, err error) {
 	u, err := s.UserRepository.GetUser(id)
+	//goland:noinspection GoNilness
 	return u.Email, errors.Wrapf(err, "failed to read email of %s", id)
 }
 
 // GetUserPrivs returns the list of privileges of the specified user
 func (s *DataStore) GetUserPrivs(id string) (privs []store.Privilege, err error) {
 	u, err := s.UserRepository.GetUser(id)
+	//goland:noinspection GoNilness
 	return u.Privileges, errors.Wrapf(err, "failed to read privs of %s", id)
 }
 
@@ -148,7 +150,11 @@ func (s *DataStore) DeleteGroup(id string) error {
 }
 
 // AddStudyYear to the database
-func (s *DataStore) AddStudyYear(sy store.StudyYear) (id string, err error) {
+func (s *DataStore) AddStudyYear(name string) (id string, err error) {
+	sy := store.StudyYear{Name: name}
+	if sy.ID == "" {
+		sy.ID = uuid.New().String()
+	}
 	return s.UniOrgRepository.AddStudyYear(sy)
 }
 

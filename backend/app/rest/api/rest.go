@@ -99,6 +99,12 @@ func (s *Rest) routes() chi.Router {
 			rg.Get("/group", s.privRest.listGroups)
 			rg.Delete("/group", s.privRest.deleteGroup)
 		})
+
+		rapi.Group(func(rsy chi.Router) {
+			rsy.Post("/study_year", s.privRest.addStudyYear)
+			rsy.Get("/study_year", s.privRest.listStudyYears)
+			rsy.Delete("/study_year", s.privRest.deleteStudyYear)
+		})
 	})
 
 	return r

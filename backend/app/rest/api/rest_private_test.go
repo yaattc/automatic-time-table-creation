@@ -440,3 +440,111 @@ func TestPrivate_deleteGroupCtrl(t *testing.T) {
 
 	assert.Equal(t, R.JSON{"deleted": true}, res)
 }
+
+func TestPrivate_addStudyYearCtrl(t *testing.T) {
+	expected := store.StudyYear{
+		ID:   "00000000-0000-0000-0000-100000000003",
+		Name: "BS - Year 1 (Computer Science)",
+	}
+
+	ps := &privStoreMock{
+		AddStudyYearFunc: func(name string) (string, error) {
+			assert.Equal(t, expected.Name, name)
+			return expected.ID, nil
+		},
+		GetStudyYearFunc: func(id string) (store.StudyYear, error) {
+			assert.Equal(t, expected.ID, id)
+			return expected, nil
+		},
+	}
+
+	ctrl := &private{dataService: ps}
+	ts := httptest.NewServer(http.HandlerFunc(ctrl.addStudyYear))
+	defer ts.Close()
+
+	var reqBody struct {
+		Name string `json:"name"`
+	}
+	reqBody.Name = expected.Name
+
+	b, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequest("POST", ts.URL, bytes.NewReader(b))
+	require.NoError(t, err)
+
+	cl := http.Client{Timeout: 5 * time.Second}
+	resp, err := cl.Do(req)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	var actual store.StudyYear
+	err = render.DecodeJSON(resp.Body, &actual)
+	require.NoError(t, err)
+
+	assert.Equal(t, expected, actual)
+}
+
+func TestPrivate_listStudyYearsCtrl(t *testing.T) {
+	expected := []store.StudyYear{
+		{ID: "00000000-0000-0000-0000-000000000001", Name: "BS - Year 1 (Computer Science)"},
+		{ID: "00000000-0000-0000-0000-000000000002", Name: "MS - Year 1 (Computer Science)"},
+		{ID: "00000000-0000-0000-0000-000000000003", Name: "BS - Year 2 (Computer Science)"},
+		{ID: "00000000-0000-0000-0000-000000000004", Name: "MS - Year 2 (Computer Science)"},
+		{ID: "00000000-0000-0000-0000-000000000005", Name: "BS - Year 3 (Computer Science)"},
+	}
+	ps := &privStoreMock{ListStudyYearsFunc: func() ([]store.StudyYear, error) {
+		return expected, nil
+	}}
+
+	ctrl := &private{dataService: ps}
+	ts := httptest.NewServer(http.HandlerFunc(ctrl.listStudyYears))
+	defer ts.Close()
+
+	req, err := http.NewRequest("GET", ts.URL, nil)
+	require.NoError(t, err)
+
+	cl := http.Client{Timeout: 5 * time.Second}
+	resp, err := cl.Do(req)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	var actual struct {
+		StudyYears []store.StudyYear `json:"study_years"`
+	}
+	err = render.DecodeJSON(resp.Body, &actual)
+	require.NoError(t, err)
+
+	assert.Equal(t, expected, actual.StudyYears)
+}
+
+func TestPrivate_deleteStudyYearCtrl(t *testing.T) {
+	id := uuid.New().String()
+
+	ps := &privStoreMock{
+		DeleteStudyYearFunc: func(studyYearID string) error {
+			assert.Equal(t, id, studyYearID)
+			return nil
+		},
+	}
+	ctrl := &private{dataService: ps}
+	ts := httptest.NewServer(http.HandlerFunc(ctrl.deleteStudyYear))
+	defer ts.Close()
+
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s?id=%s", ts.URL, id), nil)
+	require.NoError(t, err)
+
+	cl := http.Client{Timeout: 5 * time.Second}
+	resp, err := cl.Do(req)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	var res R.JSON
+	err = render.DecodeJSON(resp.Body, &res)
+	require.NoError(t, err)
+
+	assert.Equal(t, R.JSON{"deleted": true}, res)
+}

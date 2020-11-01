@@ -33,7 +33,7 @@ type privStore interface {
 	GetGroup(groupID string) (store.Group, error)
 	DeleteGroup(id string) error
 
-	AddStudyYear(sy store.StudyYear) (id string, err error)
+	AddStudyYear(name string) (id string, err error)
 	GetStudyYear(id string) (sy store.StudyYear, err error)
 	DeleteStudyYear(studyYearID string) error
 	ListStudyYears() ([]store.StudyYear, error)
@@ -179,6 +179,58 @@ func (s *private) deleteGroup(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := s.dataService.DeleteGroup(groupID); err != nil {
 		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't delete teacher", rest.ErrInternal)
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, R.JSON{"deleted": true})
+}
+
+// POST /study_year - add study year
+func (s *private) addStudyYear(w http.ResponseWriter, r *http.Request) {
+	var reqBody struct {
+		Name string `json:"name"`
+	}
+	if err := render.DecodeJSON(http.MaxBytesReader(w, r.Body, hardBodyLimit), &reqBody); err != nil {
+		rest.SendErrorJSON(w, r, http.StatusBadRequest, err, "can't bind study year", rest.ErrDecode)
+		return
+	}
+
+	id, err := s.dataService.AddStudyYear(reqBody.Name)
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't add study year", rest.ErrInternal)
+		return
+	}
+	finalSy, err := s.dataService.GetStudyYear(id)
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't load added study year", rest.ErrInternal)
+		return
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, finalSy)
+}
+
+// GET /study_year - list study years
+func (s *private) listStudyYears(w http.ResponseWriter, r *http.Request) {
+	sys, err := s.dataService.ListStudyYears()
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't list study years", rest.ErrInternal)
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, R.JSON{"study_years": sys})
+}
+
+// DELETE /study_year?id=studyYearID - remove study year
+func (s *private) deleteStudyYear(w http.ResponseWriter, r *http.Request) {
+	studyYearID := r.URL.Query().Get("id")
+	if studyYearID == "" {
+		rest.SendErrorJSON(w, r, http.StatusBadRequest, nil, "study year's id must be provided", rest.ErrBadRequest)
+		return
+	}
+	if err := s.dataService.DeleteStudyYear(studyYearID); err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't delete studyYear", rest.ErrInternal)
 		return
 	}
 

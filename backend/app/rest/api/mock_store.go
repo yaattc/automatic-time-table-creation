@@ -21,7 +21,7 @@ var _ privStore = &privStoreMock{}
 //             AddGroupFunc: func(name string, studyYearID string) (string, error) {
 // 	               panic("mock out the AddGroup method")
 //             },
-//             AddStudyYearFunc: func(sy store.StudyYear) (string, error) {
+//             AddStudyYearFunc: func(name string) (string, error) {
 // 	               panic("mock out the AddStudyYear method")
 //             },
 //             AddTeacherFunc: func(teacher store.Teacher) (string, error) {
@@ -68,7 +68,7 @@ type privStoreMock struct {
 	AddGroupFunc func(name string, studyYearID string) (string, error)
 
 	// AddStudyYearFunc mocks the AddStudyYear method.
-	AddStudyYearFunc func(sy store.StudyYear) (string, error)
+	AddStudyYearFunc func(name string) (string, error)
 
 	// AddTeacherFunc mocks the AddTeacher method.
 	AddTeacherFunc func(teacher store.Teacher) (string, error)
@@ -114,8 +114,8 @@ type privStoreMock struct {
 		}
 		// AddStudyYear holds details about calls to the AddStudyYear method.
 		AddStudyYear []struct {
-			// Sy is the sy argument value.
-			Sy store.StudyYear
+			// Name is the name argument value.
+			Name string
 		}
 		// AddTeacher holds details about calls to the AddTeacher method.
 		AddTeacher []struct {
@@ -220,29 +220,29 @@ func (mock *privStoreMock) AddGroupCalls() []struct {
 }
 
 // AddStudyYear calls AddStudyYearFunc.
-func (mock *privStoreMock) AddStudyYear(sy store.StudyYear) (string, error) {
+func (mock *privStoreMock) AddStudyYear(name string) (string, error) {
 	if mock.AddStudyYearFunc == nil {
 		panic("privStoreMock.AddStudyYearFunc: method is nil but privStore.AddStudyYear was just called")
 	}
 	callInfo := struct {
-		Sy store.StudyYear
+		Name string
 	}{
-		Sy: sy,
+		Name: name,
 	}
 	mock.lockAddStudyYear.Lock()
 	mock.calls.AddStudyYear = append(mock.calls.AddStudyYear, callInfo)
 	mock.lockAddStudyYear.Unlock()
-	return mock.AddStudyYearFunc(sy)
+	return mock.AddStudyYearFunc(name)
 }
 
 // AddStudyYearCalls gets all the calls that were made to AddStudyYear.
 // Check the length with:
 //     len(mockedprivStore.AddStudyYearCalls())
 func (mock *privStoreMock) AddStudyYearCalls() []struct {
-	Sy store.StudyYear
+	Name string
 } {
 	var calls []struct {
-		Sy store.StudyYear
+		Name string
 	}
 	mock.lockAddStudyYear.RLock()
 	calls = mock.calls.AddStudyYear
