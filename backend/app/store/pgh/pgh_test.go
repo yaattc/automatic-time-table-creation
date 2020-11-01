@@ -58,9 +58,8 @@ func TestTx(t *testing.T) {
 	}))
 	merr, ok = err.(*multierror.Error)
 	assert.True(t, ok)
-	assert.Equal(t, 2, merr.Len())
+	assert.Equal(t, 1, merr.Len())
 	assert.Equal(t, pgx.ErrTxCommitRollback, errors.Cause(merr.Errors[0]))
-	assert.Equal(t, pgx.ErrTxClosed, errors.Cause(merr.Errors[1]))
 
 	// checking the case when everything is OK
 	err = Tx(pool, TxerFunc(func(tx *pgx.Tx) error { return nil }))

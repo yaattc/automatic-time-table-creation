@@ -34,7 +34,7 @@ func Tx(pool *pgx.ConnPool, fun Txer) error {
 	}
 
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err := tx.Rollback(); err != nil && err != pgx.ErrTxClosed {
 			merr = multierror.Append(merr, err)
 			log.Printf("[DEBUG] failed to rollback transaction: %v", err)
 		}
