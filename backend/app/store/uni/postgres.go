@@ -31,7 +31,22 @@ func (p *Postgres) AddGroup(g store.Group) (id string, err error) {
 // ListGroups registered in the database
 func (p *Postgres) ListGroups() (res []store.Group, err error) {
 	err = pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
+		rows, err := tx.Query(`SELECT groups.id, groups.name, groups.study_year_id, study_years.name 
+						FROM groups 
+						LEFT JOIN study_years ON groups.study_year_id = study_years.id`)
+		if err != nil {
+			return errors.Wrap(err, "failed to query groups")
+		}
+		defer rows.Close()
 
+		var g store.Group
+		for rows.Next() {
+			g = store.Group{}
+			if err = rows.Scan(&g.ID, &g.Name, &g.StudyYear.ID, &g.StudyYear.Name); err != nil {
+				return errors.Wrap(err, "failed to scan group")
+			}
+			res = append(res, g)
+		}
 		return nil
 	}))
 	return res, err
@@ -39,15 +54,18 @@ func (p *Postgres) ListGroups() (res []store.Group, err error) {
 
 // DeleteGroup from the database
 func (p *Postgres) DeleteGroup(id string) error {
-	panic("implement me")
+	_, err := p.connPool.Exec(`DELETE FROM groups WHERE id = $1`, id)
+	return errors.Wrapf(err, "failed to remove group with id %s", id)
 }
 
 // AddStudyYear to database
 func (p *Postgres) AddStudyYear(sy store.StudyYear) (id string, err error) {
-	panic("implement me")
+	_, err = p.connPool.Exec(`INSERT INTO study_years("id", "name") VALUES($1, $2)`, sy.ID, sy.Name)
+	return sy.ID, errors.Wrapf(err, "failed to add study year %+v", sy)
 }
 
 // DeleteStudyYear from the database
 func (p *Postgres) DeleteStudyYear(studyYearID string) error {
-	panic("implement me")
+	_, err := p.connPool.Exec(`DELETE FROM study_years WHERE id = $1`, studyYearID)
+	return errors.Wrapf(err, "failed to remove study year with id %s", studyYearID)
 }

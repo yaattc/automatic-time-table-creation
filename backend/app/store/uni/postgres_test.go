@@ -84,7 +84,7 @@ func TestPostgres_DeleteStudyYear(t *testing.T) {
 		"00000000-0000-0000-0000-000000000001", "BS - Year 1 (Computer Science)")
 	require.NoError(t, err)
 
-	err = srv.DeleteGroup("00000000-0000-0000-0000-000000000001")
+	err = srv.DeleteStudyYear("00000000-0000-0000-0000-000000000001")
 	require.NoError(t, err)
 
 	var cnt int
