@@ -19,7 +19,7 @@
   width: 103px;
   height: 103px;
 
-  background: url(src/app/Uni.png);
+  background: url(../assets/images/Uni.png);
 }
 
 .user-logo{
@@ -29,7 +29,7 @@
   top: 12px;
   right: 26px;
 
-  background: url(User.png);
+  background: url(src/assets/images/User.png);
 }
 
 .main{
