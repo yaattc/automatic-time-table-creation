@@ -43,11 +43,13 @@ services:
 
   frontend:
     build:
-      context: frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
     image: semior/attc_frontend:latest
     container_name: "attc_frontend"
     hostname: "attc_frontend"
+    environment:
+      apiUrl: "http://app:8080/"
     ports:
       - 8080:80
     depends_on:
