@@ -1,5 +1,38 @@
 # Automatic-Time-Table-Creation [![Go Report Card](https://goreportcard.com/badge/github.com/yaattc/automatic-time-table-creation)](https://goreportcard.com/report/github.com/yaattc/automatic-time-table-creation) [![godoc](https://godoc.org/github.com/yaattc/automatic-time-table-creation?status.svg)](https://godoc.org/github.com/yaattc/automatic-time-table-creation) ![Go](https://github.com/yaattc/automatic-time-table-creation/workflows/Go/badge.svg) [![codecov](https://codecov.io/gh/yaattc/automatic-time-table-creation/branch/master/graph/badge.svg)](https://codecov.io/gh/yaattc/automatic-time-table-creation)
 
+## Build and Deploy
+
+### Environment variables
+The application awaits next environment variables provided in .env file in the project folder:
+
+| Environment       | Default  | Description                          | Example                                              |
+|-------------------|----------|--------------------------------------|------------------------------------------------------|
+| DEBUG             | false    | Turn on debug mode                   | true                                                 |
+| POSTGRES_USER     | postgres | Postgres username                    | attc                                                 |
+| POSTGRES_PASSWORD |          | Postgres password                    | attcpwd                                              |
+| POSTGRES_DB       | postgres | Postgres database name               | attc                                                 |
+| DB_CONN_STR       |          | Connection string to database engine | postgres://attc:attcpwd@db:5432/attc?sslmode=disable |
+| SERVICE_URL       |          | URL to the backend service           | http://0.0.0.0:8080/                                 |
+| SERVICE_PORT      | 8080     | Port of the backend servuce          | 8080                                                 |
+| EMAIL             |          | Default admin email                  | e.duskaliev@innopolis.university                     |
+| PASSWORD          |          | Default admin password               | test                                                 |
+
+### Run the application
+```bash
+docker-compose up -d
+```
+
+### Testing production build of frontend
+To build the frontend prod image:
+```bash
+docker-compose build frontend
+```
+
+To run the frontend prod image on port 8080:
+```bash
+docker run --rm -e apiUrl=<url to the remote backend> -p 8080:80 semior/attc_frontend:latest
+```
+
 ## Backend REST API
 
 Several notes:
@@ -8,6 +41,11 @@ Several notes:
 - Clocks should be represented in ISO 8601 format, like `15:04:05`.
 
 ### Errors format
+
+#### Unauthorized
+In case if the user requested a route without proper auth, the 401 status code will be returned with the `Unauthorized` body content.
+
+#### General
 Example:
 ```json
 {
