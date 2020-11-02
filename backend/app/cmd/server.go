@@ -129,7 +129,6 @@ func (s *Server) makeAuthenticator(ds *service.DataStore) *auth.Service {
 		SecureCookies:  strings.HasPrefix(s.ServiceURL, "https://"),
 		TokenDuration:  s.Auth.TTL.JWT,
 		CookieDuration: s.Auth.TTL.Cookie,
-		JWTQuery:       "jwt",
 		DisableXSRF:    true,
 		Issuer:         "attc",
 		URL:            strings.TrimSuffix(s.ServiceURL, "/"),
