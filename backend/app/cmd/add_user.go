@@ -16,11 +16,12 @@ type AddUser struct {
 	User     struct {
 		ID         string `long:"id" env:"ID" required:"false"`
 		Email      string `long:"email" env:"EMAIL" required:"true"`
-		Password   string `long:"password" env:"PASSWORD" required:"true"`
+		Password   string `long:"password" env:"PASSWORD" required:"true" `
 		Privileges string `long:"privileges" env:"PRIVILEGES" required:"true" description:"JSON-specified list of privileges"`
 	} `group:"user" namespace:"user" env-namespace:"USER"`
 
-	DBConnStr string `long:"db_conn_str" env:"DB_CONN_STR" required:"true" description:"connection string to db"`
+	BCryptCost int    `long:"bcrypt_cost" env:"BCRYPT_COST" description:"bcrypt cost for hashing user password" default:"10"`
+	DBConnStr  string `long:"db_conn_str" env:"DB_CONN_STR" required:"true" description:"connection string to db"`
 
 	CommonOpts
 }
@@ -38,7 +39,7 @@ func (a *AddUser) Execute(_ []string) error {
 		return errors.Wrapf(err, "failed to initialize postgres user repository at %s", a.DBConnStr)
 	}
 
-	ds := &service.DataStore{UserRepository: ur}
+	ds := &service.DataStore{UserRepository: ur, BCryptCost: a.BCryptCost}
 
 	var p []store.Privilege
 

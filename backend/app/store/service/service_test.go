@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/uni"
+
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store/user"
@@ -186,6 +188,23 @@ func TestDataStore_PassThroughMethods(t *testing.T) {
 		},
 		Locations: []store.Location{"108", "102", "109"},
 	}
+	grps := []store.Group{
+		{
+			ID:        "some awesome group ID",
+			Name:      "B20-01",
+			StudyYear: store.StudyYear{ID: "some awesome sy ID", Name: "BS - Year 1 (Computer Engineering)"},
+		},
+		{
+			ID:        "some awesome group ID 2",
+			Name:      "B20-02",
+			StudyYear: store.StudyYear{ID: "some awesome sy ID", Name: "BS - Year 1 (Computer Engineering)"},
+		},
+		{
+			ID:        "some awesome group ID 3",
+			Name:      "B19-03",
+			StudyYear: store.StudyYear{ID: "some awesome sy ID 2", Name: "BS - Year 2"},
+		},
+	}
 
 	srv := DataStore{UserRepository: &user.InterfaceMock{
 		GetUserFunc: func(id string) (store.User, error) {
@@ -209,6 +228,21 @@ func TestDataStore_PassThroughMethods(t *testing.T) {
 		ListTeachersFunc: func() ([]store.TeacherDetails, error) {
 			return []store.TeacherDetails{tch[0].TeacherDetails, tch[1].TeacherDetails}, nil
 		},
+	}, UniOrgRepository: &uni.InterfaceMock{
+		AddGroupFunc: func(g store.Group) (string, error) {
+			assert.NotEmpty(t, g.ID)
+			grps[0].ID = g.ID
+			assert.Equal(t, grps[0].Name, g.Name)
+			assert.Equal(t, grps[0].StudyYear.ID, g.StudyYear.ID)
+			return g.ID, nil
+		},
+		DeleteGroupFunc: func(id string) error {
+			assert.Equal(t, grps[1].ID, id)
+			return nil
+		},
+		ListGroupsFunc: func() ([]store.Group, error) {
+			return grps, nil
+		},
 	}, BCryptCost: 4}
 	err := srv.DeleteTeacher(tch[0].ID)
 	require.NoError(t, err)
@@ -231,6 +265,17 @@ func TestDataStore_PassThroughMethods(t *testing.T) {
 	privs, err := srv.GetUserPrivs(usr.ID)
 	require.NoError(t, err)
 	assert.Equal(t, usr.Privileges, privs)
+
+	id, err := srv.AddGroup(grps[0].Name, "some awesome sy ID")
+	require.NoError(t, err)
+	assert.Equal(t, grps[0].ID, id)
+
+	g, err := srv.ListGroups()
+	require.NoError(t, err)
+	assert.ElementsMatch(t, grps, g)
+
+	err = srv.DeleteGroup(grps[1].ID)
+	require.NoError(t, err)
 }
 
 func TestDataStore_CheckUserCredentials(t *testing.T) {

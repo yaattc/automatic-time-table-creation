@@ -87,10 +87,24 @@ func (s *Rest) routes() chi.Router {
 	m := s.Authenticator.Middleware()
 
 	r.With(m.Auth).Route("/api/v1", func(rapi chi.Router) {
-		rapi.Post("/teacher", s.privRest.addTeacherCtrl)
-		rapi.Delete("/teacher", s.privRest.deleteTeacherCtrl)
-		rapi.Get("/teacher", s.privRest.listTeachersCtrl)
-		rapi.Post("/teacher/{id}/preferences", s.privRest.setTeacherPreferencesCtrl)
+		rapi.Group(func(rt chi.Router) {
+			rt.Post("/teacher", s.privRest.addTeacherCtrl)
+			rt.Delete("/teacher", s.privRest.deleteTeacherCtrl)
+			rt.Get("/teacher", s.privRest.listTeachersCtrl)
+			rt.Post("/teacher/{id}/preferences", s.privRest.setTeacherPreferencesCtrl)
+		})
+
+		rapi.Group(func(rg chi.Router) {
+			rg.Post("/group", s.privRest.addGroup)
+			rg.Get("/group", s.privRest.listGroups)
+			rg.Delete("/group", s.privRest.deleteGroup)
+		})
+
+		rapi.Group(func(rsy chi.Router) {
+			rsy.Post("/study_year", s.privRest.addStudyYear)
+			rsy.Get("/study_year", s.privRest.listStudyYears)
+			rsy.Delete("/study_year", s.privRest.deleteStudyYear)
+		})
 	})
 
 	return r

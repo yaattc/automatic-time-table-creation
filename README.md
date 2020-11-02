@@ -30,6 +30,7 @@ const (
 
 ### Client methods
 
+#### Auth methods
 - `GET /auth/local/login` - authenticate and get JWT token. The token will be saved in secure cookies. 
   - Body:
     ```json
@@ -38,7 +39,6 @@ const (
         "passwd": "verystrongpassword"
     }
     ```
-  
   - Response (example, shrinked for the sake of simplicity; next examples will be also shrinked): 
     - Headers:
         ```text
@@ -71,7 +71,8 @@ const (
       ```
     - Body: `empty`
 
-- `POST /api/v1/teacher` - add/update (in case if `id` is empty) teacher.
+#### Teachers
+- `POST /api/v1/teacher` - add teacher.
   - Body (weekday counts from 0 - Sunday, 6 - Saturday):
     ```json
     {
@@ -235,5 +236,115 @@ const (
           "room #231"
         ]
       }
+    }
+    ```
+
+#### Groups and study years
+
+- `POST /study_year` - add study year
+  - Body:
+    ```json
+    {
+        "name": "BS - Year 1 (Computer Science)"
+    }
+    ```
+  - Response:
+    ```json
+    {
+        "id": "a2e5feae-1467-4fab-9729-cfefcd71a1c0",
+        "name": "BS - Year 1 (Computer Science)"
+    }
+    ```
+- `GET /study_year` - lists all study years
+  - Body: `empty`
+  - Response:
+    ```json
+    {
+        "study_years": [
+            {
+                "id": "a2e5feae-1467-4fab-9729-cfefcd71a1c0",
+                "name": "BS - Year 1 (Computer Science)"
+            },
+            {
+                "id": "bb42aaf8-b1b2-45d7-b886-e910f356792b",
+                "name": "BS - Year 3 (Computer Science)"
+            }
+        ]
+    }
+    ```
+- `DELETE /study_year?id=studyYearID` - remove study year
+  - Body: `empty`
+  - Response:
+    ```json
+    {
+        "deleted": true
+    }
+    ```
+- `POST /group` - add group
+  - Body:
+    ```json
+    {
+      "name": "B20-02",
+      "study_year_id": "bb42aaf8-b1b2-45d7-b886-e910f356792b"
+    }
+    ```
+  - Response:
+    ```json
+    {
+        "id": "c0b709bd-5ad7-4809-832c-446875551ca1",
+        "name": "B20-02",
+        "study_year": {
+            "id": "bb42aaf8-b1b2-45d7-b886-e910f356792b",
+            "name": "BS - Year 3 (Computer Science)"
+        }
+    }
+    ```
+- `GET /group` - list groups
+  - Body: `empty`
+  - Response:
+    ```json
+    {
+      "groups": [
+          {
+              "id": "c0b709bd-5ad7-4809-832c-446875551ca1",
+              "name": "B20-02",
+              "study_year": {
+                  "id": "bb42aaf8-b1b2-45d7-b886-e910f356792b",
+                  "name": "BS - Year 3 (Computer Science)"
+              }
+          },
+          {
+              "id": "dcd4c252-254b-4b20-a2ff-65c376609eb8",
+              "name": "B20-03",
+              "study_year": {
+                  "id": "bb42aaf8-b1b2-45d7-b886-e910f356792b",
+                  "name": "BS - Year 3 (Computer Science)"
+              }
+          },
+          {
+              "id": "576c79ae-5611-41e2-8245-a3a7842b9f3e",
+              "name": "B20-04",
+              "study_year": {
+                  "id": "bb42aaf8-b1b2-45d7-b886-e910f356792b",
+                  "name": "BS - Year 3 (Computer Science)"
+              }
+          },
+          {
+              "id": "ac6fb317-25b2-46e9-9c23-2d1ca526bc64",
+              "name": "B20-01",
+              "study_year": {
+                  "id": "bb42aaf8-b1b2-45d7-b886-e910f356792b",
+                  "name": "BS - Year 3 (Computer Science)"
+              }
+          }
+      ]
+    }
+    ```
+- `DELETE /group?id=groupID` - remove group
+  - Body: `empty`
+  - Response:
+    ```json
+    {
+        "deleted": true
     }
     ```

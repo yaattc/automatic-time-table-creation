@@ -66,7 +66,7 @@ CREATE TABLE groups (
     study_year_id UUID NOT NULL,
     name TEXT NOT NULL,
 
-    CONSTRAINT FK_study_year FOREIGN KEY (study_year_id) REFERENCES study_years(id) ON DELETE CASCADE ,
+    CONSTRAINT FK_study_year FOREIGN KEY (study_year_id) REFERENCES study_years(id) ON DELETE CASCADE,
     PRIMARY KEY (id)
 );
 

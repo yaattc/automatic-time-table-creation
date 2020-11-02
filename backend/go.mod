@@ -13,6 +13,7 @@ require (
 	github.com/go-pkgz/rest v1.5.0
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/google/uuid v1.1.2
+	github.com/hashicorp/go-multierror v1.1.0
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jessevdk/go-flags v1.4.0
