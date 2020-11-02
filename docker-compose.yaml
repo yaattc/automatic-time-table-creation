@@ -3,6 +3,8 @@ version: "2.2"
 services:
   db:
     image: postgres:latest
+    container_name: "attc_db"
+    hostname: "attc_db"
     environment:
       POSTGRES_USER: '${PG_USER}'
       POSTGRES_PASSWORD: '${PG_PWD}'
@@ -24,8 +26,6 @@ services:
     image: semior/attc:latest
     container_name: "attc"
     hostname: "attc"
-#    volumes:
-#      - ./db:/db
     environment:
       LOCATION: '${LOCATION}'
       DEBUG: '${DEBUG}'
@@ -35,16 +35,20 @@ services:
       EMAIL: '${ADMIN_EMAIL}'
       PASSWORD: '${ADMIN_PASSWORD}'
     ports:
-      - 8080:8080
+      - 8082:8080
     depends_on:
       db:
         condition: service_healthy
     command: ["/entrypoint.sh", "server"]
 
-  adminer:
-    image: adminer
-    depends_on:
-      db:
-        condition: service_healthy
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    image: semior/attc_frontend:latest
+    container_name: "attc_frontend"
+    hostname: "attc_frontend"
     ports:
-      - 8081:8080
+      - 8080:80
+    depends_on:
+      - app
