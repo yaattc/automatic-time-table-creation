@@ -28,7 +28,8 @@ type Rest struct {
 	lock       sync.Mutex
 	DataStore  *service.DataStore
 
-	privRest private
+	teacherRest teacherCtrlGroup
+	uniRest     uniCtrlGroup
 }
 
 const hardBodyLimit = 1024 * 64 // limit size of body
@@ -59,11 +60,10 @@ func (s *Rest) notFound(w http.ResponseWriter, r *http.Request) {
 	rest.SendErrorJSON(w, r, http.StatusNotFound, nil, "not found", rest.ErrBadRequest)
 }
 
-func (s *Rest) controllerGroups() private {
-	privGroup := private{
-		dataService: s.DataStore,
-	}
-	return privGroup
+func (s *Rest) controllerGroups() (teacherCtrlGroup, uniCtrlGroup) {
+	teacherGroup := teacherCtrlGroup{dataService: s.DataStore}
+	uniGroup := uniCtrlGroup{dataService: s.DataStore}
+	return teacherGroup, uniGroup
 }
 
 func (s *Rest) routes() chi.Router {
@@ -77,7 +77,7 @@ func (s *Rest) routes() chi.Router {
 	r.NotFound(s.notFound)
 
 	authHandler, _ := s.Authenticator.Handlers()
-	s.privRest = s.controllerGroups()
+	s.teacherRest, s.uniRest = s.controllerGroups()
 
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Timeout(5 * time.Second))
@@ -88,22 +88,22 @@ func (s *Rest) routes() chi.Router {
 
 	r.With(m.Auth).Route("/api/v1", func(rapi chi.Router) {
 		rapi.Group(func(rt chi.Router) {
-			rt.Post("/teacher", s.privRest.addTeacherCtrl)
-			rt.Delete("/teacher", s.privRest.deleteTeacherCtrl)
-			rt.Get("/teacher", s.privRest.listTeachersCtrl)
-			rt.Post("/teacher/{id}/preferences", s.privRest.setTeacherPreferencesCtrl)
+			rt.Post("/teacher", s.teacherRest.addTeacherCtrl)
+			rt.Delete("/teacher", s.teacherRest.deleteTeacherCtrl)
+			rt.Get("/teacher", s.teacherRest.listTeachersCtrl)
+			rt.Post("/teacher/{id}/preferences", s.teacherRest.setTeacherPreferencesCtrl)
 		})
 
 		rapi.Group(func(rg chi.Router) {
-			rg.Post("/group", s.privRest.addGroup)
-			rg.Get("/group", s.privRest.listGroups)
-			rg.Delete("/group", s.privRest.deleteGroup)
+			rg.Post("/group", s.uniRest.addGroup)
+			rg.Get("/group", s.uniRest.listGroups)
+			rg.Delete("/group", s.uniRest.deleteGroup)
 		})
 
 		rapi.Group(func(rsy chi.Router) {
-			rsy.Post("/study_year", s.privRest.addStudyYear)
-			rsy.Get("/study_year", s.privRest.listStudyYears)
-			rsy.Delete("/study_year", s.privRest.deleteStudyYear)
+			rsy.Post("/study_year", s.uniRest.addStudyYear)
+			rsy.Get("/study_year", s.uniRest.listStudyYears)
+			rsy.Delete("/study_year", s.uniRest.deleteStudyYear)
 		})
 	})
 
