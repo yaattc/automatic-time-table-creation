@@ -88,8 +88,14 @@ func (s *DataStore) CheckUserCredentials(email string, password string) (ok bool
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to validate user")
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(userpwd), []byte(password))
-	return err == nil, err
+	if err = bcrypt.CompareHashAndPassword([]byte(userpwd), []byte(password)); err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			log.Printf("[DEBUG] wrong password for %s", email)
+			return false, nil
+		}
+		return false, err
+	}
+	return true, err
 }
 
 // AddUser to the database, hash its password and give it an ID, if needed
@@ -121,8 +127,10 @@ func (s *DataStore) RegisterAdmin(email string, password string) (id string, err
 		Privileges: []store.Privilege{store.PrivReadUsers, store.PrivEditUsers, store.PrivListUsers, store.PrivAddUsers},
 	}
 	log.Printf("[INFO] trying to register admin with %+v and pwd %s", u, password)
-	id, err = s.UserRepository.AddUser(u, string(b), true)
-	return id, errors.Wrapf(err, "failed to add user %s to database", u.ID)
+	if id, err = s.UserRepository.AddUser(u, string(b), true); err != nil {
+		return "", errors.Wrapf(err, "failed to add user %s to database", u.ID)
+	}
+	return id, nil
 }
 
 // AddGroup to the database

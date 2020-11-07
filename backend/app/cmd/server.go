@@ -84,11 +84,9 @@ func (s *Server) Execute(_ []string) error {
 		BCryptCost:        s.Auth.BCryptCost,
 	}
 
-	adminID, err := ds.RegisterAdmin(s.Admin.Email, s.Admin.Password)
-	if err != nil {
+	if _, err = ds.RegisterAdmin(s.Admin.Email, s.Admin.Password); err != nil {
 		return errors.Wrapf(err, "failed to register admin %s:%s", s.Admin.Email, s.Admin.Password)
 	}
-	log.Printf("[DEBUG] registered admin %s with id %s", s.Admin.Email, adminID)
 
 	authenticator := s.makeAuthenticator(ds)
 	srv := api.Rest{

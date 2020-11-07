@@ -291,4 +291,8 @@ func TestDataStore_CheckUserCredentials(t *testing.T) {
 	ok, err := srv.CheckUserCredentials("foo@bar.cc", "some very protected pwd")
 	require.NoError(t, err)
 	assert.True(t, ok)
+
+	ok, err = srv.CheckUserCredentials("foo@bar.cc", "wrong password")
+	require.NoError(t, err)
+	assert.False(t, ok)
 }
