@@ -90,6 +90,7 @@ func (s *DataStore) CheckUserCredentials(email string, password string) (ok bool
 	}
 	if err = bcrypt.CompareHashAndPassword([]byte(userpwd), []byte(password)); err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
+			log.Printf("[DEBUG] wrong password for %s", email)
 			return false, nil
 		}
 		return false, err
