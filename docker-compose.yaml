@@ -34,6 +34,7 @@ services:
       SERVICE_PORT: '${SERVICE_PORT}'
       EMAIL: '${ADMIN_EMAIL}'
       PASSWORD: '${ADMIN_PASSWORD}'
+      SECRET: '${SECRET}'
     ports:
       - 8082:8080
     depends_on:
