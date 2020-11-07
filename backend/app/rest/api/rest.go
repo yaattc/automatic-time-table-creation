@@ -10,6 +10,8 @@ import (
 
 	"github.com/go-pkgz/auth"
 
+	"github.com/go-chi/cors"
+
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httprate"
@@ -68,6 +70,16 @@ func (s *Rest) controllerGroups() (teacherCtrlGroup, uniCtrlGroup) {
 
 func (s *Rest) routes() chi.Router {
 	r := chi.NewRouter()
+
+	crs := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"}, // todo set concrete
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowedHeaders:   []string{"Origin", "X-Requested-With", "Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	})
+	r.Use(crs.Handler)
 
 	r.Use(R.AppInfo("attc", "yaattc", s.Version))
 	r.Use(R.Recoverer(log.Default()))

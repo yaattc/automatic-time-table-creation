@@ -6,6 +6,7 @@ require (
 	github.com/Semior001/timetype v0.1.2
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/go-chi/chi v4.1.1+incompatible
+	github.com/go-chi/cors v1.1.1
 	github.com/go-chi/httprate v0.4.0
 	github.com/go-chi/render v1.0.1
 	github.com/go-pkgz/auth v0.12.1
