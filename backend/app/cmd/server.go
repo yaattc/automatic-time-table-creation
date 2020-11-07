@@ -38,7 +38,7 @@ type Server struct {
 			JWT    time.Duration `long:"jwt" env:"JWT" default:"5m" description:"jwt TTL"`
 			Cookie time.Duration `long:"cookie" env:"COOKIE" default:"200h" description:"auth cookie TTL"`
 		} `group:"ttl" namespace:"ttl" env-namespace:"TTL"`
-		Secret     string `long:"secret" env:"SECRET" description:"secret for authentication tokens"`
+		Secret     string `long:"secret" env:"SECRET" description:"secret for authentication tokens" required:"true"`
 		BCryptCost int    `long:"bcrypt_cost" env:"BCRYPT_COST" description:"bcrypt cost for hashing user password" default:"10"`
 	} `group:"auth" namespace:"auth" env-namespace:"AUTH"`
 	DBConnStr string `long:"db_conn_str" env:"DB_CONN_STR" required:"true" description:"connection string to db"`

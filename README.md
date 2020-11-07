@@ -69,7 +69,7 @@ const (
 ### Client methods
 
 #### Auth methods
-- `GET /auth/local/login` - authenticate and get JWT token. The token will be saved in secure cookies. 
+- `POST /auth/local/login` - authenticate and get JWT token. The token will be saved in secure cookies. 
   - Body:
     ```json
     {
