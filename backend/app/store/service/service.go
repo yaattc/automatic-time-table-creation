@@ -88,8 +88,13 @@ func (s *DataStore) CheckUserCredentials(email string, password string) (ok bool
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to validate user")
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(userpwd), []byte(password))
-	return err == nil, err
+	if err = bcrypt.CompareHashAndPassword([]byte(userpwd), []byte(password)); err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, err
 }
 
 // AddUser to the database, hash its password and give it an ID, if needed
