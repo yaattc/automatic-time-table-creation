@@ -126,8 +126,10 @@ func (s *DataStore) RegisterAdmin(email string, password string) (id string, err
 		Privileges: []store.Privilege{store.PrivReadUsers, store.PrivEditUsers, store.PrivListUsers, store.PrivAddUsers},
 	}
 	log.Printf("[INFO] trying to register admin with %+v and pwd %s", u, password)
-	id, err = s.UserRepository.AddUser(u, string(b), true)
-	return id, errors.Wrapf(err, "failed to add user %s to database", u.ID)
+	if id, err = s.UserRepository.AddUser(u, string(b), true); err != nil {
+		return "", errors.Wrapf(err, "failed to add user %s to database", u.ID)
+	}
+	return id, nil
 }
 
 // AddGroup to the database
