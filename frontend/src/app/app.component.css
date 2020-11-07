@@ -11,6 +11,7 @@
   flex-direction: row;
   justify-content: space-between;
   width: 100%;
+  min-width: 1150px;
   height: 103px;
   background: rgba(128, 188, 0, 1);
 }
@@ -43,6 +44,7 @@
 }
 
 .content{
+  min-width: 850px;
   flex: 1 0 auto;
   padding: 40px;
 }
