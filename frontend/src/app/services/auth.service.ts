@@ -47,45 +47,47 @@ export class AuthService implements CanActivate {
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot,
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    return (this.initialized ? this.isAuthenticated$ : this.checkToken()).pipe(
-      map((isAuthorized) => {
-        if (!isAuthorized) {
-          return this.router.parseUrl(PANEL_LOGIN);
-        }
-        return true;
-      }),
-    );
+    return this.initialized;
+    // return (this.initialized ? this.isAuthenticated$ : this.checkToken()).pipe(
+    //   map((isAuthorized) => {
+    //     if (!isAuthorized) {
+    //       return this.router.parseUrl(PANEL_LOGIN);
+    //     }
+    //     return true;
+    //   }),
+    // );
   }
 
-  public login(email: string, password: string): void {
-    this.isLoadingSource$.next(true);
+  public login(user: string, passwd: string): void {
+    // this.isLoadingSource$.next(true);
     this.http
-      .post<JwtResponseModel>(`${environment.apiUrl}/auth/signin`, {
-        email,
-        password,
+      .post<JwtResponseModel>(`${environment.apiUrl}/auth/local/login`, {
+        user,
+        passwd,
       } as LoginRequestModel)
       .subscribe(
         (response) => {
-          this.isAuthenticatedSource$.next(true);
           this.router.navigateByUrl(PANEL_DASHBOARD);
-          this.cookieService.delete(TOKEN_COOKIE_NAME);
-          this.cookieService.set(TOKEN_COOKIE_NAME, response.accessToken);
-          this.tokenData = jwt_decode(response.accessToken);
-          this.isLoadingSource$.next(false);
-          this.errorSource$.next(null);
+          // this.isAuthenticatedSource$.next(true);
+          // this.cookieService.delete(TOKEN_COOKIE_NAME);
+          // this.cookieService.set(TOKEN_COOKIE_NAME, response.accessToken);
+          // this.tokenData = jwt_decode(response.accessToken);
+          // this.isLoadingSource$.next(false);
+          // this.errorSource$.next(null);
         },
         (error: HttpErrorResponse) => {
-          this.errorSource$.next(error.error);
-          this.isAuthenticatedSource$.next(false);
-          this.isLoadingSource$.next(false);
+          // this.errorSource$.next(error.error);
+          // this.isAuthenticatedSource$.next(false);
+          // this.isLoadingSource$.next(false);
         },
       );
   }
 
   public logout(): void {
-    this.cookieService.delete(TOKEN_COOKIE_NAME);
-    this.isAuthenticatedSource$.next(false);
-    this.tokenData = undefined;
+    // this.cookieService.delete(TOKEN_COOKIE_NAME);
+    // this.isAuthenticatedSource$.next(false);
+    // this.tokenData = undefined;
+    this.initialized = false;
     this.router.navigateByUrl(PANEL_LOGIN);
   }
 
@@ -111,5 +113,9 @@ export class AuthService implements CanActivate {
     } else {
       return of(false);
     }
+  }
+
+  getInitializing(): boolean {
+    return this.initialized;
   }
 }

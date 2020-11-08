@@ -1,0 +1,8 @@
+<div *ngFor="let page of pages">
+  <button
+    pButton
+    type="button"
+    label="{{page.label}}"
+    (click)="moveTo(page.path)"
+  ></button>
+</div>

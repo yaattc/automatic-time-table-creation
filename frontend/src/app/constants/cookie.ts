@@ -1,1 +1,1 @@
-export const TOKEN_COOKIE_NAME = 'auth-token';
+export const TOKEN_COOKIE_NAME = 'JWT';
