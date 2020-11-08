@@ -11,7 +11,7 @@ export class CourseCreationComponent implements OnInit {
 
   programs: any[] = ['Bachelor', 'Master'];
 
-  teachers: any[] = [{ name: 'Konuyhov' }, { name: 'Gorodetskiy' }, { name: 'Shilov' }];
+  teachers: any[] = [{ name: 'Konyukhov' }, { name: 'Gorodetskiy' }, { name: 'Shilov' }];
   selectedTeachers: string[];
 
   creationForm = this.formBuilder.group({
@@ -31,4 +31,6 @@ export class CourseCreationComponent implements OnInit {
     // restore original order
     this.selectedTeachers = this.teachers.filter((teacher) => val.includes(teacher));
   }
+
+  submit(): void {}
 }
