@@ -1,7 +1,11 @@
 h1{
   margin: 0;
-  font-size: 48px;
   font-style: normal;
+}
+
+label {
+  font-size: 24px;
+  color: rgba(176, 179, 178, 1);
 }
 
 .name{
@@ -9,6 +13,7 @@ h1{
   width: 100%;
   height: 100px;
   text-align: center;
+  color: rgba(123, 134, 140, 1);
 }
 
 .form{
@@ -39,7 +44,6 @@ h1{
 
 .role{
   margin: 20px 30%;
-  font-size: 28px;
 }
 
 .image{
@@ -58,13 +62,13 @@ form{
 .input-content{
   display: flex;
   flex-direction: row;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
 .label{
   width: 20%;
   min-width: 150px;
-  margin: 0 0 50px 0;
-  font-size: 28px;
   text-align: left;
 }
 

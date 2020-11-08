@@ -1,6 +1,6 @@
+import { User } from './user';
+
 export interface JwtResponseModel {
-  accessToken: string;
-  tokenType: string;
-  id: number;
-  email: string;
+  token: string;
+  user: User;
 }

@@ -29,7 +29,9 @@ export class CourseCreationComponent implements OnInit {
 
   public setSelectedTeachers(val: any[]): void {
     // restore original order
-    this.selectedTeachers = this.teachers.filter((teacher) => val.includes(teacher));
+    if (val !== undefined) {
+      this.selectedTeachers = this.teachers.filter((teacher) => val.includes(teacher));
+    }
   }
 
   submit(): void {}
