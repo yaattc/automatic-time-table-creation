@@ -18,7 +18,7 @@ export class CourseCreationComponent implements OnInit {
     id: [null],
     name: [undefined, Validators.required],
     program: [this.selectedProgram, Validators.required],
-    teachers: [undefined, Validators.required],
+    teachers: [[], Validators.required],
   });
 
   constructor(private formBuilder: FormBuilder) {}
