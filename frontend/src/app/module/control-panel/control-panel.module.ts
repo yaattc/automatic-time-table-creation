@@ -10,7 +10,8 @@ import { CreationProfTaComponent } from './creation-prof-ta/creation-prof-ta.com
 import { ControlPanelComponent } from './control-panel.component';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputTextareaModule } from 'primeng/inputtextarea';
-import { CourseCreationComponent } from './course-creation/course-creation/course-creation.component';
+import { CourseCreationComponent } from './course-creation/course-creation.component';
+import { MultiSelectModule } from 'primeng/multiselect';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { CourseCreationComponent } from './course-creation/course-creation/cours
     FormsModule,
     RadioButtonModule,
     InputTextareaModule,
+    MultiSelectModule,
   ],
 })
 export class ControlPanelModule {}

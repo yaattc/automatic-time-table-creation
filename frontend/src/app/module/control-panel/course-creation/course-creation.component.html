@@ -1,0 +1,64 @@
+<div>
+  <h1>Creation Course</h1>
+  <form [formGroup]="creationForm">
+    <div class="input-block">
+      <div class="name-of-input">
+        <label for="name">
+          Course name
+        </label>
+      </div>
+      <div class="input">
+        <input
+          id="name"
+          type="text"
+          pInputText
+          formControlName="name"
+          placeholder="Name"
+        />
+      </div>
+    </div>
+    <div class="input-block">
+      <div class="name-of-input">
+        <label>
+          Educational program
+        </label>
+      </div>
+      <div class="input">
+        <div
+          *ngFor="let program of programs"
+          class="p-field-checkbox"
+        >
+          <p-radioButton
+            name="program"
+            [value]="program"
+            [(ngModel)]="selectedProgram"
+            [ngModelOptions]="{standalone: true}"
+          ></p-radioButton>
+          <label [for]="program">{{program}}</label>
+        </div>
+      </div>
+    </div>
+    <div class="input-block">
+      <div class="name-of-input">
+        <label>
+          Choose teacher
+        </label>
+      </div>
+      <div class="input">
+        <p-multiSelect
+          [options]="teachers"
+          [ngModel]="selectedTeachers"
+          (ngModelChange)="setSelectedTeachers($event)"
+          defaultLabel="Select a Teachers"
+          selectedItemsLabel="{0} teachers selected"
+          optionLabel="name"
+          [style]="{
+          minWidth: '100%',
+          borderColor: 'rgba(128, 188, 0, 0.45)'
+          }"
+          [ngModelOptions]="{standalone: true}"
+        ></p-multiSelect>
+      </div>
+    </div>
+  </form>
+</div>
