@@ -1,0 +1,13 @@
+# curl --location --request GET 'localhost:8080/auth/local/login'
+#--header 'Content-Type: application/json'
+#--data-raw '{
+#    "user": "e.duskaliev@innopolis.university",
+#    "passwd": "test"
+#}'
+GET localhost:8080/auth/local/login
+Content-Type: application/json
+
+{
+    "user": "e.duskaliev@innopolis.university",
+    "passwd": "test"
+}
