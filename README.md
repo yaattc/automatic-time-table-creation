@@ -85,18 +85,21 @@ const (
     - Body (avatar is not used in the application, it is provided by the auth library):
         ```json
         {
-          "name": "e.duskaliev@innopolis.university",
-          "id": "local_7f48448389aa065af161c3215237acef139e4ecf",
-          "picture": "http://0.0.0.0:8080/avatar/", 
-          "email": "e.duskaliev@innopolis.university",
-          "attrs": {
-            "privileges": [
-              "read_users",
-              "edit_users",
-              "list_users",
-              "add_users"
-            ]
-          }
+          "user": {
+              "name": "e.duskaliev@innopolis.university",
+              "id": "local_7f48448389aa065af161c3215237acef139e4ecf",
+              "picture": "http://0.0.0.0:8080/avatar/", 
+              "email": "e.duskaliev@innopolis.university",
+              "attrs": {
+                "privileges": [
+                  "read_users",
+                  "edit_users",
+                  "list_users",
+                  "add_users"
+                ]
+              }
+          },
+          "token": "json.web.token"
         }
         ```
 
