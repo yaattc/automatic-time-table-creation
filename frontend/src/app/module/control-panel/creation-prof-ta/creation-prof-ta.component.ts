@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
+import { TeacherService } from '../../../services/teacher.service';
 
 @Component({
   selector: 'app-creation-prof-ta',
@@ -12,17 +13,21 @@ export class CreationProfTaComponent implements OnInit {
   roles: any[] = ['Professor', 'TA'];
 
   creationForm = this.formBuilder.group({
+    id: [null],
     name: [undefined, Validators.required],
     surname: [undefined, Validators.required],
-    education: [undefined, Validators.required],
+    email: [null],
+    degree: [undefined, Validators.required],
     about: [undefined],
   });
 
-  constructor(private formBuilder: FormBuilder) {}
+  constructor(private formBuilder: FormBuilder, private teacherService: TeacherService) {}
 
   ngOnInit(): void {
     this.selectedRole = this.roles[0];
   }
 
-  submit(): void {}
+  submit(): void {
+    this.teacherService.createTeacher(this.creationForm.value);
+  }
 }

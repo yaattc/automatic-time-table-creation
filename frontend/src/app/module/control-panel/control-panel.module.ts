@@ -10,6 +10,7 @@ import { CreationProfTaComponent } from './creation-prof-ta/creation-prof-ta.com
 import { ControlPanelComponent } from './control-panel.component';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputTextareaModule } from 'primeng/inputtextarea';
+import { CourseCreationComponent } from './course-creation/course-creation/course-creation.component';
 
 @NgModule({
   declarations: [
@@ -17,6 +18,7 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
     LoginComponent,
     DashboardComponent,
     CreationProfTaComponent,
+    CourseCreationComponent,
   ],
   imports: [
     CommonModule,

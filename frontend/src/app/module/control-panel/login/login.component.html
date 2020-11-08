@@ -3,7 +3,6 @@
     [formGroup]="loginForm"
   >
     <h1>LogIn</h1>
-    <hr>
     <div class="p-field">
       <label for="email" class="p-d-flex p-flex-column">
         Email
@@ -35,6 +34,5 @@
             (click)="submitAuth()"
             [disabled]="!loginForm.valid"
     ></button>
-    <hr>
   </form>
 </div>

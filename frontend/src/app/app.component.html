@@ -4,7 +4,9 @@
       <div class="user-logo"></div>
     </div>
     <div class="main">
-      <div class="nav-bar" ngProjectAs="navigation-buttons"></div>
+      <div class="nav-bar" ngProjectAs="navigation-buttons">
+        <app-navigation-panel></app-navigation-panel>
+      </div>
       <div class="content" ngProjectAs="main-content">
         <router-outlet></router-outlet>
       </div>

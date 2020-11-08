@@ -8,7 +8,7 @@ const routes: Routes = [
     loadChildren: () =>
       import('./module/control-panel/control-panel.module').then((m) => m.ControlPanelModule),
   },
-  // { path: '**', redirectTo: PANEL_LOGIN },
+  { path: '**', redirectTo: PANEL_LOGIN },
 ];
 
 @NgModule({

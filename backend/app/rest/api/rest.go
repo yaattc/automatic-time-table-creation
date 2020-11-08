@@ -71,15 +71,15 @@ func (s *Rest) controllerGroups() (teacherCtrlGroup, uniCtrlGroup) {
 func (s *Rest) routes() chi.Router {
 	r := chi.NewRouter()
 
-	crs := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"}, // todo set concrete
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowedHeaders:   []string{"Origin", "X-Requested-With", "Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-XSRF-Token", "X-JWT"},
+		ExposedHeaders:   []string{"Authorization"},
 		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
+		MaxAge:           300,
 	})
-	r.Use(crs.Handler)
+	r.Use(corsMiddleware.Handler)
 
 	r.Use(R.AppInfo("attc", "yaattc", s.Version))
 	r.Use(R.Recoverer(log.Default()))

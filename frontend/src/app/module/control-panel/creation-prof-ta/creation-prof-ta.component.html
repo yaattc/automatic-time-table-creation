@@ -1,14 +1,14 @@
 <div class="name">
-  <h1>Add Professor/TA</h1>
+  <h1>Add Teacher</h1>
   <div class="form">
     <div class="photo-and-role">
       <div class="photo">
-        <img src="../../../../assets/images/UserBig.png" class="image">
+        <img src="../../../../assets/images/PhotoSpecialistIcon.png" class="image">
       </div>
-      <div *ngFor="let role of roles" class="role p-field-checkbox">
-        <p-radioButton [value]="role" [(ngModel)]="selectedRole"></p-radioButton>
-        <label [for]="role">{{role}}</label>
-      </div>
+<!--      <div *ngFor="let role of roles" class="role p-field-checkbox">-->
+<!--        <p-radioButton [value]="role" [(ngModel)]="selectedRole"></p-radioButton>-->
+<!--        <label [for]="role">{{role}}</label>-->
+<!--      </div>-->
     </div>
     <form [formGroup]="creationForm">
       <div class="input-content">
@@ -47,17 +47,18 @@
       </div>
       <div class="input-content">
         <div class="label">
-          <label for="education">
-            Education
+          <label for="degree">
+<!--            Education-->
+            Degree
           </label>
         </div>
         <div class="input">
           <input
-            id="education"
+            id="degree"
             type="text"
             pInputText
-            formControlName="education"
-            placeholder="Education"
+            formControlName="degree"
+            placeholder="Degree"
             style="width: 100%"
           />
         </div>
@@ -75,7 +76,7 @@
             rows="5"
             pInputTextarea
             autoResize="autoResize"
-            formControlName="education"
+            formControlName="about"
             placeholder="About"
             style="width: 100%"
           ></textarea>
