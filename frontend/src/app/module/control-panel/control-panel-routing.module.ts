@@ -1,11 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { CREATION_SPECIALIST, DASHBOARD, LOGIN } from '../../constants/routes';
+import { CREATION_COURSE, CREATION_SPECIALIST, DASHBOARD, LOGIN } from '../../constants/routes';
 import { LoginComponent } from './login/login.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { AuthService } from '../../services/auth.service';
 import { ControlPanelComponent } from './control-panel.component';
 import { CreationProfTaComponent } from './creation-prof-ta/creation-prof-ta.component';
+import { CourseCreationComponent } from './course-creation/course-creation.component';
 
 const routes: Routes = [
   {
@@ -25,6 +25,10 @@ const routes: Routes = [
         path: DASHBOARD,
         component: DashboardComponent,
         // canActivate: [AuthService],
+      },
+      {
+        path: CREATION_COURSE,
+        component: CourseCreationComponent,
       },
       // {
       //   path: '',

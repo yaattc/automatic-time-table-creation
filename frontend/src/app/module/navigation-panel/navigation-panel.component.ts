@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { PANEL_CREATION_SPECIALIST } from '../../constants/routes';
+import { PANEL_CREATION_COURSE, PANEL_CREATION_SPECIALIST } from '../../constants/routes';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
@@ -13,6 +13,10 @@ export class NavigationPanelComponent implements OnInit {
     {
       label: 'Create teacher',
       path: PANEL_CREATION_SPECIALIST,
+    },
+    {
+      label: 'Create course',
+      path: PANEL_CREATION_COURSE,
     },
   ];
 
