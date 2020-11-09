@@ -31,17 +31,12 @@ export class AuthService implements CanActivate {
   currentPage$ = this.currentPageSource$.asObservable();
 
   public readonly isAuthenticated$ = this.isAuthenticatedSource$.asObservable();
-  public tokenData: JwtPayloadModel;
 
   constructor(
     private http: HttpClient,
     private cookieService: CookieService,
     private router: Router,
-  ) {
-    if (this.cookieService.check(TOKEN_COOKIE_NAME)) {
-      this.tokenData = jwt_decode(this.cookieService.get(TOKEN_COOKIE_NAME));
-    }
-  }
+  ) {}
 
   public canActivate(
     next: ActivatedRouteSnapshot,
@@ -82,7 +77,6 @@ export class AuthService implements CanActivate {
   public logout(): void {
     this.cookieService.delete(TOKEN_COOKIE_NAME);
     this.isAuthenticatedSource$.next(false);
-    this.tokenData = undefined;
     this.router.navigateByUrl(PANEL_LOGIN);
     this.currentPageSource$.next(`${environment.apiUrl}/${PANEL_LOGIN}`);
   }
