@@ -19,5 +19,6 @@ export class LoginComponent implements OnInit {
 
   submitAuth(): void {
     this.authService.login(this.loginForm.value.email, this.loginForm.value.password);
+    this.loginForm.reset();
   }
 }

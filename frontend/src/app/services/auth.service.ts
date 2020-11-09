@@ -25,41 +25,34 @@ import { JwtResponseModel } from '../model/jwt-response-model';
 export class AuthService implements CanActivate {
   private isAuthenticatedSource$ = new BehaviorSubject<boolean>(false);
   private errorSource$ = new BehaviorSubject<ErrorResponseModel | null>(null);
-  private isLoadingSource$ = new BehaviorSubject<boolean>(false);
   private initialized = false;
 
+  private currentPageSource$ = new BehaviorSubject<string>(window.location.href);
+  currentPage$ = this.currentPageSource$.asObservable();
+
   public readonly isAuthenticated$ = this.isAuthenticatedSource$.asObservable();
-  public readonly error$ = this.errorSource$.asObservable();
-  public readonly isLoading$ = this.isLoadingSource$.asObservable();
-  public tokenData: JwtPayloadModel;
 
   constructor(
     private http: HttpClient,
     private cookieService: CookieService,
     private router: Router,
-  ) {
-    if (this.cookieService.check(TOKEN_COOKIE_NAME)) {
-      this.tokenData = jwt_decode(this.cookieService.get(TOKEN_COOKIE_NAME));
-    }
-  }
+  ) {}
 
   public canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot,
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    return this.initialized;
-    // return (this.initialized ? this.isAuthenticated$ : this.checkToken()).pipe(
-    //   map((isAuthorized) => {
-    //     if (!isAuthorized) {
-    //       return this.router.parseUrl(PANEL_LOGIN);
-    //     }
-    //     return true;
-    //   }),
-    // );
+    return (this.initialized ? this.isAuthenticated$ : this.checkToken()).pipe(
+      map((isAuthorized) => {
+        if (!isAuthorized) {
+          return this.router.parseUrl(PANEL_LOGIN);
+        }
+        return true;
+      }),
+    );
   }
 
   public login(user: string, passwd: string): void {
-    // this.isLoadingSource$.next(true);
     this.http
       .post<JwtResponseModel>(`${environment.apiUrl}/auth/local/login`, {
         user,
@@ -67,55 +60,37 @@ export class AuthService implements CanActivate {
       } as LoginRequestModel)
       .subscribe(
         (response) => {
+          this.isAuthenticatedSource$.next(true);
+          this.cookieService.delete(TOKEN_COOKIE_NAME);
+          this.cookieService.set(TOKEN_COOKIE_NAME, response.token);
+          this.errorSource$.next(null);
           this.router.navigateByUrl(PANEL_DASHBOARD);
-          // this.isAuthenticatedSource$.next(true);
-          // this.cookieService.delete(TOKEN_COOKIE_NAME);
-          // this.cookieService.set(TOKEN_COOKIE_NAME, response.accessToken);
-          // this.tokenData = jwt_decode(response.accessToken);
-          // this.isLoadingSource$.next(false);
-          // this.errorSource$.next(null);
+          this.currentPageSource$.next(`${environment.apiUrl}/${PANEL_DASHBOARD}`);
         },
         (error: HttpErrorResponse) => {
-          // this.errorSource$.next(error.error);
-          // this.isAuthenticatedSource$.next(false);
-          // this.isLoadingSource$.next(false);
+          this.errorSource$.next(error.error);
+          this.isAuthenticatedSource$.next(false);
         },
       );
   }
 
   public logout(): void {
-    // this.cookieService.delete(TOKEN_COOKIE_NAME);
-    // this.isAuthenticatedSource$.next(false);
-    // this.tokenData = undefined;
-    this.initialized = false;
+    this.cookieService.delete(TOKEN_COOKIE_NAME);
+    this.isAuthenticatedSource$.next(false);
     this.router.navigateByUrl(PANEL_LOGIN);
+    this.currentPageSource$.next(`${environment.apiUrl}/${PANEL_LOGIN}`);
   }
 
   private checkToken(): Observable<boolean> {
     if (this.cookieService.check(TOKEN_COOKIE_NAME)) {
-      return this.http
-        .get(`${environment.apiUrl}/auth/check`, {
-          headers: {
-            Authorization: `Bearer ${this.cookieService.get(TOKEN_COOKIE_NAME)}`,
-          },
-        })
-        .pipe(
-          map(() => {
-            this.isAuthenticatedSource$.next(true);
-            return true;
-          }),
-          catchError(() => {
-            this.isAuthenticatedSource$.next(false);
-            this.cookieService.delete(TOKEN_COOKIE_NAME);
-            return of(false);
-          }),
-        );
+      this.isAuthenticatedSource$.next(true);
+      return of(true);
     } else {
       return of(false);
     }
   }
 
-  getInitializing(): boolean {
-    return this.initialized;
+  public setCurrentPage(path: string): void {
+    this.currentPageSource$.next(path);
   }
 }
