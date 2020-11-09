@@ -1,0 +1,57 @@
+version: "2.2"
+
+services:
+  db:
+    image: postgres:latest
+    container_name: "attc_db"
+    hostname: "attc_db"
+    environment:
+      POSTGRES_USER: '${PG_USER}'
+      POSTGRES_PASSWORD: '${PG_PWD}'
+      POSTGRES_DB: '${PG_DB}'
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: semior/attc:latest
+    container_name: "attc"
+    hostname: "attc"
+    environment:
+      LOCATION: '${LOCATION}'
+      DEBUG: '${DEBUG}'
+      DB_CONN_STR: '${DB_CONN_STR}'
+      SERVICE_URL: '${SERVICE_URL}'
+      SERVICE_PORT: '${SERVICE_PORT}'
+      EMAIL: '${ADMIN_EMAIL}'
+      PASSWORD: '${ADMIN_PASSWORD}'
+      SECRET: '${SECRET}'
+    ports:
+      - 8082:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["/entrypoint.sh", "server"]
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: semior/attc_frontend:latest
+    container_name: "attc_frontend"
+    hostname: "attc_frontend"
+    environment:
+      apiUrl: "http://app:8080/"
+    ports:
+      - 8080:80
+    depends_on:
+      - app

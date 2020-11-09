@@ -1,0 +1,4 @@
+# curl --location --request GET 'localhost:8080/auth/local/logout'
+#--header 'Content-Type: application/json'
+GET localhost:8080/auth/local/logout
+Content-Type: application/json
