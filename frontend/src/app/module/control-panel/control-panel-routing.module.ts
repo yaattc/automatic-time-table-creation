@@ -31,6 +31,10 @@ const routes: Routes = [
         path: CREATION_COURSE,
         component: CourseCreationComponent,
       },
+      {
+        path: CREATION_COURSE,
+        component: CourseCreationComponent,
+      },
       // {
       //   path: '',
       //   redirectTo: LOGIN,
