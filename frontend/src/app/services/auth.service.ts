@@ -11,11 +11,9 @@ import {
 } from '@angular/router';
 import { PANEL_DASHBOARD, PANEL_LOGIN } from '../constants/routes';
 import { TOKEN_COOKIE_NAME } from '../constants/cookie';
-import { JwtPayloadModel } from '../model/jwt-payload-model';
-import jwt_decode from 'jwt-decode';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { ErrorResponseModel } from '../model/error-response-model';
-import { catchError, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { JwtResponseModel } from '../model/jwt-response-model';
 
