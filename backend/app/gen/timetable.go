@@ -1,8 +1,11 @@
 package gen
 
 import (
+	"fmt"
 	"sort"
 	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 )
@@ -144,36 +147,8 @@ func (tt *timeTable) step(wd time.Weekday, cellIdx int) bool {
 
 // check the timetable - does it satisfy all conditions
 func (tt *timeTable) check() bool {
-	currCoursesState := map[string]courseState{}
-
-	// copying states
-	for courseID, state := range tt.courses {
-		// filling state to zero
-		state.primaryLector.used = false
-		state.assistantLector.used = false
-		// copying state
-		currCoursesState[courseID] = state
-	}
-
-	// checking and updating course states
-	for _, cells := range tt.table {
-		for _, cell := range cells {
-			// if this slot booked, mark the class as used
-			if cell.pret != nil {
-				prt := cell.pretenders[*cell.pret]
-
-				// updating the state
-				courseState := currCoursesState[prt.courseID]
-				switch prt.typ {
-				case classTypeLecture:
-					courseState.primaryLector.used = true
-				case classTypeTutorial:
-					courseState.assistantLector.used = true
-				}
-				currCoursesState[prt.courseID] = courseState
-			}
-		}
-	}
+	currCoursesState := tt.getEmptyCoursesState()
+	tt.fillCoursesState(currCoursesState, tt.table)
 
 	// calculating overall state score
 	score := 0
@@ -213,23 +188,105 @@ func (tt *timeTable) check() bool {
 	return len(tt.courses) == score
 }
 
-type buildResult struct {
-	classes       []store.Class
-	unusedCourses []string // ids of courses that couldn't be used in the time table
+type BuildRequest struct {
+	TimeSlots []store.TimeSlot
+	Courses   []store.Course
+	From      time.Time
+	Till      time.Time
+}
+
+type BuildResult struct {
+	Classes       []store.Class
+	UnusedCourses []string // ids of courses that couldn't be used in the time table
 }
 
 // Build the schedule
-func (tt *timeTable) Build(timeSlots []store.TimeSlot, courses []store.Course) buildResult {
+func (tt *timeTable) Build(req BuildRequest) BuildResult {
 	tt.init()
-	tt.fill(timeSlots, courses)
+	tt.fill(req.TimeSlots, req.Courses)
 	tt.sortTimeSlots()
 
 	// starting generation
 	tt.step(time.Monday, 0)
 
+	getCourseByID := func(courseID string) store.Course {
+		for _, course := range req.Courses {
+			if course.ID == courseID {
+				return course
+			}
+		}
+		return store.Course{}
+	}
+
 	// if we got any result
 	if tt.mostSucceededResult != nil {
+		var res BuildResult
+		for dt := req.From; dt.Before(req.Till); dt = dt.AddDate(0, 0, 1) {
+			for _, cell := range tt.mostSucceededResult[dt.Weekday()] {
+				if cell.pret == nil {
+					continue
+				}
+				st := time.Time(cell.timeSlot.Start)
+				stDate := time.Date(dt.Year(), dt.Month(), dt.Day(), st.Hour(), st.Minute(),
+					st.Second(), st.Nanosecond(), dt.Location())
+				dur := time.Duration(cell.timeSlot.Duration)
 
+				pret := cell.pretenders[*cell.pret]
+
+				res.Classes = append(res.Classes, store.Class{
+					ID:       uuid.New().String(),
+					Title:    fmt.Sprintf("%s %s", getCourseByID(pret.courseID).Name, pret.typ),
+					Start:    stDate,
+					Duration: dur,
+				})
+			}
+		}
+		coursesState := tt.getEmptyCoursesState()
+		tt.fillCoursesState(coursesState, tt.mostSucceededResult)
+		// calculating overall state score
+		for courseID, courseState := range coursesState {
+			if !courseState.primaryLector.used || !courseState.assistantLector.used {
+				res.UnusedCourses = append(res.UnusedCourses, courseID)
+			}
+		}
+		return res
 	}
-	return buildResult{}
+	return BuildResult{}
+}
+
+func (tt *timeTable) getEmptyCoursesState() map[string]courseState {
+	currCoursesState := map[string]courseState{}
+
+	// copying states
+	for courseID, state := range tt.courses {
+		// filling state to zero
+		state.primaryLector.used = false
+		state.assistantLector.used = false
+		// copying state
+		currCoursesState[courseID] = state
+	}
+
+	return currCoursesState
+}
+
+func (tt *timeTable) fillCoursesState(st map[string]courseState, tbl map[time.Weekday][]timeTableCell) {
+	// checking and updating course states
+	for _, cells := range tbl {
+		for _, cell := range cells {
+			// if this slot booked, mark the class as used
+			if cell.pret != nil {
+				prt := cell.pretenders[*cell.pret]
+
+				// updating the state
+				courseState := st[prt.courseID]
+				switch prt.typ {
+				case classTypeLecture:
+					courseState.primaryLector.used = true
+				case classTypeTutorial:
+					courseState.assistantLector.used = true
+				}
+				st[prt.courseID] = courseState
+			}
+		}
+	}
 }

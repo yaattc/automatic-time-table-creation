@@ -1,3 +1,4 @@
 package gen
 
-type Service struct{}
+type Service struct {
+}

@@ -12,7 +12,16 @@ import (
 
 func Test_timeTable_Build(t *testing.T) {
 	tt := &timeTable{}
-	tt.Build(prepareTimeSlots(), prepareCourses())
+	res := tt.Build(BuildRequest{
+		TimeSlots: prepareTimeSlots(),
+		Courses:   prepareCourses(),
+		From:      time.Date(2020, 11, 9, 0, 0, 0, 0, time.UTC),
+		Till:      time.Date(2020, 11, 15, 0, 0, 0, 0, time.UTC),
+	})
+	for _, class := range res.Classes {
+		t.Log(class)
+	}
+	t.Logf("Unused Courses: %v", res.UnusedCourses)
 	// todo asserts
 }
 
