@@ -18,6 +18,11 @@ func (t *Teacher) PrepareUntrusted() {
 	t.Preferences = TeacherPreferences{}
 }
 
+// Empty returns true if there is no teacher data
+func (t *Teacher) Empty() bool {
+	return t.ID == ""
+}
+
 // TeacherDetails describes a data that relates to one particular teacher
 // to exclude the recursion problems
 type TeacherDetails struct {
@@ -46,6 +51,7 @@ func (p TeacherPreferences) Empty() bool {
 
 // TimeSlot describes a particular period of time in a week
 type TimeSlot struct {
+	ID       string            `json:"id"`       // id of this time slot
 	Weekday  time.Weekday      `json:"weekday"`  // a weekday of time slot
 	Start    timetype.Clock    `json:"start"`    // start time of time slot
 	Duration timetype.Duration `json:"duration"` // duration of a time slot
