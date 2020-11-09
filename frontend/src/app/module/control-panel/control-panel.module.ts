@@ -12,6 +12,9 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { CourseCreationComponent } from './course-creation/course-creation.component';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { ToastModule } from 'primeng/toast';
+import { MessagesModule } from 'primeng/messages';
+import { MessageModule } from 'primeng/message';
 
 @NgModule({
   declarations: [
@@ -31,6 +34,9 @@ import { MultiSelectModule } from 'primeng/multiselect';
     RadioButtonModule,
     InputTextareaModule,
     MultiSelectModule,
+    ToastModule,
+    MessageModule,
+    MessagesModule,
   ],
 })
 export class ControlPanelModule {}
