@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
+import { CourseService } from '../../../services/course.service';
 
 @Component({
   selector: 'app-course-creation',
@@ -11,7 +12,7 @@ export class CourseCreationComponent implements OnInit {
 
   programs: any[] = ['Bachelor', 'Master'];
 
-  teachers: any[] = [{ name: 'Konyukhov' }, { name: 'Gorodetskiy' }, { name: 'Shilov' }];
+  teachers: any[] = [];
   selectedTeachers: string[];
 
   creationForm = this.formBuilder.group({
@@ -21,10 +22,17 @@ export class CourseCreationComponent implements OnInit {
     teachers: [[], Validators.required],
   });
 
-  constructor(private formBuilder: FormBuilder) {}
+  constructor(private formBuilder: FormBuilder, private courseService: CourseService) {}
 
   ngOnInit(): void {
     this.selectedProgram = this.programs[0];
+    this.courseService.getListOfTeachers().subscribe((value) => {
+      this.teachers = value.teachers.map((val) => {
+        return {
+          name: val.degree + ' ' + val.name + ' ' + val.surname,
+        };
+      });
+    });
   }
 
   public setSelectedTeachers(val: any[]): void {
