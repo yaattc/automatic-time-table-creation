@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { CourseService } from '../../../services/course.service';
+import { TeacherService } from '../../../services/teacher.service';
 
 @Component({
   selector: 'app-course-creation',
@@ -22,11 +22,11 @@ export class CourseCreationComponent implements OnInit {
     teachers: [[], Validators.required],
   });
 
-  constructor(private formBuilder: FormBuilder, private courseService: CourseService) {}
+  constructor(private formBuilder: FormBuilder, private teacherService: TeacherService) {}
 
   ngOnInit(): void {
     this.selectedProgram = this.programs[0];
-    this.courseService.getListOfTeachers().subscribe((value) => {
+    this.teacherService.getListOfTeachers().subscribe((value) => {
       this.teachers = value.teachers.map((val) => {
         return {
           name: val.degree + ' ' + val.name + ' ' + val.surname,

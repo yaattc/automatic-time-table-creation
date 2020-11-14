@@ -15,3 +15,7 @@ export const PANEL_CREATION_SPECIALIST = `${PANEL}/${CREATION}/${SPECIALIST}`;
 export const COURSE = 'course';
 export const CREATION_COURSE = `${CREATION}/${COURSE}`;
 export const PANEL_CREATION_COURSE = `${PANEL}/${CREATION}/${COURSE}`;
+
+export const PREFERENCES = 'preferences';
+export const SPECIALIST_PREFERENCES = `${SPECIALIST}/${PREFERENCES}`;
+export const PANEL_SPECIALIST_PREFERENCES = `${PANEL}/${SPECIALIST}/${PREFERENCES}`;
