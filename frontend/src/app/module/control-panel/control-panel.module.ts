@@ -17,6 +17,7 @@ import { MessagesModule } from 'primeng/messages';
 import { MessageModule } from 'primeng/message';
 import { GroupCreationComponent } from './group-creation/group-creation.component';
 import { PreferencesComponent } from './preferences/preferences.component';
+import { DropdownModule } from 'primeng/dropdown';
 
 @NgModule({
   declarations: [
@@ -41,6 +42,7 @@ import { PreferencesComponent } from './preferences/preferences.component';
     ToastModule,
     MessageModule,
     MessagesModule,
+    DropdownModule,
   ],
 })
 export class ControlPanelModule {}

@@ -12,17 +12,19 @@ import { Staff } from '../../../model/staff';
 export class PreferencesComponent implements OnInit {
   constructor(private formBuilder: FormBuilder, private teacherService: TeacherService) {}
 
-  timeSlots: TimeSlot[] = [];
-  selectedTimeSlots: { name: string }[];
+  timeSlots: { name: string; value: TimeSlot }[] = [];
+  selectedTimeSlots: { name: string; value: TimeSlot }[];
 
-  teachers: Staff[] = [];
-  selectedTeachers: { name: string }[];
+  teachers: { name: string; value: Staff }[] = [];
+  selectedTeachers: { name: string; value: Staff }[];
+  selectedTeacherForPreferences: Staff;
 
-  rooms: string[] = ['room #108', 'room #109', 'room #231'];
-  selectedRooms: string[];
+  rooms: { name: string }[] = [{ name: 'room #108' }, { name: 'room #109' }, { name: 'room #231' }];
+  selectedRooms: { name: string }[];
 
   creationForm = this.formBuilder.group({
-    time_slots: [[] as TimeSlot[]],
+    teacher: [undefined as Staff],
+    timeSlots: [[] as TimeSlot[]],
     staff: [[] as Staff[]],
     locations: [[]],
   });
@@ -32,12 +34,13 @@ export class PreferencesComponent implements OnInit {
       this.teachers = value.teachers.map((val) => {
         return {
           name: val.degree + ' ' + val.name + ' ' + val.surname,
+          value: val,
         };
       });
     });
   }
 
-  public setSelectedTimeSlots(val: TimeSlot[]): void {
+  public setSelectedTimeSlots(val: { name: string; value: TimeSlot }[]): void {
     // restore original order
     if (val !== undefined) {
       this.selectedTimeSlots = this.timeSlots
@@ -45,29 +48,33 @@ export class PreferencesComponent implements OnInit {
         .map((timeSlot) => {
           return {
             name:
-              timeSlot.weekday +
+              timeSlot.value.weekday +
               ' ' +
-              timeSlot.start +
+              timeSlot.value.start +
               ' ' +
-              timeSlot.duration +
+              timeSlot.value.duration +
               ' ' +
-              timeSlot.location,
+              timeSlot.value.location,
+            value: timeSlot.value,
           };
         });
     }
   }
 
-  public setSelectedTeachers(val: Staff[]): void {
+  public setSelectedTeachers(val: { name: string; value: Staff }[]): void {
     // restore original order
     if (val !== undefined) {
       this.selectedTeachers = this.teachers.filter((teacher) => val.includes(teacher));
     }
   }
 
-  public setSelectedRooms(val: string[]): void {
+  public setSelectedRooms(val: { name: string }[]): void {
     // restore original order
+    console.log(val);
     if (val !== undefined) {
       this.selectedRooms = this.rooms.filter((room) => val.includes(room));
     }
   }
+
+  public submit(): void {}
 }

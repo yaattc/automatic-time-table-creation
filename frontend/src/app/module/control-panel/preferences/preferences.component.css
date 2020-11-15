@@ -48,6 +48,12 @@ p-multiSelect {
   text-align: left;
 }
 
+p-dropdown {
+  color: rgba(128, 188, 0, 0.45);
+  font-size: 28px;
+  text-align: left;
+}
+
 .button{
   align-items: center;
   bottom: 0;
