@@ -11,3 +11,7 @@ button {
   background-color: rgba(255, 255, 255, 1);
   border-radius: 20px;
 }
+
+p-dropdown {
+  width: 100%;
+}

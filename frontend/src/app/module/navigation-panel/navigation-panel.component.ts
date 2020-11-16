@@ -1,8 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import {PANEL_CREATION_COURSE, PANEL_CREATION_SPECIALIST, PANEL_SPECIALIST_PREFERENCES} from '../../constants/routes';
+import {
+  PANEL_CREATION_COURSE,
+  PANEL_CREATION_SPECIALIST,
+  PANEL_SPECIALIST_PREFERENCES,
+} from '../../constants/routes';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
+import { FormBuilder } from '@angular/forms';
 
 @Component({
   selector: 'app-navigation-panel',
@@ -27,7 +32,22 @@ export class NavigationPanelComponent implements OnInit {
 
   currentPage: string;
 
-  constructor(private router: Router, private authService: AuthService) {}
+  filterForm = this.formBuilder.group({
+    year: [null],
+    group: [null],
+  });
+
+  groups: any[];
+  years: any[];
+
+  selectedGroups: any;
+  selectedYears: any;
+
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private formBuilder: FormBuilder,
+  ) {}
 
   ngOnInit(): void {
     this.authService.currentPage$.subscribe((page) => {
