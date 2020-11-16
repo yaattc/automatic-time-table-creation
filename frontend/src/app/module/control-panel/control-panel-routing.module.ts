@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import {
-  CREATION_COURSE,
+  CREATION_COURSE, CREATION_GROUP,
   CREATION_SPECIALIST,
   DASHBOARD,
   LOGIN,
@@ -14,6 +14,7 @@ import { CreationProfTaComponent } from './creation-prof-ta/creation-prof-ta.com
 import { CourseCreationComponent } from './course-creation/course-creation.component';
 import { AuthService } from '../../services/auth.service';
 import { PreferencesComponent } from './preferences/preferences.component';
+import {GroupCreationComponent} from './group-creation/group-creation.component';
 
 const routes: Routes = [
   {
@@ -47,7 +48,12 @@ const routes: Routes = [
       {
         path: SPECIALIST_PREFERENCES,
         component: PreferencesComponent,
-        // canActivate: [AuthService],
+        canActivate: [AuthService],
+      },
+      {
+        path: CREATION_GROUP,
+        component: GroupCreationComponent,
+        canActivate: [AuthService],
       },
       // {
       //   path: '',

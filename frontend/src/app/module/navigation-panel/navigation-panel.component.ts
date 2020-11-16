@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {
-  PANEL_CREATION_COURSE,
+  PANEL_CREATION_COURSE, PANEL_CREATION_GROUP,
   PANEL_CREATION_SPECIALIST,
   PANEL_SPECIALIST_PREFERENCES,
 } from '../../constants/routes';
@@ -27,6 +27,10 @@ export class NavigationPanelComponent implements OnInit {
     {
       label: 'Set up preferences',
       path: PANEL_SPECIALIST_PREFERENCES,
+    },
+    {
+      label: 'Creation study year/group',
+      path: PANEL_CREATION_GROUP,
     },
   ];
 
