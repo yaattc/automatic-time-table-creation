@@ -1,10 +1,13 @@
+<p-toast></p-toast>
+<p-toast position="top-left" key="tl"></p-toast>
+
 <div class="main-block">
   <div class="creation-block">
     <form [formGroup]="year">
       <h2>Creation Study Year</h2>
       <div class="label">
         <label for="year-name">
-          Name of the course
+          Name of the study year
         </label>
       </div>
       <div class="input">
@@ -46,12 +49,10 @@
         </label>
       </div>
       <div class="input">
-        <p-multiSelect
+        <p-dropdown
           [options]="years"
           [ngModel]="selectedYears"
           (ngModelChange)="setSelectedYears($event)"
-          defaultLabel="Select a Year"
-          selectedItemsLabel="{0} Years selected"
           optionLabel="name"
           [style]="{
           minWidth: '100%',
@@ -59,7 +60,8 @@
           borderColor: 'rgba(128, 188, 0, 0.45)'
           }"
           formControlName="study_year_id"
-        ></p-multiSelect>
+          placeholder="Choose study year"
+        ></p-dropdown>
       </div>
     </form>
     <div class="button">
