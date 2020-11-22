@@ -171,12 +171,12 @@ func (tt *timetable) fill(req BuildTimeTableRequest) {
 
 	// filling courses
 	for _, c := range req.Courses {
-		crs := course{primaryLector: lector{teacher: c.LeadingProfessor.TeacherDetails}, course: c}
-		if !c.AssistantProfessor.Empty() {
-			crs.assistantLector = &lector{teacher: c.AssistantProfessor.TeacherDetails}
+		crs := course{primaryLector: lector{teacher: c.PrimaryLector.TeacherDetails}, course: c}
+		if !c.AssistantLector.Empty() {
+			crs.assistantLector = &lector{teacher: c.AssistantLector.TeacherDetails}
 		}
 
-		for _, ts := range c.LeadingProfessor.Preferences.TimeSlots {
+		for _, ts := range c.PrimaryLector.Preferences.TimeSlots {
 			idx := 0
 			for i, cell := range tt.table[ts.Weekday] {
 				if cell.slot.ID == ts.ID {
@@ -190,8 +190,8 @@ func (tt *timetable) fill(req BuildTimeTableRequest) {
 			})
 		}
 
-		if !c.AssistantProfessor.Empty() {
-			for _, ts := range c.AssistantProfessor.Preferences.TimeSlots {
+		if !c.AssistantLector.Empty() {
+			for _, ts := range c.AssistantLector.Preferences.TimeSlots {
 				idx := 0
 				for i, cell := range tt.table[ts.Weekday] {
 					if cell.slot.ID == ts.ID {

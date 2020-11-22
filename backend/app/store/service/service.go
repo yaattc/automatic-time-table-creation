@@ -180,3 +180,36 @@ func (s *DataStore) DeleteStudyYear(studyYearID string) error {
 func (s *DataStore) ListStudyYears() ([]store.StudyYear, error) {
 	return s.UniOrgRepository.ListStudyYears()
 }
+
+// AddCourse to the database
+func (s *DataStore) AddCourse(course store.Course) (id string, err error) {
+	if course.ID == "" {
+		course.ID = uuid.New().String()
+	}
+	return s.UniOrgRepository.AddCourse(course)
+}
+
+// GetCourse by id
+func (s *DataStore) GetCourse(id string) (store.Course, error) {
+	crs, err := s.UniOrgRepository.GetCourseDetails(id)
+	if err != nil {
+		return store.Course{}, errors.Wrapf(err, "failed to get details for course %s", id)
+	}
+	// loading teachers
+	if crs.PrimaryLector, err = s.TeacherRepository.GetTeacherFull(crs.PrimaryLector.ID); err != nil {
+		return store.Course{}, errors.Wrapf(err, "failed to load primary lector %s for course %s",
+			crs.PrimaryLector.ID, id)
+	}
+	if crs.AssistantLector, err = s.TeacherRepository.GetTeacherFull(crs.AssistantLector.ID); err != nil {
+		return store.Course{}, errors.Wrapf(err, "failed to load assistant lector %s for course %s",
+			crs.AssistantLector.ID, id)
+	}
+	for taIdx, ta := range crs.Assistants {
+		if crs.Assistants[taIdx], err = s.TeacherRepository.GetTeacherFull(ta.ID); err != nil {
+			return store.Course{}, errors.Wrapf(err, "failed to load TA %s for course %s",
+				ta.ID, id)
+		}
+	}
+
+	return crs, nil
+}

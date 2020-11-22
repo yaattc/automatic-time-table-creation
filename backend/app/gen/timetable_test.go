@@ -124,10 +124,10 @@ func prepareCourses() []store.Course {
 		TeacherDetails: store.TeacherDetails{ID: "ivanov"},
 	}
 
-	course1 := store.Course{ID: "course1", Name: "course1", LeadingProfessor: succi, AssistantProfessor: succi}
-	course2 := store.Course{ID: "course2", Name: "course2", LeadingProfessor: bobrov, AssistantProfessor: kabanov}
-	course3 := store.Course{ID: "course3", Name: "course3", LeadingProfessor: sidorov}
-	course4 := store.Course{ID: "course4", Name: "course4", LeadingProfessor: kabanov, AssistantProfessor: ivanov}
+	course1 := store.Course{ID: "course1", Name: "course1", PrimaryLector: succi, AssistantLector: succi}
+	course2 := store.Course{ID: "course2", Name: "course2", PrimaryLector: bobrov, AssistantLector: kabanov}
+	course3 := store.Course{ID: "course3", Name: "course3", PrimaryLector: sidorov}
+	course4 := store.Course{ID: "course4", Name: "course4", PrimaryLector: kabanov, AssistantLector: ivanov}
 	return []store.Course{course1, course2, course3, course4}
 }
 

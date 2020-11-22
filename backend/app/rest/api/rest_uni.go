@@ -25,6 +25,9 @@ type uniStore interface {
 	GetStudyYear(id string) (sy store.StudyYear, err error)
 	DeleteStudyYear(studyYearID string) error
 	ListStudyYears() ([]store.StudyYear, error)
+
+	AddCourse(course store.Course) (id string, err error)
+	GetCourse(id string) (store.Course, error)
 }
 
 // POST /group - add group
@@ -131,4 +134,43 @@ func (s *uniCtrlGroup) deleteStudyYear(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, R.JSON{"deleted": true})
+}
+
+// POST /course - add course
+func (s *uniCtrlGroup) addCourse(w http.ResponseWriter, r *http.Request) {
+	var reqBody struct {
+		Name              string                   `json:"name"`
+		Program           store.EducationalProgram `json:"program"`
+		PrimaryLector     string                   `json:"primary_lectors"`
+		AssistantLector   string                   `json:"assistant_lectors"`
+		TeacherAssistants []string                 `json:"teacher_assistants"`
+	}
+	if err := render.DecodeJSON(http.MaxBytesReader(w, r.Body, hardBodyLimit), &reqBody); err != nil {
+		rest.SendErrorJSON(w, r, http.StatusBadRequest, err, "can't bind course", rest.ErrDecode)
+		return
+	}
+
+	var tas []store.Teacher
+	for _, taID := range reqBody.TeacherAssistants {
+		tas = append(tas, store.Teacher{TeacherDetails: store.TeacherDetails{ID: taID}})
+	}
+
+	id, err := s.dataService.AddCourse(store.Course{
+		Name:            reqBody.Name,
+		Program:         reqBody.Program,
+		Assistants:      tas,
+		PrimaryLector:   store.Teacher{TeacherDetails: store.TeacherDetails{ID: reqBody.PrimaryLector}},
+		AssistantLector: store.Teacher{TeacherDetails: store.TeacherDetails{ID: reqBody.AssistantLector}},
+	})
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't add course", rest.ErrInternal)
+		return
+	}
+	finalCrs, err := s.dataService.GetCourse(id)
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't load added course", rest.ErrInternal)
+		return
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, finalCrs)
 }
