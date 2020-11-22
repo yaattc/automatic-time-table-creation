@@ -137,5 +137,11 @@ func (s *uniCtrlGroup) deleteStudyYear(w http.ResponseWriter, r *http.Request) {
 
 // GET /time_slots - list time slots
 func (s *uniCtrlGroup) listTimeSlots(w http.ResponseWriter, r *http.Request) {
-
+	tsl, err := s.dataService.ListTimeSlots()
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't list time slots", rest.ErrInternal)
+		return
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, R.JSON{"time_slots": tsl})
 }

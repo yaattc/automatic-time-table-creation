@@ -8,7 +8,7 @@ END;
 $$ LANGUAGE 'plpgsql';
 
 CREATE TABLE "users" (
-     "id" UUID NOT NULL,
+     "id" TEXT NOT NULL,
      "email" text NOT NULL,
      "password" text NOT NULL,
      "privileges" jsonb DEFAULT '{}'::jsonb,

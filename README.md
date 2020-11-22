@@ -214,7 +214,7 @@ const (
     }
     ```
 
-- `POST /teacher/{id}/preferences` - set teacher preferences
+- `POST /api/v1/teacher/{id}/preferences` - set teacher preferences
   - Body:
     ```json
     {
@@ -282,7 +282,7 @@ const (
 
 #### Groups and study years
 
-- `POST /study_year` - add study year
+- `POST /api/v1/study_year` - add study year
   - Body:
     ```json
     {
@@ -296,7 +296,7 @@ const (
         "name": "BS - Year 1 (Computer Science)"
     }
     ```
-- `GET /study_year` - lists all study years
+- `GET /api/v1/study_year` - lists all study years
   - Body: `empty`
   - Response:
     ```json
@@ -313,7 +313,7 @@ const (
         ]
     }
     ```
-- `DELETE /study_year?id=studyYearID` - remove study year
+- `DELETE /api/v1/study_year?id=studyYearID` - remove study year
   - Body: `empty`
   - Response:
     ```json
@@ -321,7 +321,7 @@ const (
         "deleted": true
     }
     ```
-- `POST /group` - add group
+- `POST /api/v1/group` - add group
   - Body:
     ```json
     {
@@ -340,7 +340,7 @@ const (
         }
     }
     ```
-- `GET /group` - list groups
+- `GET /api/v1/group` - list groups
   - Body: `empty`
   - Response:
     ```json
@@ -381,11 +381,34 @@ const (
       ]
     }
     ```
-- `DELETE /group?id=groupID` - remove group
+- `DELETE /api/v1/group?id=groupID` - remove group
   - Body: `empty`
   - Response:
     ```json
     {
         "deleted": true
+    }
+    ```
+
+#### Schedule
+- `GET /api/v1/time_slots` - list time slots
+  - Body: `empty`
+  - Response:
+    ```json
+    {
+      "time_slots": [
+          {
+              "id": "965659df-c12a-4fa2-9047-48e8ce5077b7",
+              "weekday": 1,
+              "start": "09:00:00.000000",
+              "duration": "1h30m0s"
+          },
+          {
+              "id": "e7f005f2-4ead-4742-9ad4-a5075baad991",
+              "weekday": 2,
+              "start": "09:00:00.000000",
+              "duration": "1h30m0s"
+          }
+      ]
     }
     ```

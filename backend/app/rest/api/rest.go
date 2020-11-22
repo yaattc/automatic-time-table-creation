@@ -117,6 +117,10 @@ func (s *Rest) routes() chi.Router {
 			rsy.Get("/study_year", s.uniRest.listStudyYears)
 			rsy.Delete("/study_year", s.uniRest.deleteStudyYear)
 		})
+
+		rapi.Group(func(rsched chi.Router) {
+			rsched.Get("/time_slot", s.uniRest.listTimeSlots)
+		})
 	})
 
 	return r
