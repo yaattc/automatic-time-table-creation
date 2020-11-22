@@ -1,25 +1,44 @@
+import csv
+import glob
+import os
 import re
+from io import StringIO
+
 import requests
 import shutil
 from functools import reduce
 from operator import concat
+import pandas as pd
 
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 import schedule
 
-from modules.autoparser import controller
-from modules.autoparser import permanent
+from modules.doeparser import controller
+from modules.doeparser import permanent
 from modules.core.permanent import DATABASE_FOLDER, DATABASE_NAME
 from modules.core.source import bot
+from modules.schedule.classes import Group
 from modules.schedule.permanent import REGISTERED_COURSES
 from modules.admin.permanent import SUPERADMIN_LIST
 
+"""
+Module automatically parse schedule from google sheet and modify database
+
+Author: @Nmikriukov
+"""
 
 
 def attach_autoparser_module():
-
     def get_value(ws, row, col):
+        """
+        Get value of specific cell from worksheet
+        If cell is part of merged cell, return value from top left single cell, where text is stored
 
+        :param ws: worksheet from openpyxl workbook
+        :param row: integer
+        :param col: integer
+        :return: text
+        """
         # check if cell is merged
         for borders in ws.merged_cells.ranges:
             if borders.min_col <= col <= borders.max_col and borders.min_row <= row <= borders.max_row:
@@ -28,7 +47,16 @@ def attach_autoparser_module():
         return ws.cell(row, col).value
 
     def parse_cell(ws, row, col):
+        """
+        Get lesson, teacher and room from specific cell
 
+        :param ws: worksheet from openpyxl workbook
+        :param row: integer
+        :param col: integer
+        :return: text, text, text | if correct cell with data
+                 None, None, None | if empty cell
+                 -1, None, None   | if unknown data in cell
+        """
         lesson = get_value(ws, row, col)
         teacher = get_value(ws, row + 1, col)
         room = get_value(ws, row + 2, col)
@@ -49,8 +77,11 @@ def attach_autoparser_module():
         if not teacher:  # unknown teacher
             teacher = '?'
         try:
-            room = int(room)
-        except (TypeError, ValueError):
+            if "English" not in lesson:
+                room = int(room)
+            else:
+                map(int, room.split("/"))
+        except (TypeError, ValueError, AttributeError):
             room = -1
 
         return lesson, teacher, room
@@ -85,8 +116,21 @@ def attach_autoparser_module():
 
         # download new schedule from google sheet
         new_schedule = requests.get(permanent.SCHEDULE_DOWNLOAD_LINK)
-        with open(f'{DATABASE_FOLDER}/{permanent.SCHEDULE_NAME}', 'wb') as f:
-            f.write(new_schedule.content)
+        # with open(f'{DATABASE_FOLDER}/{permanent.SCHEDULE_NAME_CSV}', 'wb') as f:
+        #     f.write(new_schedule.content)
+        pd.read_csv(StringIO(new_schedule.text), sep=",").to_excel(f'{DATABASE_FOLDER}/{permanent.SCHEDULE_NAME}',
+                                                                   header=True, index=False)
+
+        # convert here
+        # for csvfile in glob.glob(f'{DATABASE_FOLDER}/{permanent.SCHEDULE_NAME_CSV}'):
+        #     workbook = Workbook(write_only=False)
+        #     worksheet = workbook.create_sheet("a")
+        #     with open(csvfile, 'rt', encoding='utf8') as f:
+        #         reader = csv.reader(f)
+        #         for r, row in enumerate(reader):
+        #             for c, col in enumerate(row):
+        #                 worksheet.cell(r + 1, c + 1).value = col
+        #     workbook.save(f'{DATABASE_FOLDER}/{permanent.SCHEDULE_NAME}')
 
         try:
             # check download is ok
@@ -105,7 +149,7 @@ def attach_autoparser_module():
         # open workbook
         wb = load_workbook(f'{DATABASE_FOLDER}/{permanent.SCHEDULE_NAME}')
 
-        sheet_index = 1  # default sheet index in timetable
+        sheet_index = 0  # default sheet index in timetable
         # find sheet for bachelors and masters
         for i, name in enumerate(wb.sheetnames):
             if "BS" in name:
@@ -155,14 +199,30 @@ def attach_autoparser_module():
                 start_time, end_time = time_splitted[0], time_splitted[1]
                 subject, teacher, room = cell_new
 
-                lesson_id = (course_group, subject, teacher, room, start_time, end_time)
+                # usually subject is assigned to course group, but not always (e.g. B20 English groups)
+                subject_group = course_group
+
+                is_english = "English" in subject
+                # extract english group number from circle brackets
+                if is_english:
+                    subject_group = list(map(str.strip, re.split(r"\s*/\s*", re.split(r"\s*-\s*", subject)[1])))
+                    subject = re.split(r"\s*-\s*", subject)[0]
+                    room1 = re.split(r"\s*/\s*", room if isinstance(room, str) else "")
+                    teacher1 = re.split(r"\s*/\s*", teacher if isinstance(room, str) else "")
+                    if len(room1) == len(subject_group):
+                        room = room1
+                    else:
+                        room = [room] * len(subject_group)
+                    if len(teacher1) == len(subject_group):
+                        teacher = teacher1
+                    else:
+                        teacher = [teacher] * len(subject_group)
+
+                lesson_id = (subject_group, subject, teacher, room, start_time, end_time, cur_weekday)
                 if lesson_id in memorized_lessons:
                     row += 3
                     continue
                 memorized_lessons.append(lesson_id)
-
-                if "English" in subject:
-                    subject_group = "EN" + re.search("\\((.*)\\)", subject).group(1)
 
                 if compare_with_prev:
                     # compare new cell with old one
@@ -171,12 +231,21 @@ def attach_autoparser_module():
                         subject_old, teacher_old, room_old = cell_old[0], cell_old[1], cell_old[2]
                         for admin in SUPERADMIN_LIST:
                             # send changes to admin
-                            bot.send_message(admin, f"{subject_group} {first_col_value} changed:\n"
-                                                    f"Was {subject_old}, {teacher_old}, {room_old}\n"
-                                                    f"Now {subject}, {teacher}, {room}\n")
+                            print(f"{subject_group} {first_col_value} changed:\n"
+                                  f"Was {subject_old}, {teacher_old}, {room_old}\n"
+                                  f"Now {subject}, {teacher}, {room}\n")
+                            # bot.send_message(admin, f"{subject_group} {first_col_value} changed:\n"
+                            #                         f"Was {subject_old}, {teacher_old}, {room_old}\n"
+                            #                         f"Now {subject}, {teacher}, {room}\n")
 
                 # insert new lesson to database
-                controller.insert_lesson(subject_group, subject, teacher, cur_weekday, start_time, end_time, room)
+                if is_english:
+                    for group, room, teacher in zip(subject_group, room, teacher):
+                        controller.insert_lesson(group, subject, teacher, cur_weekday, start_time, end_time,
+                                                 room)
+                else:
+                    controller.insert_lesson(subject_group, subject, teacher, cur_weekday, start_time, end_time, room)
+
                 row += 3
             col += 1
 
