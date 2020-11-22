@@ -25,6 +25,8 @@ type uniStore interface {
 	GetStudyYear(id string) (sy store.StudyYear, err error)
 	DeleteStudyYear(studyYearID string) error
 	ListStudyYears() ([]store.StudyYear, error)
+
+	ListTimeSlots() ([]store.TimeSlot, error)
 }
 
 // POST /group - add group
@@ -131,4 +133,9 @@ func (s *uniCtrlGroup) deleteStudyYear(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, R.JSON{"deleted": true})
+}
+
+// GET /time_slots - list time slots
+func (s *uniCtrlGroup) listTimeSlots(w http.ResponseWriter, r *http.Request) {
+
 }

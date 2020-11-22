@@ -6,6 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Semior001/timetype"
+	"github.com/google/uuid"
+
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 
 	"github.com/stretchr/testify/assert"
@@ -118,6 +121,22 @@ func TestPostgres_ListStudyYears(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.ElementsMatch(t, expected, sys)
+}
+
+func TestPostgres_ListTimeSlots(t *testing.T) {
+	srv := preparePgStore(t)
+	tsl := prepareTimeSlots()
+	for _, ts := range tsl {
+		_, err := srv.connPool.Exec(
+			`INSERT INTO time_slots(id, weekday, start, duration) VALUES ($1, $2, $3, $4)`,
+			ts.ID, ts.Weekday, ts.Start, ts.Duration,
+		)
+		require.NoError(t, err)
+	}
+
+	res, err := srv.ListTimeSlots()
+	require.NoError(t, err)
+	assert.ElementsMatch(t, tsl, res)
 }
 
 func TestPostgres_ListGroups(t *testing.T) {
@@ -249,4 +268,57 @@ func cleanupStorage(t *testing.T, p *pgx.ConnPool) {
 	require.NoError(t, err)
 	_, err = tx.Exec(`TRUNCATE groups CASCADE`)
 	require.NoError(t, err)
+	_, err = tx.Exec(`TRUNCATE time_slots CASCADE`)
+	require.NoError(t, err)
+}
+
+func prepareTimeSlots() []store.TimeSlot {
+	timeSlotsOnWeek := func(ts store.TimeSlot) []store.TimeSlot {
+		var res []store.TimeSlot
+		for i := time.Monday; i <= time.Friday; i++ {
+			newTS := ts
+			newTS.ID = uuid.New().String()
+			newTS.Weekday = i
+			res = append(res, newTS)
+		}
+		return res
+	}
+	var timeSlots []store.TimeSlot
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(9, 0, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(10, 40, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(12, 40, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(14, 20, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(16, 0, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(17, 40, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(19, 20, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	return timeSlots
 }

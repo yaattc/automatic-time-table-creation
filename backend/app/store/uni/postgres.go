@@ -106,3 +106,23 @@ func (p *Postgres) ListStudyYears() (res []store.StudyYear, err error) {
 	}))
 	return res, err
 }
+
+// ListTimeSlots that are registered in the database
+func (p *Postgres) ListTimeSlots() (res []store.TimeSlot, err error) {
+	err = pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
+		rows, err := tx.Query(`SELECT id, weekday, start, duration FROM time_slots`)
+		if err != nil {
+			return errors.Wrap(err, "failed to query list all time slots")
+		}
+		var ts store.TimeSlot
+		for rows.Next() {
+			ts = store.TimeSlot{}
+			if err = rows.Scan(&ts.ID, &ts.Weekday, &ts.Start, &ts.Duration); err != nil {
+				return errors.Wrap(err, "failed to scan time slot")
+			}
+			res = append(res, ts)
+		}
+		return nil
+	}))
+	return res, err
+}

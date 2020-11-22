@@ -17,4 +17,6 @@ type Interface interface {
 	GetStudyYear(id string) (sy store.StudyYear, err error)
 	DeleteStudyYear(studyYearID string) error
 	ListStudyYears() ([]store.StudyYear, error)
+
+	ListTimeSlots() ([]store.TimeSlot, error)
 }

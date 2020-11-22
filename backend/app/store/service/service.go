@@ -180,3 +180,8 @@ func (s *DataStore) DeleteStudyYear(studyYearID string) error {
 func (s *DataStore) ListStudyYears() ([]store.StudyYear, error) {
 	return s.UniOrgRepository.ListStudyYears()
 }
+
+// ListTimeSlots that are registered in the database
+func (s *DataStore) ListTimeSlots() ([]store.TimeSlot, error) {
+	return s.UniOrgRepository.ListTimeSlots()
+}

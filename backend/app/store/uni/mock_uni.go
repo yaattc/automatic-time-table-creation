@@ -42,6 +42,9 @@ var _ Interface = &InterfaceMock{}
 //             ListStudyYearsFunc: func() ([]store.StudyYear, error) {
 // 	               panic("mock out the ListStudyYears method")
 //             },
+//             ListTimeSlotsFunc: func() ([]store.TimeSlot, error) {
+// 	               panic("mock out the ListTimeSlots method")
+//             },
 //         }
 //
 //         // use mockedInterface in code that requires Interface
@@ -72,6 +75,9 @@ type InterfaceMock struct {
 
 	// ListStudyYearsFunc mocks the ListStudyYears method.
 	ListStudyYearsFunc func() ([]store.StudyYear, error)
+
+	// ListTimeSlotsFunc mocks the ListTimeSlots method.
+	ListTimeSlotsFunc func() ([]store.TimeSlot, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -111,6 +117,9 @@ type InterfaceMock struct {
 		// ListStudyYears holds details about calls to the ListStudyYears method.
 		ListStudyYears []struct {
 		}
+		// ListTimeSlots holds details about calls to the ListTimeSlots method.
+		ListTimeSlots []struct {
+		}
 	}
 	lockAddGroup        sync.RWMutex
 	lockAddStudyYear    sync.RWMutex
@@ -120,6 +129,7 @@ type InterfaceMock struct {
 	lockGetStudyYear    sync.RWMutex
 	lockListGroups      sync.RWMutex
 	lockListStudyYears  sync.RWMutex
+	lockListTimeSlots   sync.RWMutex
 }
 
 // AddGroup calls AddGroupFunc.
@@ -357,5 +367,31 @@ func (mock *InterfaceMock) ListStudyYearsCalls() []struct {
 	mock.lockListStudyYears.RLock()
 	calls = mock.calls.ListStudyYears
 	mock.lockListStudyYears.RUnlock()
+	return calls
+}
+
+// ListTimeSlots calls ListTimeSlotsFunc.
+func (mock *InterfaceMock) ListTimeSlots() ([]store.TimeSlot, error) {
+	if mock.ListTimeSlotsFunc == nil {
+		panic("InterfaceMock.ListTimeSlotsFunc: method is nil but Interface.ListTimeSlots was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockListTimeSlots.Lock()
+	mock.calls.ListTimeSlots = append(mock.calls.ListTimeSlots, callInfo)
+	mock.lockListTimeSlots.Unlock()
+	return mock.ListTimeSlotsFunc()
+}
+
+// ListTimeSlotsCalls gets all the calls that were made to ListTimeSlots.
+// Check the length with:
+//     len(mockedInterface.ListTimeSlotsCalls())
+func (mock *InterfaceMock) ListTimeSlotsCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockListTimeSlots.RLock()
+	calls = mock.calls.ListTimeSlots
+	mock.lockListTimeSlots.RUnlock()
 	return calls
 }
