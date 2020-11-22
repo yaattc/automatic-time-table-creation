@@ -154,8 +154,8 @@ func (s *uniCtrlGroup) addCourse(w http.ResponseWriter, r *http.Request) {
 	var reqBody struct {
 		Name              string                   `json:"name"`
 		Program           store.EducationalProgram `json:"program"`
-		PrimaryLector     string                   `json:"primary_lectors"`
-		AssistantLector   string                   `json:"assistant_lectors"`
+		PrimaryLector     string                   `json:"primary_lector"`
+		AssistantLector   string                   `json:"assistant_lector"`
 		TeacherAssistants []string                 `json:"teacher_assistants"`
 	}
 	if err := render.DecodeJSON(http.MaxBytesReader(w, r.Body, hardBodyLimit), &reqBody); err != nil {
