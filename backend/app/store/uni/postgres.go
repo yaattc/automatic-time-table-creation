@@ -150,7 +150,7 @@ func (p *Postgres) GetCourseDetails(id string) (res store.Course, err error) {
 		}
 		return nil
 	}))
-	return res, nil
+	return res, err
 }
 
 // ListTimeSlots that are registered in the database
