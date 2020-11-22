@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { TeacherService } from '../../../services/teacher.service';
+import { Staff } from '../../../model/staff';
 
 @Component({
   selector: 'app-course-creation',
@@ -13,13 +14,15 @@ export class CourseCreationComponent implements OnInit {
   programs: any[] = ['Bachelor', 'Master'];
 
   teachers: any[] = [];
-  selectedTeachers: string[];
+  selectedTeacherAssistant: Staff[];
 
   creationForm = this.formBuilder.group({
     id: [null],
     name: [undefined, Validators.required],
     program: [this.selectedProgram, Validators.required],
-    teachers: [[], Validators.required],
+    primary_lector: [undefined as Staff, Validators.required],
+    assistant_lector: [undefined as Staff, Validators.required],
+    teacher_assistants: [[], Validators.required],
   });
 
   constructor(private formBuilder: FormBuilder, private teacherService: TeacherService) {}
@@ -35,12 +38,18 @@ export class CourseCreationComponent implements OnInit {
     });
   }
 
-  public setSelectedTeachers(val: any[]): void {
+  public setSelectedTeacherAssistant(val: any[]): void {
     // restore original order
-    if (val !== undefined) {
-      this.selectedTeachers = this.teachers.filter((teacher) => val.includes(teacher));
+    if (val !== null) {
+      this.selectedTeacherAssistant = this.teachers.filter((teacher) => val.includes(teacher));
     }
   }
 
-  submit(): void {}
+  submit(): void {
+    this.creationForm.reset();
+    this.selectedProgram = this.programs[0];
+    this.creationForm.patchValue({
+      program: this.selectedProgram,
+    });
+  }
 }

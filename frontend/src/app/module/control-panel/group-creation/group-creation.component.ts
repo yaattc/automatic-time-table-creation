@@ -20,7 +20,7 @@ export class GroupCreationComponent implements OnInit {
   });
 
   years: any[];
-  selectedYears: any[];
+  selectedYears: any;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -30,14 +30,14 @@ export class GroupCreationComponent implements OnInit {
 
   ngOnInit(): void {
     this.groupYearService.getStudyYears().subscribe((response) => {
-      this.years = response;
+      this.years = [...response.study_years];
     });
   }
 
   public setSelectedYears(val: any[]): void {
     // restore original order
     if (val !== undefined) {
-      this.selectedYears = this.years.filter((year) => val.includes(year));
+      this.selectedYears = val;
     }
   }
 

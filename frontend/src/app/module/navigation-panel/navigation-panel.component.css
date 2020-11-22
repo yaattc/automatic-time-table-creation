@@ -1,8 +1,16 @@
+.main {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
 .pages {
   padding: 25px 20px 0 20px;
   align-items: center;
   display: flex;
   flex-direction: column;
+  flex: 1 0 auto;
 }
 
 button {
@@ -14,4 +22,14 @@ button {
 
 p-dropdown {
   width: 100%;
+}
+
+.final_button {
+  justify-content: flex-end;
+  padding-bottom: 5vh;
+}
+
+.show_button {
+  color: rgba(255, 255, 255, 1);
+  background-color: rgba(128, 188, 0, 1);
 }

@@ -1,42 +1,64 @@
-<div *ngIf="!currentPage.includes('/login') && currentPage.includes('/panel')">
-  <div class="pages" *ngFor="let page of pages">
+<div *ngIf="!currentPage.includes('/login') && currentPage.includes('/panel')" class="main">
+  <div>
+    <div class="pages" *ngFor="let page of pages">
+      <button
+        pButton
+        type="button"
+        label="{{page.label}}"
+        (click)="moveTo(page.path)"
+      ></button>
+    </div>
+  </div>
+  <div class="final_button pages">
     <button
       pButton
       type="button"
-      label="{{page.label}}"
-      (click)="moveTo(page.path)"
+      class="show_button"
+      label="CREATE TIME TABLE"
+      (submit)="submit()"
     ></button>
   </div>
 </div>
-<div *ngIf="!currentPage.includes('/panel') || currentPage.includes('/timetable')">
-  <form [formGroup]="filterForm">
-    <div class="pages">
-      <p-dropdown
-        [options]="years"
-        [(ngModel)]="selectedYears"
-        placeholder="Select a Year Of Education"
-        optionLabel="name"
-        [showClear]="true"
-        formControlName="year"
-        [style]="{
+<div *ngIf="!currentPage.includes('/panel') || currentPage.includes('/timetable')" class="main">
+  <div>
+    <form [formGroup]="filterForm">
+      <div class="pages">
+        <p-dropdown
+          [options]="years"
+          [(ngModel)]="selectedYears"
+          placeholder="Select a Year Of Education"
+          optionLabel="name"
+          [showClear]="true"
+          formControlName="year"
+          [style]="{
           minWidth: '100%',
           borderColor: 'rgba(128, 188, 0, 0.45)'
           }"
-      ></p-dropdown>
-    </div>
-    <div class="pages">
-      <p-dropdown
-        [options]="groups"
-        [(ngModel)]="selectedGroups"
-        placeholder="Select a Group"
-        optionLabel="name"
-        [showClear]="true"
-        formControlName="group"
-        [style]="{
+        ></p-dropdown>
+      </div>
+      <div class="pages">
+        <p-dropdown
+          [options]="groups"
+          [(ngModel)]="selectedGroups"
+          placeholder="Select a Group"
+          optionLabel="name"
+          [showClear]="true"
+          formControlName="group"
+          [style]="{
           minWidth: '100%',
           borderColor: 'rgba(128, 188, 0, 0.45)'
           }"
-      ></p-dropdown>
-    </div>
-  </form>
+        ></p-dropdown>
+      </div>
+    </form>
+  </div>
+  <div class="final_button pages">
+    <button
+      pButton
+      class="show_button"
+      type="button"
+      label="SHOW TIME TABLE"
+      (submit)="submit()"
+    ></button>
+  </div>
 </div>

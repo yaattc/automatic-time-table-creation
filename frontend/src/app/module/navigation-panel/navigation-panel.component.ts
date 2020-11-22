@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {
-  PANEL_CREATION_COURSE, PANEL_CREATION_GROUP,
+  PANEL_CREATION_COURSE,
+  PANEL_CREATION_GROUP,
   PANEL_CREATION_SPECIALIST,
   PANEL_SPECIALIST_PREFERENCES,
 } from '../../constants/routes';
@@ -63,4 +64,6 @@ export class NavigationPanelComponent implements OnInit {
     this.router.navigateByUrl(path);
     this.authService.setCurrentPage(`${environment.apiUrl}/${path}`);
   }
+
+  submit(): void {}
 }

@@ -46,6 +46,15 @@ export class PreferencesComponent implements OnInit {
         };
       });
     });
+
+    this.preferencesService.getTimeSlots().subscribe((value) => {
+      this.timeSlots = value.time_slots.map((val) => {
+        return {
+          name: val.weekday + ' ' + val.start + ' ' + val.duration,
+          value: val,
+        };
+      });
+    });
   }
 
   public setSelectedTimeSlots(val: { name: string; value: TimeSlot }[]): void {
@@ -56,13 +65,7 @@ export class PreferencesComponent implements OnInit {
         .map((timeSlot) => {
           return {
             name:
-              timeSlot.value.weekday +
-              ' ' +
-              timeSlot.value.start +
-              ' ' +
-              timeSlot.value.duration +
-              ' ' +
-              timeSlot.value.location,
+              timeSlot.value.weekday + ' ' + timeSlot.value.start + ' ' + timeSlot.value.duration,
             value: timeSlot.value,
           };
         });

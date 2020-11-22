@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Staff } from '../model/staff';
 import { environment } from '../../environments/environment';
+import { TimeSlot } from '../model/time-slot';
 @Injectable({
   providedIn: 'root',
 })
@@ -26,8 +27,12 @@ export class PreferencesService {
     }
 
     return this.http.post<Staff>(
-      `${environment.apiUrl}/teacher/${value.teacher.value.id}/preferences`,
+      `${environment.apiUrl}/api/v1/teacher/${value.teacher.value.id}/preferences`,
       body,
     );
+  }
+
+  getTimeSlots(): Observable<{ time_slots: TimeSlot[] }> {
+    return this.http.get<{ time_slots: TimeSlot[] }>(`${environment.apiUrl}/api/v1/time_slots`);
   }
 }
