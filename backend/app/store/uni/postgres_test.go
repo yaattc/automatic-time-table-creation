@@ -229,6 +229,254 @@ func TestPostgres_GetStudyYear(t *testing.T) {
 	assert.Equal(t, store.StudyYear{ID: "00000000-0000-0000-0000-000000000001", Name: "BS - Year 1 (Computer Science)"}, sy)
 }
 
+func TestPostgres_AddCourse(t *testing.T) {
+	srv := preparePgStore(t)
+	expected := store.Course{
+		ID:      "00000000-0000-0000-0000-000000000001",
+		Name:    "Operational systems",
+		Program: store.Bachelor,
+		Assistants: []store.Teacher{
+			{TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-100000000001",
+				Name:    "somename",
+				Surname: "somesurname",
+				Email:   "someemail",
+				Degree:  "somedegree",
+				About:   "something",
+			}},
+			{TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-100000000002",
+				Name:    "somename2",
+				Surname: "somesurname2",
+				Email:   "someemail2",
+				Degree:  "somedegree2",
+				About:   "something2",
+			}},
+			{TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-100000000003",
+				Name:    "somename3",
+				Surname: "somesurname3",
+				Email:   "someemail3",
+				Degree:  "somedegree3",
+				About:   "something3",
+			}},
+			{TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-100000000004",
+				Name:    "somename4",
+				Surname: "somesurname4",
+				Email:   "someemail4",
+				Degree:  "somedegree4",
+				About:   "something4",
+			}},
+			{TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-100000000005",
+				Name:    "somename5",
+				Surname: "somesurname5",
+				Email:   "someemail5",
+				Degree:  "somedegree5",
+				About:   "something5",
+			}},
+		},
+		PrimaryLector: store.Teacher{
+			TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-200000000001",
+				Name:    "some primary lector name",
+				Surname: "some primary lector surname",
+				Email:   "some primary lector email",
+				Degree:  "some primary lector degree",
+				About:   "some primary lector about",
+			},
+		},
+		AssistantLector: store.Teacher{
+			TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-200000000002",
+				Name:    "some assistant lector name",
+				Surname: "some assistant lector surname",
+				Email:   "some assistant lector email",
+				Degree:  "some assistant lector degree",
+				About:   "some assistant lector about",
+			},
+		},
+	}
+	tas := []string{
+		"00000000-0000-0000-0000-100000000001",
+		"00000000-0000-0000-0000-100000000002",
+		"00000000-0000-0000-0000-100000000003",
+		"00000000-0000-0000-0000-100000000004",
+		"00000000-0000-0000-0000-100000000005",
+	}
+
+	// filling out dependencies
+	for _, ta := range expected.Assistants {
+		_, err := srv.connPool.Exec(`INSERT INTO teachers(id, name, surname, email, degree, about)
+								VALUES ($1, $2, $3, $4, $5, $6)`, ta.ID, ta.Name, ta.Surname,
+			ta.Email, ta.Degree, ta.About)
+		require.NoError(t, err)
+	}
+
+	_, err := srv.connPool.Exec(`INSERT INTO teachers(id, name, surname, email, degree, about)
+								VALUES ($1, $2, $3, $4, $5, $6)`, expected.PrimaryLector.ID, expected.PrimaryLector.Name, expected.PrimaryLector.Surname,
+		expected.PrimaryLector.Email, expected.PrimaryLector.Degree, expected.PrimaryLector.About)
+	require.NoError(t, err)
+
+	_, err = srv.connPool.Exec(`INSERT INTO teachers(id, name, surname, email, degree, about)
+								VALUES ($1, $2, $3, $4, $5, $6)`, expected.AssistantLector.ID, expected.AssistantLector.Name, expected.AssistantLector.Surname,
+		expected.AssistantLector.Email, expected.AssistantLector.Degree, expected.AssistantLector.About)
+	require.NoError(t, err)
+
+	id, err := srv.AddCourse(expected)
+	require.NoError(t, err)
+	assert.Equal(t, expected.ID, id)
+
+	// checking TAs
+	rows, err := srv.connPool.Query(`SELECT course_id, assistant_id FROM courses_teacher_assistants`)
+	require.NoError(t, err)
+
+	for rows.Next() {
+		var courseID string
+		var assistantID string
+		err := rows.Scan(&courseID, &assistantID)
+		require.NoError(t, err)
+		assert.Equal(t, expected.ID, courseID)
+
+		assert.Contains(t, tas, assistantID)
+	}
+
+	// checking course itself
+	var actual store.Course
+	row := srv.connPool.QueryRow(`SELECT name, edu_program, primary_lector_id, assistant_lector_id FROM courses WHERE id = $1`, expected.ID)
+	err = row.Scan(&actual.Name, &actual.Program, &actual.PrimaryLector.ID, &actual.AssistantLector.ID)
+	require.NoError(t, err)
+
+	assert.Equal(t, expected.Name, actual.Name)
+	assert.Equal(t, expected.Program, actual.Program)
+	assert.Equal(t, expected.PrimaryLector.ID, actual.PrimaryLector.ID)
+	assert.Equal(t, expected.AssistantLector.ID, actual.AssistantLector.ID)
+}
+
+func TestPostgres_GetCourseDetails(t *testing.T) {
+	srv := preparePgStore(t)
+	expected := store.Course{
+		ID:      "00000000-0000-0000-0000-000000000001",
+		Name:    "Operational systems",
+		Program: store.Bachelor,
+		Assistants: []store.Teacher{
+			{TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-100000000001",
+				Name:    "somename",
+				Surname: "somesurname",
+				Email:   "someemail",
+				Degree:  "somedegree",
+				About:   "something",
+			}},
+			{TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-100000000002",
+				Name:    "somename2",
+				Surname: "somesurname2",
+				Email:   "someemail2",
+				Degree:  "somedegree2",
+				About:   "something2",
+			}},
+			{TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-100000000003",
+				Name:    "somename3",
+				Surname: "somesurname3",
+				Email:   "someemail3",
+				Degree:  "somedegree3",
+				About:   "something3",
+			}},
+			{TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-100000000004",
+				Name:    "somename4",
+				Surname: "somesurname4",
+				Email:   "someemail4",
+				Degree:  "somedegree4",
+				About:   "something4",
+			}},
+			{TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-100000000005",
+				Name:    "somename5",
+				Surname: "somesurname5",
+				Email:   "someemail5",
+				Degree:  "somedegree5",
+				About:   "something5",
+			}},
+		},
+		PrimaryLector: store.Teacher{
+			TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-200000000001",
+				Name:    "some primary lector name",
+				Surname: "some primary lector surname",
+				Email:   "some primary lector email",
+				Degree:  "some primary lector degree",
+				About:   "some primary lector about",
+			},
+		},
+		AssistantLector: store.Teacher{
+			TeacherDetails: store.TeacherDetails{
+				ID:      "00000000-0000-0000-0000-200000000002",
+				Name:    "some assistant lector name",
+				Surname: "some assistant lector surname",
+				Email:   "some assistant lector email",
+				Degree:  "some assistant lector degree",
+				About:   "some assistant lector about",
+			},
+		},
+	}
+
+	// filling out dependencies
+	for _, ta := range expected.Assistants {
+		_, err := srv.connPool.Exec(`INSERT INTO teachers(id, name, surname, email, degree, about)
+								VALUES ($1, $2, $3, $4, $5, $6)`, ta.ID, ta.Name, ta.Surname,
+			ta.Email, ta.Degree, ta.About)
+		require.NoError(t, err)
+	}
+
+	_, err := srv.connPool.Exec(`INSERT INTO teachers(id, name, surname, email, degree, about)
+								VALUES ($1, $2, $3, $4, $5, $6)`, expected.PrimaryLector.ID, expected.PrimaryLector.Name, expected.PrimaryLector.Surname,
+		expected.PrimaryLector.Email, expected.PrimaryLector.Degree, expected.PrimaryLector.About)
+	require.NoError(t, err)
+
+	_, err = srv.connPool.Exec(`INSERT INTO teachers(id, name, surname, email, degree, about)
+								VALUES ($1, $2, $3, $4, $5, $6)`, expected.AssistantLector.ID, expected.AssistantLector.Name, expected.AssistantLector.Surname,
+		expected.AssistantLector.Email, expected.AssistantLector.Degree, expected.AssistantLector.About)
+	require.NoError(t, err)
+
+	_, err = srv.connPool.Exec(`INSERT INTO courses(id, name, primary_lector_id, assistant_lector_id, edu_program) 
+						VALUES ($1, $2, $3, $4, $5)`,
+		expected.ID, expected.Name, expected.PrimaryLector.ID,
+		expected.AssistantLector.ID, expected.Program)
+	require.NoError(t, err)
+
+	for _, ta := range expected.Assistants {
+		_, err := srv.connPool.Exec(`INSERT INTO courses_teacher_assistants(course_id, assistant_id) VALUES ($1, $2)`,
+			expected.ID, ta.ID)
+		require.NoError(t, err)
+	}
+
+	course, err := srv.GetCourseDetails(expected.ID)
+	require.NoError(t, err)
+	assert.Equal(t, store.Course{
+		ID:      expected.ID,
+		Name:    expected.Name,
+		Program: expected.Program,
+		PrimaryLector: store.Teacher{
+			TeacherDetails: store.TeacherDetails{ID: expected.PrimaryLector.ID},
+		},
+		AssistantLector: store.Teacher{
+			TeacherDetails: store.TeacherDetails{ID: expected.AssistantLector.ID},
+		},
+		Assistants: []store.Teacher{
+			{TeacherDetails: store.TeacherDetails{ID: "00000000-0000-0000-0000-100000000001"}},
+			{TeacherDetails: store.TeacherDetails{ID: "00000000-0000-0000-0000-100000000002"}},
+			{TeacherDetails: store.TeacherDetails{ID: "00000000-0000-0000-0000-100000000003"}},
+			{TeacherDetails: store.TeacherDetails{ID: "00000000-0000-0000-0000-100000000004"}},
+			{TeacherDetails: store.TeacherDetails{ID: "00000000-0000-0000-0000-100000000005"}},
+		},
+	}, course)
+
+}
+
 func preparePgStore(t *testing.T) *Postgres {
 	// initializing connection with postgres
 	connStr := os.Getenv("DB_TEST")
@@ -269,6 +517,8 @@ func cleanupStorage(t *testing.T, p *pgx.ConnPool) {
 	_, err = tx.Exec(`TRUNCATE groups CASCADE`)
 	require.NoError(t, err)
 	_, err = tx.Exec(`TRUNCATE time_slots CASCADE`)
+	require.NoError(t, err)
+	_, err = tx.Exec(`TRUNCATE teachers CASCADE`)
 	require.NoError(t, err)
 }
 

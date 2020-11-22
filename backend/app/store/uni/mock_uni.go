@@ -18,6 +18,9 @@ var _ Interface = &InterfaceMock{}
 //
 //         // make and configure a mocked Interface
 //         mockedInterface := &InterfaceMock{
+//             AddCourseFunc: func(course store.Course) (string, error) {
+// 	               panic("mock out the AddCourse method")
+//             },
 //             AddGroupFunc: func(g store.Group) (string, error) {
 // 	               panic("mock out the AddGroup method")
 //             },
@@ -29,6 +32,9 @@ var _ Interface = &InterfaceMock{}
 //             },
 //             DeleteStudyYearFunc: func(studyYearID string) error {
 // 	               panic("mock out the DeleteStudyYear method")
+//             },
+//             GetCourseDetailsFunc: func(id string) (store.Course, error) {
+// 	               panic("mock out the GetCourseDetails method")
 //             },
 //             GetGroupFunc: func(id string) (store.Group, error) {
 // 	               panic("mock out the GetGroup method")
@@ -52,6 +58,9 @@ var _ Interface = &InterfaceMock{}
 //
 //     }
 type InterfaceMock struct {
+	// AddCourseFunc mocks the AddCourse method.
+	AddCourseFunc func(course store.Course) (string, error)
+
 	// AddGroupFunc mocks the AddGroup method.
 	AddGroupFunc func(g store.Group) (string, error)
 
@@ -63,6 +72,9 @@ type InterfaceMock struct {
 
 	// DeleteStudyYearFunc mocks the DeleteStudyYear method.
 	DeleteStudyYearFunc func(studyYearID string) error
+
+	// GetCourseDetailsFunc mocks the GetCourseDetails method.
+	GetCourseDetailsFunc func(id string) (store.Course, error)
 
 	// GetGroupFunc mocks the GetGroup method.
 	GetGroupFunc func(id string) (store.Group, error)
@@ -81,6 +93,11 @@ type InterfaceMock struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// AddCourse holds details about calls to the AddCourse method.
+		AddCourse []struct {
+			// Course is the course argument value.
+			Course store.Course
+		}
 		// AddGroup holds details about calls to the AddGroup method.
 		AddGroup []struct {
 			// G is the g argument value.
@@ -100,6 +117,11 @@ type InterfaceMock struct {
 		DeleteStudyYear []struct {
 			// StudyYearID is the studyYearID argument value.
 			StudyYearID string
+		}
+		// GetCourseDetails holds details about calls to the GetCourseDetails method.
+		GetCourseDetails []struct {
+			// ID is the id argument value.
+			ID string
 		}
 		// GetGroup holds details about calls to the GetGroup method.
 		GetGroup []struct {
@@ -121,15 +143,48 @@ type InterfaceMock struct {
 		ListTimeSlots []struct {
 		}
 	}
-	lockAddGroup        sync.RWMutex
-	lockAddStudyYear    sync.RWMutex
-	lockDeleteGroup     sync.RWMutex
-	lockDeleteStudyYear sync.RWMutex
-	lockGetGroup        sync.RWMutex
-	lockGetStudyYear    sync.RWMutex
-	lockListGroups      sync.RWMutex
-	lockListStudyYears  sync.RWMutex
-	lockListTimeSlots   sync.RWMutex
+	lockAddCourse        sync.RWMutex
+	lockAddGroup         sync.RWMutex
+	lockAddStudyYear     sync.RWMutex
+	lockDeleteGroup      sync.RWMutex
+	lockDeleteStudyYear  sync.RWMutex
+	lockGetCourseDetails sync.RWMutex
+	lockGetGroup         sync.RWMutex
+	lockGetStudyYear     sync.RWMutex
+	lockListGroups       sync.RWMutex
+	lockListStudyYears   sync.RWMutex
+	lockListTimeSlots    sync.RWMutex
+}
+
+// AddCourse calls AddCourseFunc.
+func (mock *InterfaceMock) AddCourse(course store.Course) (string, error) {
+	if mock.AddCourseFunc == nil {
+		panic("InterfaceMock.AddCourseFunc: method is nil but Interface.AddCourse was just called")
+	}
+	callInfo := struct {
+		Course store.Course
+	}{
+		Course: course,
+	}
+	mock.lockAddCourse.Lock()
+	mock.calls.AddCourse = append(mock.calls.AddCourse, callInfo)
+	mock.lockAddCourse.Unlock()
+	return mock.AddCourseFunc(course)
+}
+
+// AddCourseCalls gets all the calls that were made to AddCourse.
+// Check the length with:
+//     len(mockedInterface.AddCourseCalls())
+func (mock *InterfaceMock) AddCourseCalls() []struct {
+	Course store.Course
+} {
+	var calls []struct {
+		Course store.Course
+	}
+	mock.lockAddCourse.RLock()
+	calls = mock.calls.AddCourse
+	mock.lockAddCourse.RUnlock()
+	return calls
 }
 
 // AddGroup calls AddGroupFunc.
@@ -253,6 +308,37 @@ func (mock *InterfaceMock) DeleteStudyYearCalls() []struct {
 	mock.lockDeleteStudyYear.RLock()
 	calls = mock.calls.DeleteStudyYear
 	mock.lockDeleteStudyYear.RUnlock()
+	return calls
+}
+
+// GetCourseDetails calls GetCourseDetailsFunc.
+func (mock *InterfaceMock) GetCourseDetails(id string) (store.Course, error) {
+	if mock.GetCourseDetailsFunc == nil {
+		panic("InterfaceMock.GetCourseDetailsFunc: method is nil but Interface.GetCourseDetails was just called")
+	}
+	callInfo := struct {
+		ID string
+	}{
+		ID: id,
+	}
+	mock.lockGetCourseDetails.Lock()
+	mock.calls.GetCourseDetails = append(mock.calls.GetCourseDetails, callInfo)
+	mock.lockGetCourseDetails.Unlock()
+	return mock.GetCourseDetailsFunc(id)
+}
+
+// GetCourseDetailsCalls gets all the calls that were made to GetCourseDetails.
+// Check the length with:
+//     len(mockedInterface.GetCourseDetailsCalls())
+func (mock *InterfaceMock) GetCourseDetailsCalls() []struct {
+	ID string
+} {
+	var calls []struct {
+		ID string
+	}
+	mock.lockGetCourseDetails.RLock()
+	calls = mock.calls.GetCourseDetails
+	mock.lockGetCourseDetails.RUnlock()
 	return calls
 }
 

@@ -30,14 +30,14 @@ const (
 
 // Course describes a basic semester course, e.g. "Operational systems"
 type Course struct {
-	ID                 string             `json:"id"`                  // a hash derived from all others fields
-	Name               string             `json:"name"`                // the name of the course
-	Program            EducationalProgram `json:"program"`             // bachelor, master or graduate
-	Formats            []CourseFormat     `json:"formats"`             // a set of preferable course formats
-	Groups             []Group            `json:"groups"`              // a study groups, e.g. "BS19-04"
-	Assistants         []Teacher          `json:"assistants"`          // teacher assistants of the course
-	LeadingProfessor   Teacher            `json:"leading_professor"`   // e.g. who leads the lectures
-	AssistantProfessor Teacher            `json:"assistant_professor"` // e.g. who leads the tutorials, might be empty
+	ID              string             `json:"id"`               // a hash derived from all others fields
+	Name            string             `json:"name"`             // the name of the course
+	Program         EducationalProgram `json:"program"`          // bachelor, master or graduate
+	Formats         []CourseFormat     `json:"formats"`          // a set of preferable course formats
+	Groups          []Group            `json:"groups"`           // a study groups, e.g. "BS19-04"
+	Assistants      []Teacher          `json:"assistants"`       // teacher assistants of the course
+	PrimaryLector   Teacher            `json:"primary_lector"`   // e.g. who leads the lectures
+	AssistantLector Teacher            `json:"assistant_lector"` // e.g. who leads the tutorials, might be empty
 
 	Classes []Class `json:"classes"` // classes of the course, i.e. the course schedule
 }
