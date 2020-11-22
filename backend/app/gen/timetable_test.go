@@ -2,35 +2,85 @@ package gen
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/Semior001/timetype"
 
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 )
 
-func Test_timeTable_Build(t *testing.T) {
-	tt := &timeTable{}
-	res := tt.Build(BuildRequest{
+func TestService_Build(t *testing.T) {
+	srv := &Service{}
+	res := srv.Build(BuildTimeTableRequest{
 		TimeSlots: prepareTimeSlots(),
 		Courses:   prepareCourses(),
 		From:      time.Date(2020, 11, 9, 0, 0, 0, 0, time.UTC),
 		Till:      time.Date(2020, 11, 15, 0, 0, 0, 0, time.UTC),
 	})
-	for _, class := range res.Classes {
-		t.Log(class)
+	sort.Slice(res.Classes, func(i, j int) bool {
+		return strings.Compare(res.Classes[i].Title, res.Classes[j].Title) < 0
+	})
+	expected := []store.Class{
+		{
+			Title:    "course1 Lecture",
+			Start:    time.Date(2020, 11, 11, 9, 0, 0, 0, time.UTC),
+			Duration: 90 * time.Minute,
+		},
+		{
+			Title:    "course1 Tutorial",
+			Start:    time.Date(2020, 11, 11, 10, 40, 0, 0, time.UTC),
+			Duration: 90 * time.Minute,
+		},
+		{
+			Title:    "course2 Lecture",
+			Start:    time.Date(2020, 11, 10, 10, 40, 0, 0, time.UTC),
+			Duration: 90 * time.Minute,
+		},
+		{
+			Title:    "course2 Tutorial",
+			Start:    time.Date(2020, 11, 10, 14, 20, 0, 0, time.UTC),
+			Duration: 90 * time.Minute,
+		},
+		{
+			Title:    "course3 Lecture",
+			Start:    time.Date(2020, 11, 9, 10, 40, 0, 0, time.UTC),
+			Duration: 90 * time.Minute,
+		},
+		{
+			Title:    "course4 Lecture",
+			Start:    time.Date(2020, 11, 12, 10, 40, 0, 0, time.UTC),
+			Duration: 90 * time.Minute,
+		},
+		{
+			Title:    "course4 Tutorial",
+			Start:    time.Date(2020, 11, 12, 12, 40, 0, 0, time.UTC),
+			Duration: 90 * time.Minute,
+		},
+	}
+
+	for i := range res.Classes {
+		res.Classes[i].ID = ""
+		res.Classes[i].Start = res.Classes[i].Start.In(time.UTC)
+		expected[i].Start = expected[i].Start.In(time.UTC)
+		t.Log(res.Classes[i])
+		assert.Equal(t, expected[i], res.Classes[i])
 	}
 	t.Logf("Unused Courses: %v", res.UnusedCourses)
-	// todo asserts
+	assert.Empty(t, res.UnusedCourses)
 }
 
 func prepareCourses() []store.Course {
 	succi := store.Teacher{
 		Preferences: store.TeacherPreferences{TimeSlots: []store.TimeSlot{
-			{ID: "ts9000_1", Weekday: time.Monday},
+			{ID: "ts0900_1", Weekday: time.Monday},
 			{ID: "ts1040_1", Weekday: time.Monday},
-			{ID: "ts9000_3", Weekday: time.Wednesday},
+
+			{ID: "ts0900_3", Weekday: time.Wednesday},
 			{ID: "ts1040_3", Weekday: time.Wednesday},
 			{ID: "ts1240_3", Weekday: time.Wednesday},
 		}},
@@ -44,10 +94,16 @@ func prepareCourses() []store.Course {
 	}
 	kabanov := store.Teacher{
 		Preferences: store.TeacherPreferences{TimeSlots: []store.TimeSlot{
+			{ID: "ts0900_2", Weekday: time.Tuesday},
 			{ID: "ts1040_2", Weekday: time.Tuesday},
-			{ID: "ts1240_2", Weekday: time.Tuesday},
+			{ID: "ts1420_2", Weekday: time.Tuesday},
+
 			{ID: "ts1040_3", Weekday: time.Wednesday},
 			{ID: "ts1240_3", Weekday: time.Wednesday},
+
+			{ID: "ts1040_4", Weekday: time.Thursday},
+			{ID: "ts1240_4", Weekday: time.Thursday},
+			{ID: "ts1420_4", Weekday: time.Thursday},
 		}},
 		TeacherDetails: store.TeacherDetails{ID: "kabanov"},
 	}
@@ -57,11 +113,22 @@ func prepareCourses() []store.Course {
 		}},
 		TeacherDetails: store.TeacherDetails{ID: "sidorov"},
 	}
+	ivanov := store.Teacher{
+		Preferences: store.TeacherPreferences{TimeSlots: []store.TimeSlot{
+			{ID: "ts1420_3", Weekday: time.Thursday},
 
-	course1 := store.Course{ID: "course1", LeadingProfessor: succi, AssistantProfessor: succi}
-	course2 := store.Course{ID: "course2", LeadingProfessor: bobrov, AssistantProfessor: kabanov}
-	course3 := store.Course{ID: "course3", LeadingProfessor: sidorov}
-	return []store.Course{course1, course2, course3}
+			{ID: "ts1040_4", Weekday: time.Thursday},
+			{ID: "ts1240_4", Weekday: time.Thursday},
+			{ID: "ts1420_4", Weekday: time.Thursday},
+		}},
+		TeacherDetails: store.TeacherDetails{ID: "ivanov"},
+	}
+
+	course1 := store.Course{ID: "course1", Name: "course1", LeadingProfessor: succi, AssistantProfessor: succi}
+	course2 := store.Course{ID: "course2", Name: "course2", LeadingProfessor: bobrov, AssistantProfessor: kabanov}
+	course3 := store.Course{ID: "course3", Name: "course3", LeadingProfessor: sidorov}
+	course4 := store.Course{ID: "course4", Name: "course4", LeadingProfessor: kabanov, AssistantProfessor: ivanov}
+	return []store.Course{course1, course2, course3, course4}
 }
 
 func prepareTimeSlots() []store.TimeSlot {
@@ -78,7 +145,7 @@ func prepareTimeSlots() []store.TimeSlot {
 	var timeSlots []store.TimeSlot
 
 	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
-		ID:       "ts9000",
+		ID:       "ts0900",
 		Start:    timetype.NewUTCClock(9, 0, 0, 0),
 		Duration: timetype.Duration(90 * time.Minute),
 	})...)

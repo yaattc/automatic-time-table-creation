@@ -1,292 +1,211 @@
 package gen
 
 import (
-	"fmt"
 	"sort"
 	"time"
-
-	"github.com/google/uuid"
 
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 )
 
-type classType string
-
-const (
-	classTypeLecture  classType = "lecture"
-	classTypeTutorial classType = "tutorial"
-)
-
-type timeTableCell struct {
-	timeSlot   store.TimeSlot
-	pretenders []pretender
-
-	pret *int // index to the pretender, if nil - there is no booking on this cell, if not nil - the slot is booked
+type timetableCell struct {
+	slot   store.TimeSlot
+	usedBy *cellReservation
 }
 
-type courseState struct {
-	primaryLector struct {
-		teacherID string
-		used      bool
+type cellReservation struct {
+	courseIdx int
+	primary   bool
+}
+
+type lector struct {
+	teacher    store.TeacherDetails
+	timeslots  []timeslotPreference
+	reservedAt *lecReservation
+}
+
+type lecReservation struct {
+	wd  time.Weekday
+	idx int
+}
+
+type timeslotPreference struct {
+	timeslotID string
+	idx        int
+	weekday    time.Weekday
+}
+
+type course struct {
+	status          bool // is filled or not
+	primaryLector   lector
+	assistantLector *lector
+	course          store.Course
+}
+
+type timetable struct {
+	table   map[time.Weekday][]timetableCell
+	courses []course
+
+	bestResult struct {
+		table   map[time.Weekday][]timetableCell
+		courses []course
+		score   int
 	}
-	assistantLector struct {
-		teacherID string
-		used      bool
+}
+
+// recursive function
+func (tt *timetable) step(courseIdx int) {
+	if courseIdx >= len(tt.courses) {
+		tt.checkAndUpgradeScore()
+		return
 	}
-}
+	// reserve and unreserve the slot for a given course
+	reserve := func(courseIdx int, wd time.Weekday, tsIdx int, primary bool) {
+		tt.table[wd][tsIdx].usedBy = &cellReservation{courseIdx: courseIdx, primary: primary}
+		if primary {
+			tt.courses[courseIdx].primaryLector.reservedAt = &lecReservation{wd: wd, idx: tsIdx}
+			return
+		}
+		tt.courses[courseIdx].assistantLector.reservedAt = &lecReservation{wd: wd, idx: tsIdx}
+	}
+	unreserve := func(courseIdx int, wd time.Weekday, tsIdx int, primary bool) {
+		tt.table[wd][tsIdx].usedBy = nil
+		tt.courses[courseIdx].status = false
+		if primary {
+			tt.courses[courseIdx].primaryLector.reservedAt = nil
+			return
+		}
+		tt.courses[courseIdx].assistantLector.reservedAt = nil
+	}
 
-type timeTable struct {
-	// used for calculations
-	table map[time.Weekday][]timeTableCell
-	used  map[pretender]bool
+	for _, pts := range tt.courses[courseIdx].primaryLector.timeslots {
+		// if this slot is used by someone - skip it
+		if tt.table[pts.weekday][pts.idx].usedBy != nil {
+			continue
+		}
 
-	// best results
-	mostSucceededResult map[time.Weekday][]timeTableCell
-	score               int
-	courses             map[string]courseState // map[courseID]state
-}
+		// try to reserve it
+		reserve(courseIdx, pts.weekday, pts.idx, true)
 
-type pretender struct {
-	courseID string
-	typ      classType
-}
+		// if there is no assistant lector - then we filled the current course, go
+		// onto the next one
+		if tt.courses[courseIdx].assistantLector == nil {
+			tt.courses[courseIdx].status = true
+			tt.step(courseIdx + 1)
+			// oops, looks like this slot cannot be used,
+			// take off the reservation from it
+			unreserve(courseIdx, pts.weekday, pts.idx, true)
+			continue
+		}
 
-// init initializes the time table
-func (tt *timeTable) init() {
-	tt.table = map[time.Weekday][]timeTableCell{}
-	tt.used = map[pretender]bool{}
-	tt.courses = map[string]courseState{}
-}
-
-// fill the table with data
-func (tt *timeTable) fill(timeSlots []store.TimeSlot, courses []store.Course) {
-	appendPretender := func(wd time.Weekday, timeSlotID string, pret pretender) {
-		for i := range tt.table[wd] {
-			ts := tt.table[wd][i]
-			if ts.timeSlot.ID == timeSlotID {
-				ts.pretenders = append(ts.pretenders, pret)
-				tt.table[wd][i] = ts
-				return
+		// if we have an assistant lector - go through its timeslots
+		for _, ats := range tt.courses[courseIdx].assistantLector.timeslots {
+			// if this slot is not in the same day with the primary lector, or
+			// it's earlier or at the same time with the primary lector's slot, or
+			// it is already borrowed - skip it
+			if ats.weekday != pts.weekday ||
+				ats.idx <= pts.idx ||
+				tt.table[ats.weekday][ats.idx].usedBy != nil {
+				continue
 			}
+
+			// bingo! reserve it
+			reserve(courseIdx, ats.weekday, ats.idx, false)
+
+			// we filled the course, go onto the next one
+			tt.courses[courseIdx].status = true
+
+			// going to the next course
+			tt.step(courseIdx + 1)
+
+			// oops, looks like this slot cannot be used,
+			// take off the reservation from it
+			unreserve(courseIdx, ats.weekday, ats.idx, false)
 		}
+
+		unreserve(courseIdx, pts.weekday, pts.idx, true)
+
 	}
 
-	// filling out initial course state
-	for _, c := range courses {
-		cs := courseState{}
-		cs.primaryLector.teacherID = c.LeadingProfessor.ID
-		cs.assistantLector.teacherID = c.AssistantProfessor.ID
-		tt.courses[c.ID] = cs
-	}
+	tt.step(courseIdx + 1)
+}
 
-	// filling out time slots
-	for _, ts := range timeSlots {
-		tt.table[ts.Weekday] = append(tt.table[ts.Weekday], timeTableCell{timeSlot: ts})
+func (tt *timetable) checkAndUpgradeScore() {
+	score := 0
+	for _, c := range tt.courses {
+		if c.status {
+			score++
+		}
 	}
-
-	// filling out pretenders
-	for _, course := range courses {
-		// filling pretenders-leading professors
-		for _, ts := range course.LeadingProfessor.Preferences.TimeSlots {
-			appendPretender(ts.Weekday, ts.ID, pretender{courseID: course.ID, typ: classTypeLecture})
+	if score > tt.bestResult.score {
+		tt.bestResult.table = map[time.Weekday][]timetableCell{}
+		for wd, cells := range tt.table {
+			tt.bestResult.table[wd] = make([]timetableCell, len(cells))
+			copy(tt.bestResult.table[wd], cells)
 		}
-		// filling pretenders-assistant professors
-		if !course.AssistantProfessor.Empty() {
-			for _, ts := range course.AssistantProfessor.Preferences.TimeSlots {
-				appendPretender(ts.Weekday, ts.ID, pretender{courseID: course.ID, typ: classTypeTutorial})
-			}
-		}
+		tt.bestResult.courses = make([]course, len(tt.courses))
+		copy(tt.bestResult.courses, tt.courses)
+		tt.bestResult.score = score
 	}
 }
 
 // sortTimeSlots the cells in the table according their start times
-func (tt *timeTable) sortTimeSlots() {
+func (tt *timetable) sortTimeSlots() {
 	for wd := range tt.table {
 		sort.Slice(tt.table[wd], func(i, j int) bool {
-			ti := time.Time(tt.table[wd][i].timeSlot.Start)
-			tj := time.Time(tt.table[wd][j].timeSlot.Start)
+			ti := time.Time(tt.table[wd][i].slot.Start)
+			tj := time.Time(tt.table[wd][j].slot.Start)
 			return ti.Before(tj)
 		})
 	}
 }
 
-// step iterates over timetable and tries to book the slot on any pretender
-// backtracking algorithm
-// fixme avoid recursion, too much recursion
-func (tt *timeTable) step(wd time.Weekday, cellIdx int) bool {
-	// if reached the and of the table, check that the timetable satisfies all conditions
-	if wd >= time.Saturday {
-		return tt.check()
+// fill the table with data
+func (tt *timetable) fill(req BuildTimeTableRequest) {
+	tt.table = map[time.Weekday][]timetableCell{}
+
+	// filling timeslots
+	for _, ts := range req.TimeSlots {
+		tt.table[ts.Weekday] = append(tt.table[ts.Weekday], timetableCell{slot: ts})
 	}
-	if len(tt.table[wd]) <= cellIdx {
-		return tt.step(wd+1, 0)
-	}
-
-	// looking for pretenders on this time slot
-	for prtIdx, prt := range tt.table[wd][cellIdx].pretenders {
-		// if this pretender is already used in another time slot - skip
-		// todo also check that **professor** is not used at this time slot in the other subject or smth.
-		if tt.used[prt] {
-			continue
-		}
-
-		// try to book this time slot on the pretender
-		tt.table[wd][cellIdx].pret = &prtIdx
-		tt.used[prt] = true
-
-		if tt.step(wd, cellIdx+1) {
-			return true
-		}
-
-		// oops, book the pretender to this time slot was not succeed, rollback
-		tt.table[wd][cellIdx].pret = nil
-		tt.used[prt] = false
-	}
-	return tt.step(wd, cellIdx+1)
-}
-
-// check the timetable - does it satisfy all conditions
-func (tt *timeTable) check() bool {
-	currCoursesState := tt.getEmptyCoursesState()
-	tt.fillCoursesState(currCoursesState, tt.table)
-
-	// calculating overall state score
-	score := 0
-	for _, courseState := range currCoursesState {
-		if courseState.primaryLector.used && courseState.assistantLector.used {
-			score++
-		}
-	}
-
-	// updating best result
-	if score > tt.score {
-		tt.score = score
-		bestTable := map[time.Weekday][]timeTableCell{}
-		// updating the best table
-		for wd, cells := range tt.table {
-			bestTable[wd] = []timeTableCell{}
-			for _, cell := range cells {
-				newCell := timeTableCell{timeSlot: cell.timeSlot}
-				if cell.pret != nil {
-					newPret := *cell.pret
-					newCell.pret = &newPret
-				}
-				if len(cell.pretenders) > 0 {
-					newCell.pretenders = make([]pretender, len(cell.pretenders))
-					copy(newCell.pretenders, cell.pretenders)
-				}
-
-				bestTable[wd] = append(bestTable[wd], newCell)
-			}
-		}
-		tt.mostSucceededResult = bestTable
-		tt.courses = currCoursesState
-	}
-
-	// the best score (when all conditions are satisfied) is when all courses are filled in the table
-	// todo also check the order of subjects in a weekdays
-	return len(tt.courses) == score
-}
-
-type BuildRequest struct {
-	TimeSlots []store.TimeSlot
-	Courses   []store.Course
-	From      time.Time
-	Till      time.Time
-}
-
-type BuildResult struct {
-	Classes       []store.Class
-	UnusedCourses []string // ids of courses that couldn't be used in the time table
-}
-
-// Build the schedule
-func (tt *timeTable) Build(req BuildRequest) BuildResult {
-	tt.init()
-	tt.fill(req.TimeSlots, req.Courses)
 	tt.sortTimeSlots()
 
-	// starting generation
-	tt.step(time.Monday, 0)
-
-	getCourseByID := func(courseID string) store.Course {
-		for _, course := range req.Courses {
-			if course.ID == courseID {
-				return course
-			}
+	// filling courses
+	for _, c := range req.Courses {
+		crs := course{primaryLector: lector{teacher: c.LeadingProfessor.TeacherDetails}, course: c}
+		if !c.AssistantProfessor.Empty() {
+			crs.assistantLector = &lector{teacher: c.AssistantProfessor.TeacherDetails}
 		}
-		return store.Course{}
-	}
 
-	// if we got any result
-	if tt.mostSucceededResult != nil {
-		var res BuildResult
-		for dt := req.From; dt.Before(req.Till); dt = dt.AddDate(0, 0, 1) {
-			for _, cell := range tt.mostSucceededResult[dt.Weekday()] {
-				if cell.pret == nil {
-					continue
+		for _, ts := range c.LeadingProfessor.Preferences.TimeSlots {
+			idx := 0
+			for i, cell := range tt.table[ts.Weekday] {
+				if cell.slot.ID == ts.ID {
+					idx = i
 				}
-				st := time.Time(cell.timeSlot.Start)
-				stDate := time.Date(dt.Year(), dt.Month(), dt.Day(), st.Hour(), st.Minute(),
-					st.Second(), st.Nanosecond(), dt.Location())
-				dur := time.Duration(cell.timeSlot.Duration)
+			}
+			crs.primaryLector.timeslots = append(crs.primaryLector.timeslots, timeslotPreference{
+				timeslotID: ts.ID,
+				idx:        idx,
+				weekday:    ts.Weekday,
+			})
+		}
 
-				pret := cell.pretenders[*cell.pret]
-
-				res.Classes = append(res.Classes, store.Class{
-					ID:       uuid.New().String(),
-					Title:    fmt.Sprintf("%s %s", getCourseByID(pret.courseID).Name, pret.typ),
-					Start:    stDate,
-					Duration: dur,
+		if !c.AssistantProfessor.Empty() {
+			for _, ts := range c.AssistantProfessor.Preferences.TimeSlots {
+				idx := 0
+				for i, cell := range tt.table[ts.Weekday] {
+					if cell.slot.ID == ts.ID {
+						idx = i
+					}
+				}
+				crs.assistantLector.timeslots = append(crs.assistantLector.timeslots, timeslotPreference{
+					timeslotID: ts.ID,
+					idx:        idx,
+					weekday:    ts.Weekday,
 				})
 			}
 		}
-		coursesState := tt.getEmptyCoursesState()
-		tt.fillCoursesState(coursesState, tt.mostSucceededResult)
-		// calculating overall state score
-		for courseID, courseState := range coursesState {
-			if !courseState.primaryLector.used || !courseState.assistantLector.used {
-				res.UnusedCourses = append(res.UnusedCourses, courseID)
-			}
-		}
-		return res
-	}
-	return BuildResult{}
-}
 
-func (tt *timeTable) getEmptyCoursesState() map[string]courseState {
-	currCoursesState := map[string]courseState{}
-
-	// copying states
-	for courseID, state := range tt.courses {
-		// filling state to zero
-		state.primaryLector.used = false
-		state.assistantLector.used = false
-		// copying state
-		currCoursesState[courseID] = state
-	}
-
-	return currCoursesState
-}
-
-func (tt *timeTable) fillCoursesState(st map[string]courseState, tbl map[time.Weekday][]timeTableCell) {
-	// checking and updating course states
-	for _, cells := range tbl {
-		for _, cell := range cells {
-			// if this slot booked, mark the class as used
-			if cell.pret != nil {
-				prt := cell.pretenders[*cell.pret]
-
-				// updating the state
-				courseState := st[prt.courseID]
-				switch prt.typ {
-				case classTypeLecture:
-					courseState.primaryLector.used = true
-				case classTypeTutorial:
-					courseState.assistantLector.used = true
-				}
-				st[prt.courseID] = courseState
-			}
-		}
+		tt.courses = append(tt.courses, crs)
 	}
 }
