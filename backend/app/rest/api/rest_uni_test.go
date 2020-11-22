@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Semior001/timetype"
+
 	"github.com/go-chi/render"
 	R "github.com/go-pkgz/rest"
 	"github.com/google/uuid"
@@ -256,4 +258,84 @@ func TestPrivate_deleteStudyYearCtrl(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, R.JSON{"deleted": true}, res)
+}
+
+func Test_uniCtrlGroup_listTimeSlots(t *testing.T) {
+	expected := prepareTimeSlots()
+	ps := &uniStoreMock{ListTimeSlotsFunc: func() ([]store.TimeSlot, error) {
+		return expected, nil
+	}}
+
+	ctrl := &uniCtrlGroup{dataService: ps}
+	ts := httptest.NewServer(http.HandlerFunc(ctrl.listTimeSlots))
+	defer ts.Close()
+
+	req, err := http.NewRequest("GET", ts.URL, nil)
+	require.NoError(t, err)
+
+	cl := http.Client{Timeout: 5 * time.Second}
+	resp, err := cl.Do(req)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	var actual struct {
+		TimeSlots []store.TimeSlot `json:"time_slots"`
+	}
+	err = render.DecodeJSON(resp.Body, &actual)
+	require.NoError(t, err)
+
+	assert.Equal(t, expected, actual.TimeSlots)
+}
+
+// fixme this method is duplicated at least three times
+func prepareTimeSlots() []store.TimeSlot {
+	timeSlotsOnWeek := func(ts store.TimeSlot) []store.TimeSlot {
+		var res []store.TimeSlot
+		for i := time.Monday; i <= time.Friday; i++ {
+			newTS := ts
+			newTS.ID = uuid.New().String()
+			newTS.Weekday = i
+			res = append(res, newTS)
+		}
+		return res
+	}
+	var timeSlots []store.TimeSlot
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(9, 0, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(10, 40, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(12, 40, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(14, 20, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(16, 0, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(17, 40, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(19, 20, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	return timeSlots
 }

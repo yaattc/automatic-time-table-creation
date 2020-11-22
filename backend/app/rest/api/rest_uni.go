@@ -28,6 +28,8 @@ type uniStore interface {
 
 	AddCourse(course store.Course) (id string, err error)
 	GetCourse(id string) (store.Course, error)
+
+	ListTimeSlots() ([]store.TimeSlot, error)
 }
 
 // POST /group - add group
@@ -136,13 +138,24 @@ func (s *uniCtrlGroup) deleteStudyYear(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, R.JSON{"deleted": true})
 }
 
+// GET /time_slots - list time slots
+func (s *uniCtrlGroup) listTimeSlots(w http.ResponseWriter, r *http.Request) {
+	tsl, err := s.dataService.ListTimeSlots()
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't list time slots", rest.ErrInternal)
+		return
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, R.JSON{"time_slots": tsl})
+}
+
 // POST /course - add course
 func (s *uniCtrlGroup) addCourse(w http.ResponseWriter, r *http.Request) {
 	var reqBody struct {
 		Name              string                   `json:"name"`
 		Program           store.EducationalProgram `json:"program"`
-		PrimaryLector     string                   `json:"primary_lectors"`
-		AssistantLector   string                   `json:"assistant_lectors"`
+		PrimaryLector     string                   `json:"primary_lector"`
+		AssistantLector   string                   `json:"assistant_lector"`
 		TeacherAssistants []string                 `json:"teacher_assistants"`
 	}
 	if err := render.DecodeJSON(http.MaxBytesReader(w, r.Body, hardBodyLimit), &reqBody); err != nil {

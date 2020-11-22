@@ -2,6 +2,8 @@ package store
 
 import (
 	"time"
+
+	"github.com/Semior001/timetype"
 )
 
 // Location describes a room or auditory where the Class is held
@@ -28,16 +30,16 @@ const (
 
 // Course describes a basic semester course, e.g. "Operational systems"
 type Course struct {
-	ID              string             `json:"id"`               // a hash derived from all others fields
-	Name            string             `json:"name"`             // the name of the course
-	Program         EducationalProgram `json:"program"`          // bachelor, master or graduate
-	Formats         []CourseFormat     `json:"formats"`          // a set of preferable course formats
-	Groups          []Group            `json:"groups"`           // a study groups, e.g. "BS19-04"
-	Assistants      []Teacher          `json:"assistants"`       // teacher assistants of the course
-	PrimaryLector   Teacher            `json:"primary_lector"`   // e.g. who leads the lectures
-	AssistantLector Teacher            `json:"assistant_lector"` // e.g. who leads the tutorials, might be empty
+	ID              string             `json:"id"`                         // a hash derived from all others fields
+	Name            string             `json:"name"`                       // the name of the course
+	Program         EducationalProgram `json:"program,omitempty"`          // bachelor, master or graduate
+	Formats         []CourseFormat     `json:"formats,omitempty"`          // a set of preferable course formats
+	Groups          []Group            `json:"groups,omitempty"`           // a study groups, e.g. "BS19-04"
+	Assistants      []Teacher          `json:"assistants,omitempty"`       // teacher assistants of the course
+	PrimaryLector   Teacher            `json:"primary_lector"`             // e.g. who leads the lectures
+	AssistantLector Teacher            `json:"assistant_lector,omitempty"` // e.g. who leads the tutorials, might be empty
 
-	Classes []Class `json:"classes"` // classes of the course, i.e. the course schedule
+	Classes []Class `json:"classes,omitempty"` // classes of the course, i.e. the course schedule
 }
 
 // Class describes a basic lesson of the Course, e.g. a couple
@@ -66,4 +68,13 @@ func (g *Group) PrepareUntrusted() {
 type StudyYear struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+// TimeSlot describes a particular period of time in a week
+type TimeSlot struct {
+	ID       string            `json:"id"`                 // id of this time slot
+	Weekday  time.Weekday      `json:"weekday"`            // a weekday of time slot
+	Start    timetype.Clock    `json:"start"`              // start time of time slot
+	Duration timetype.Duration `json:"duration"`           // duration of a time slot
+	Location Location          `json:"location,omitempty"` // an optional location field, empty means "any"
 }

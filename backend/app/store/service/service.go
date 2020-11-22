@@ -200,10 +200,15 @@ func (s *DataStore) GetCourse(id string) (store.Course, error) {
 		return store.Course{}, errors.Wrapf(err, "failed to load primary lector %s for course %s",
 			crs.PrimaryLector.ID, id)
 	}
-	if crs.AssistantLector, err = s.TeacherRepository.GetTeacherFull(crs.AssistantLector.ID); err != nil {
-		return store.Course{}, errors.Wrapf(err, "failed to load assistant lector %s for course %s",
-			crs.AssistantLector.ID, id)
+
+	// if assistant lector is assumed for this course
+	if crs.AssistantLector.ID != "" {
+		if crs.AssistantLector, err = s.TeacherRepository.GetTeacherFull(crs.AssistantLector.ID); err != nil {
+			return store.Course{}, errors.Wrapf(err, "failed to load assistant lector %s for course %s",
+				crs.AssistantLector.ID, id)
+		}
 	}
+
 	for taIdx, ta := range crs.Assistants {
 		if crs.Assistants[taIdx], err = s.TeacherRepository.GetTeacherFull(ta.ID); err != nil {
 			return store.Course{}, errors.Wrapf(err, "failed to load TA %s for course %s",
@@ -212,4 +217,9 @@ func (s *DataStore) GetCourse(id string) (store.Course, error) {
 	}
 
 	return crs, nil
+}
+
+// ListTimeSlots that are registered in the database
+func (s *DataStore) ListTimeSlots() ([]store.TimeSlot, error) {
+	return s.UniOrgRepository.ListTimeSlots()
 }
