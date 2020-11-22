@@ -391,7 +391,7 @@ const (
   ```
 
   #### Schedule
-  - `GET /api/v1/time_slots` - list time slots
+  - `GET /api/v1/time_slot` - list time slots
   - Body: `empty`
   - Response:
   ```json
