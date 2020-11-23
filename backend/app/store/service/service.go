@@ -213,6 +213,11 @@ func (s *DataStore) GetCourse(id string) (store.Course, error) {
 		}
 	}
 
+	if crs.StudyYear, err = s.UniOrgRepository.GetStudyYear(crs.StudyYear.ID); err != nil {
+		return store.Course{}, errors.Wrapf(err, "failed to study year %s for course %s",
+			crs.StudyYear.ID, id)
+	}
+
 	for taIdx, ta := range crs.Assistants {
 		if crs.Assistants[taIdx], err = s.TeacherRepository.GetTeacherFull(ta.ID); err != nil {
 			return store.Course{}, errors.Wrapf(err, "failed to load TA %s for course %s",
@@ -221,6 +226,22 @@ func (s *DataStore) GetCourse(id string) (store.Course, error) {
 	}
 
 	return crs, nil
+}
+
+// ListCourses that are registered in the database
+func (s *DataStore) ListCourses() (res []store.Course, err error) {
+	ids, err := s.UniOrgRepository.ListCourses()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to list courses")
+	}
+	for _, id := range ids {
+		crs, err := s.GetCourse(id)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get course with id %s", id)
+		}
+		res = append(res, crs)
+	}
+	return res, nil
 }
 
 // ListTimeSlots that are registered in the database
@@ -249,4 +270,9 @@ func (s *DataStore) ListClasses(from time.Time, till time.Time, groupID string) 
 		}
 	}
 	return cls, nil
+}
+
+// AddClasses to the database
+func (s *DataStore) AddClasses(classes []store.Class) error {
+	return s.SchedRepository.AddClasses(classes)
 }

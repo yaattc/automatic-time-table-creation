@@ -38,6 +38,7 @@ type Course struct {
 	Assistants      []Teacher          `json:"assistants,omitempty"`       // teacher assistants of the course
 	PrimaryLector   Teacher            `json:"primary_lector"`             // e.g. who leads the lectures
 	AssistantLector Teacher            `json:"assistant_lector,omitempty"` // e.g. who leads the tutorials, might be empty
+	StudyYear       StudyYear          `json:"study_year"`
 
 	Classes []ClassDescription `json:"classes,omitempty"` // classes of the course, i.e. the course schedule
 }

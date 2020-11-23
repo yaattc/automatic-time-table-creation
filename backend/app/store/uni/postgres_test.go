@@ -231,10 +231,15 @@ func TestPostgres_GetStudyYear(t *testing.T) {
 
 func TestPostgres_AddCourse(t *testing.T) {
 	srv := preparePgStore(t)
+	_, err := srv.connPool.Exec(`INSERT INTO study_years("id", "name") VALUES ($1, $2)`,
+		"00000000-0000-0001-0000-000000000001", "BS - Year 1 (Computer Science)")
+	require.NoError(t, err)
+
 	expected := store.Course{
-		ID:      "00000000-0000-0000-0000-000000000001",
-		Name:    "Operational systems",
-		Program: store.Bachelor,
+		ID:        "00000000-0000-0000-0000-000000000001",
+		Name:      "Operational systems",
+		StudyYear: store.StudyYear{ID: "00000000-0000-0001-0000-000000000001"},
+		Program:   store.Bachelor,
 		Assistants: []store.Teacher{
 			{TeacherDetails: store.TeacherDetails{
 				ID:      "00000000-0000-0000-0000-100000000001",
@@ -314,7 +319,7 @@ func TestPostgres_AddCourse(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	_, err := srv.connPool.Exec(`INSERT INTO teachers(id, name, surname, email, degree, about)
+	_, err = srv.connPool.Exec(`INSERT INTO teachers(id, name, surname, email, degree, about)
 								VALUES ($1, $2, $3, $4, $5, $6)`, expected.PrimaryLector.ID, expected.PrimaryLector.Name, expected.PrimaryLector.Surname,
 		expected.PrimaryLector.Email, expected.PrimaryLector.Degree, expected.PrimaryLector.About)
 	require.NoError(t, err)
@@ -356,10 +361,15 @@ func TestPostgres_AddCourse(t *testing.T) {
 
 func TestPostgres_GetCourseDetails(t *testing.T) {
 	srv := preparePgStore(t)
+	_, err := srv.connPool.Exec(`INSERT INTO study_years("id", "name") VALUES ($1, $2)`,
+		"00000000-0000-0001-0000-000000000001", "BS - Year 1 (Computer Science)")
+	require.NoError(t, err)
+
 	expected := store.Course{
-		ID:      "00000000-0000-0000-0000-000000000001",
-		Name:    "Operational systems",
-		Program: store.Bachelor,
+		ID:        "00000000-0000-0000-0000-000000000001",
+		Name:      "Operational systems",
+		Program:   store.Bachelor,
+		StudyYear: store.StudyYear{ID: "00000000-0000-0001-0000-000000000001"},
 		Assistants: []store.Teacher{
 			{TeacherDetails: store.TeacherDetails{
 				ID:      "00000000-0000-0000-0000-100000000001",
@@ -432,7 +442,7 @@ func TestPostgres_GetCourseDetails(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	_, err := srv.connPool.Exec(`INSERT INTO teachers(id, name, surname, email, degree, about)
+	_, err = srv.connPool.Exec(`INSERT INTO teachers(id, name, surname, email, degree, about)
 								VALUES ($1, $2, $3, $4, $5, $6)`, expected.PrimaryLector.ID, expected.PrimaryLector.Name, expected.PrimaryLector.Surname,
 		expected.PrimaryLector.Email, expected.PrimaryLector.Degree, expected.PrimaryLector.About)
 	require.NoError(t, err)
@@ -442,10 +452,10 @@ func TestPostgres_GetCourseDetails(t *testing.T) {
 		expected.AssistantLector.Email, expected.AssistantLector.Degree, expected.AssistantLector.About)
 	require.NoError(t, err)
 
-	_, err = srv.connPool.Exec(`INSERT INTO courses(id, name, primary_lector_id, assistant_lector_id, edu_program) 
-						VALUES ($1, $2, $3, $4, $5)`,
+	_, err = srv.connPool.Exec(`INSERT INTO courses(id, name, primary_lector_id, assistant_lector_id, study_year_id, edu_program) 
+						VALUES ($1, $2, $3, $4, $5, $6)`,
 		expected.ID, expected.Name, expected.PrimaryLector.ID,
-		expected.AssistantLector.ID, expected.Program)
+		expected.AssistantLector.ID, expected.StudyYear.ID, expected.Program)
 	require.NoError(t, err)
 
 	for _, ta := range expected.Assistants {
@@ -457,9 +467,10 @@ func TestPostgres_GetCourseDetails(t *testing.T) {
 	course, err := srv.GetCourseDetails(expected.ID)
 	require.NoError(t, err)
 	assert.Equal(t, store.Course{
-		ID:      expected.ID,
-		Name:    expected.Name,
-		Program: expected.Program,
+		ID:        expected.ID,
+		Name:      expected.Name,
+		StudyYear: store.StudyYear{ID: expected.StudyYear.ID},
+		Program:   expected.Program,
 		PrimaryLector: store.Teacher{
 			TeacherDetails: store.TeacherDetails{ID: expected.PrimaryLector.ID},
 		},

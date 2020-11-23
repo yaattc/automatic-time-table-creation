@@ -49,3 +49,20 @@ func (p *Postgres) ListClasses(from time.Time, till time.Time, groupID string) (
 	}))
 	return res, err
 }
+
+// AddClasses to the database
+func (p *Postgres) AddClasses(classes []store.Class) error {
+	err := pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
+		for _, cl := range classes {
+			_, err := tx.Exec(`INSERT INTO classes(id, course_id, group_id, teacher_id, title, 
+									location, start_time, duration, repeats) 
+									VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0)`,
+				cl.ID, cl.Course.ID, cl.Group.ID, cl.Teacher.ID, cl.Title, cl.Location, cl.Start, cl.Duration)
+			if err != nil {
+				return errors.Wrapf(err, "failed to insert class %s %s", cl.ID, cl.Title)
+			}
+		}
+		return nil
+	}))
+	return err
+}

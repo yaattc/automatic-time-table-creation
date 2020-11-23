@@ -22,4 +22,5 @@ type Interface interface {
 	GetCourseDetails(id string) (store.Course, error)
 
 	ListTimeSlots() ([]store.TimeSlot, error)
+	ListCourses() ([]string, error)
 }

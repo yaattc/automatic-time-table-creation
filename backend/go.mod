@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/Semior001/timetype v0.1.2
 	github.com/cockroachdb/apd v1.1.0 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v4.1.1+incompatible
 	github.com/go-chi/cors v1.1.1
 	github.com/go-chi/httprate v0.4.0
