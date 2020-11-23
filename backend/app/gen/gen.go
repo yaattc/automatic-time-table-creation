@@ -44,17 +44,28 @@ func (s *Service) Build(req BuildTimeTableRequest) (res BuildTimeTableResult) {
 			for _, rsrv := range cell.usedBy {
 				crs := getCourseByIdx(rsrv.courseIdx)
 
-				typ := "Tutorial"
-				if rsrv.primary {
-					typ = "Lecture"
+				typ := "Lecture"
+				tch := store.Teacher{TeacherDetails: crs.primaryLector.teacher}
+				if !rsrv.primary {
+					typ = "Tutorial"
+					if crs.assistantLector != nil {
+						tch = store.Teacher{TeacherDetails: crs.assistantLector.teacher}
+					}
 				}
 
-				res.Classes = append(res.Classes, store.Class{ClassDescription: store.ClassDescription{
-					ID:       uuid.New().String(),
-					Title:    fmt.Sprintf("%s %s", crs.course.Name, typ),
-					Start:    stDate,
-					Duration: dur,
-				}})
+				for _, grp := range crs.course.Groups {
+					res.Classes = append(res.Classes, store.Class{
+						ClassDescription: store.ClassDescription{
+							ID:       uuid.New().String(),
+							Title:    fmt.Sprintf("%s %s", crs.course.Name, typ),
+							Start:    stDate,
+							Duration: dur,
+						},
+						Course:  crs.course,
+						Group:   grp,
+						Teacher: tch,
+					})
+				}
 			}
 		}
 	}
