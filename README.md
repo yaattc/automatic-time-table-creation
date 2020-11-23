@@ -559,8 +559,7 @@ const (
             "title": "FSE",
             "location": "room #108",
             "start": "2020-08-17T12:40:00Z",
-            "duration": 5400000000000,
-            "repeats": 0
+            "end": "2020-08-17T14:10:00Z"
         }
     ]
   }
