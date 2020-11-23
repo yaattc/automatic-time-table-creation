@@ -1,3 +1,5 @@
+<p-toast></p-toast>
+
 <div *ngIf="!currentPage.includes('/login') && currentPage.includes('/panel')" class="main">
   <div>
     <div class="pages" *ngFor="let page of pages">
@@ -15,27 +17,13 @@
       type="button"
       class="show_button"
       label="CREATE TIME TABLE"
-      (submit)="submit()"
+      (click)="submitCreateTimeTable()"
     ></button>
   </div>
 </div>
 <div *ngIf="!currentPage.includes('/panel') || currentPage.includes('/timetable')" class="main">
   <div>
     <form [formGroup]="filterForm">
-      <div class="pages">
-        <p-dropdown
-          [options]="years"
-          [(ngModel)]="selectedYears"
-          placeholder="Select a Year Of Education"
-          optionLabel="name"
-          [showClear]="true"
-          formControlName="year"
-          [style]="{
-          minWidth: '100%',
-          borderColor: 'rgba(128, 188, 0, 0.45)'
-          }"
-        ></p-dropdown>
-      </div>
       <div class="pages">
         <p-dropdown
           [options]="groups"
@@ -58,7 +46,7 @@
       class="show_button"
       type="button"
       label="SHOW TIME TABLE"
-      (submit)="submit()"
+      (click)="submitTimeTable()"
     ></button>
   </div>
 </div>

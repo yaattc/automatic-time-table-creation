@@ -9,11 +9,16 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
 import { FormBuilder } from '@angular/forms';
+import { GroupYearService } from '../../services/group-year.service';
+import { Group } from '../../model/group';
+import { TimeTableService } from '../../services/time-table.service';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-navigation-panel',
   templateUrl: './navigation-panel.component.html',
   styleUrls: ['./navigation-panel.component.css'],
+  providers: [MessageService],
 })
 export class NavigationPanelComponent implements OnInit {
   pages = [
@@ -38,25 +43,28 @@ export class NavigationPanelComponent implements OnInit {
   currentPage: string;
 
   filterForm = this.formBuilder.group({
-    year: [null],
     group: [null],
   });
 
-  groups: any[];
-  years: any[];
+  groups: Group[];
 
   selectedGroups: any;
-  selectedYears: any;
 
   constructor(
     private router: Router,
     private authService: AuthService,
     private formBuilder: FormBuilder,
+    private groupYearService: GroupYearService,
+    private timeTableService: TimeTableService,
+    private messageService: MessageService,
   ) {}
 
   ngOnInit(): void {
     this.authService.currentPage$.subscribe((page) => {
       this.currentPage = page;
+    });
+    this.groupYearService.getGroup().subscribe((val) => {
+      this.groups = [...val.groups];
     });
   }
 
@@ -65,5 +73,20 @@ export class NavigationPanelComponent implements OnInit {
     this.authService.setCurrentPage(`${environment.apiUrl}/${path}`);
   }
 
-  submit(): void {}
+  submitTimeTable(): void {
+    this.timeTableService.postSchedule(this.filterForm.value);
+  }
+
+  submitCreateTimeTable(): void {
+    this.timeTableService.postCreateTimeTable().subscribe(
+      (response) =>
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Time Table has been generated',
+        }),
+      (error) =>
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Smth strange' }),
+    );
+  }
 }

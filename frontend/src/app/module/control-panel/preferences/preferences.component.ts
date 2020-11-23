@@ -60,21 +60,13 @@ export class PreferencesComponent implements OnInit {
   public setSelectedTimeSlots(val: { name: string; value: TimeSlot }[]): void {
     // restore original order
     if (val !== undefined) {
-      this.selectedTimeSlots = this.timeSlots
-        .filter((timeSlot) => val.includes(timeSlot))
-        .map((timeSlot) => {
-          return {
-            name:
-              timeSlot.value.weekday + ' ' + timeSlot.value.start + ' ' + timeSlot.value.duration,
-            value: timeSlot.value,
-          };
-        });
+      this.selectedTimeSlots = this.timeSlots.filter((timeSlot) => val.includes(timeSlot));
     }
   }
 
   public setSelectedTeachers(val: { name: string; value: Staff }[]): void {
     // restore original order
-    if (val !== undefined) {
+    if (val !== null) {
       this.selectedTeachers = this.teachers.filter((teacher) => val.includes(teacher));
     }
   }

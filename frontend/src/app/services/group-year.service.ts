@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { Group } from '../model/group';
 
 @Injectable({
   providedIn: 'root',
@@ -28,5 +29,9 @@ export class GroupYearService {
     };
 
     return this.http.post<any>(`${environment.apiUrl}/api/v1/group`, body);
+  }
+
+  getGroup(): Observable<{ groups: Group[] }> {
+    return this.http.get<{ groups: Group[] }>(`${environment.apiUrl}/api/v1/group`);
   }
 }

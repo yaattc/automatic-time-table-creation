@@ -16,8 +16,9 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { CalendarModule } from 'primeng/calendar';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DropdownModule } from 'primeng/dropdown';
+import {ToastModule} from 'primeng/toast';
 
 FullCalendarModule.registerPlugins([dayGridPlugin, timeGridPlugin, interactionPlugin]);
 
@@ -35,6 +36,7 @@ FullCalendarModule.registerPlugins([dayGridPlugin, timeGridPlugin, interactionPl
     ReactiveFormsModule,
     DropdownModule,
     FormsModule,
+    ToastModule,
   ],
   providers: [
     {

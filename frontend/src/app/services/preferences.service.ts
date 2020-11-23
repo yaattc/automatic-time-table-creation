@@ -33,6 +33,6 @@ export class PreferencesService {
   }
 
   getTimeSlots(): Observable<{ time_slots: TimeSlot[] }> {
-    return this.http.get<{ time_slots: TimeSlot[] }>(`${environment.apiUrl}/api/v1/time_slots`);
+    return this.http.get<{ time_slots: TimeSlot[] }>(`${environment.apiUrl}/api/v1/time_slot`);
   }
 }
