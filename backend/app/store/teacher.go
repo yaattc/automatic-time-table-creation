@@ -1,11 +1,5 @@
 package store
 
-import (
-	"time"
-
-	"github.com/Semior001/timetype"
-)
-
 // Teacher describes a basic teacher with its own name and surname
 type Teacher struct {
 	Preferences TeacherPreferences `json:"preferences,omitempty"`
@@ -16,6 +10,11 @@ type Teacher struct {
 func (t *Teacher) PrepareUntrusted() {
 	t.ID = ""
 	t.Preferences = TeacherPreferences{}
+}
+
+// Empty returns true if there is no teacher data
+func (t *Teacher) Empty() bool {
+	return t.ID == ""
 }
 
 // TeacherDetails describes a data that relates to one particular teacher
@@ -42,12 +41,4 @@ type TeacherPreferences struct {
 // Empty checks whether the preferences are empty or not
 func (p TeacherPreferences) Empty() bool {
 	return len(p.TimeSlots) < 1 && len(p.Staff) < 1 && len(p.Locations) < 1
-}
-
-// TimeSlot describes a particular period of time in a week
-type TimeSlot struct {
-	Weekday  time.Weekday      `json:"weekday"`  // a weekday of time slot
-	Start    timetype.Clock    `json:"start"`    // start time of time slot
-	Duration timetype.Duration `json:"duration"` // duration of a time slot
-	Location Location          `json:"location"` // an optional location field, empty means "any"
 }

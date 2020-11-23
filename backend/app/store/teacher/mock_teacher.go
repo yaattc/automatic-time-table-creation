@@ -24,6 +24,9 @@ var _ Interface = &InterfaceMock{}
 //             DeleteTeacherFunc: func(teacherID string) error {
 // 	               panic("mock out the DeleteTeacher method")
 //             },
+//             GetTeacherDetailsFunc: func(teacherID string) (store.TeacherDetails, error) {
+// 	               panic("mock out the GetTeacherDetails method")
+//             },
 //             GetTeacherFullFunc: func(teacherID string) (store.Teacher, error) {
 // 	               panic("mock out the GetTeacherFull method")
 //             },
@@ -46,6 +49,9 @@ type InterfaceMock struct {
 	// DeleteTeacherFunc mocks the DeleteTeacher method.
 	DeleteTeacherFunc func(teacherID string) error
 
+	// GetTeacherDetailsFunc mocks the GetTeacherDetails method.
+	GetTeacherDetailsFunc func(teacherID string) (store.TeacherDetails, error)
+
 	// GetTeacherFullFunc mocks the GetTeacherFull method.
 	GetTeacherFullFunc func(teacherID string) (store.Teacher, error)
 
@@ -67,6 +73,11 @@ type InterfaceMock struct {
 			// TeacherID is the teacherID argument value.
 			TeacherID string
 		}
+		// GetTeacherDetails holds details about calls to the GetTeacherDetails method.
+		GetTeacherDetails []struct {
+			// TeacherID is the teacherID argument value.
+			TeacherID string
+		}
 		// GetTeacherFull holds details about calls to the GetTeacherFull method.
 		GetTeacherFull []struct {
 			// TeacherID is the teacherID argument value.
@@ -83,11 +94,12 @@ type InterfaceMock struct {
 			Pref store.TeacherPreferences
 		}
 	}
-	lockAddTeacher     sync.RWMutex
-	lockDeleteTeacher  sync.RWMutex
-	lockGetTeacherFull sync.RWMutex
-	lockListTeachers   sync.RWMutex
-	lockSetPreferences sync.RWMutex
+	lockAddTeacher        sync.RWMutex
+	lockDeleteTeacher     sync.RWMutex
+	lockGetTeacherDetails sync.RWMutex
+	lockGetTeacherFull    sync.RWMutex
+	lockListTeachers      sync.RWMutex
+	lockSetPreferences    sync.RWMutex
 }
 
 // AddTeacher calls AddTeacherFunc.
@@ -149,6 +161,37 @@ func (mock *InterfaceMock) DeleteTeacherCalls() []struct {
 	mock.lockDeleteTeacher.RLock()
 	calls = mock.calls.DeleteTeacher
 	mock.lockDeleteTeacher.RUnlock()
+	return calls
+}
+
+// GetTeacherDetails calls GetTeacherDetailsFunc.
+func (mock *InterfaceMock) GetTeacherDetails(teacherID string) (store.TeacherDetails, error) {
+	if mock.GetTeacherDetailsFunc == nil {
+		panic("InterfaceMock.GetTeacherDetailsFunc: method is nil but Interface.GetTeacherDetails was just called")
+	}
+	callInfo := struct {
+		TeacherID string
+	}{
+		TeacherID: teacherID,
+	}
+	mock.lockGetTeacherDetails.Lock()
+	mock.calls.GetTeacherDetails = append(mock.calls.GetTeacherDetails, callInfo)
+	mock.lockGetTeacherDetails.Unlock()
+	return mock.GetTeacherDetailsFunc(teacherID)
+}
+
+// GetTeacherDetailsCalls gets all the calls that were made to GetTeacherDetails.
+// Check the length with:
+//     len(mockedInterface.GetTeacherDetailsCalls())
+func (mock *InterfaceMock) GetTeacherDetailsCalls() []struct {
+	TeacherID string
+} {
+	var calls []struct {
+		TeacherID string
+	}
+	mock.lockGetTeacherDetails.RLock()
+	calls = mock.calls.GetTeacherDetails
+	mock.lockGetTeacherDetails.RUnlock()
 	return calls
 }
 

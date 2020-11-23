@@ -106,3 +106,84 @@ func (p *Postgres) ListStudyYears() (res []store.StudyYear, err error) {
 	}))
 	return res, err
 }
+
+// AddCourse to the database
+func (p *Postgres) AddCourse(course store.Course) (id string, err error) {
+	err = pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
+		// if the assistant professor is not specified - set its id in course to NULL
+		var aLecID *string = nil
+		if course.AssistantLector.ID != "" {
+			aLecID = &course.AssistantLector.ID
+		}
+
+		_, err := tx.Exec(`INSERT INTO courses(id, name, primary_lector_id, assistant_lector_id, edu_program) 
+						VALUES ($1, $2, $3, $4, $5)`,
+			course.ID, course.Name, course.PrimaryLector.ID,
+			aLecID, course.Program)
+		if err != nil {
+			return errors.Wrapf(err, "failed to insert course %s", course.Name)
+		}
+		for _, ta := range course.Assistants {
+			_, err := tx.Exec(`INSERT INTO courses_teacher_assistants(course_id, assistant_id) VALUES ($1, $2)`,
+				course.ID, ta.ID)
+			if err != nil {
+				return errors.Wrapf(err, "failed to insert assistant %s to course %s", ta.ID, course.Name)
+			}
+		}
+		return nil
+	}))
+	return course.ID, err
+}
+
+// GetCourseDetails by id
+func (p *Postgres) GetCourseDetails(id string) (res store.Course, err error) {
+	err = pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
+		row := tx.QueryRow(`SELECT id, name, edu_program, primary_lector_id, assistant_lector_id 
+							FROM courses WHERE id = $1`, id)
+
+		var aLecID *string
+
+		if err := row.Scan(&res.ID, &res.Name, &res.Program, &res.PrimaryLector.ID, &aLecID); err != nil {
+			return errors.Wrapf(err, "failed to scan course details for course %s", id)
+		}
+
+		// if assistant lector is specified for this course
+		if aLecID != nil {
+			res.AssistantLector.ID = *aLecID
+		}
+
+		rows, err := tx.Query(`SELECT assistant_id FROM courses_teacher_assistants WHERE course_id = $1`, id)
+		if err != nil {
+			return errors.Wrapf(err, "failed to query TAs for course %s", id)
+		}
+		for rows.Next() {
+			var taID string
+			if err := rows.Scan(&taID); err != nil {
+				return errors.Wrapf(err, "failed to scan id of TA for course %s", id)
+			}
+			res.Assistants = append(res.Assistants, store.Teacher{TeacherDetails: store.TeacherDetails{ID: taID}})
+		}
+		return nil
+	}))
+	return res, err
+}
+
+// ListTimeSlots that are registered in the database
+func (p *Postgres) ListTimeSlots() (res []store.TimeSlot, err error) {
+	err = pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
+		rows, err := tx.Query(`SELECT id, weekday, start, duration FROM time_slots`)
+		if err != nil {
+			return errors.Wrap(err, "failed to query list all time slots")
+		}
+		var ts store.TimeSlot
+		for rows.Next() {
+			ts = store.TimeSlot{}
+			if err = rows.Scan(&ts.ID, &ts.Weekday, &ts.Start, &ts.Duration); err != nil {
+				return errors.Wrap(err, "failed to scan time slot")
+			}
+			res = append(res, ts)
+		}
+		return nil
+	}))
+	return res, err
+}

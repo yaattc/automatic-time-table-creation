@@ -50,10 +50,11 @@ jobs:
         with:
           go-version: 1.14.1
 
+      # fixme -p=1 means that tests should be run sequentially, it may cause some troubles (db tests fail when the tests are run in parallel)
       - name: Run tests and extract coverage
         run: |
           cd backend/app
-          go test -mod=vendor -timeout=60s -covermode=count -coverprofile=$GITHUB_WORKSPACE/backend/profile.cov_tmp ./...
+          go test -mod=vendor -timeout=60s -p=1 -covermode=count -coverprofile=$GITHUB_WORKSPACE/backend/profile.cov_tmp ./...
           cat $GITHUB_WORKSPACE/backend/profile.cov_tmp | grep -v "mock_" > $GITHUB_WORKSPACE/backend/profile.cov
         env:
           CGO_ENABLED: 0

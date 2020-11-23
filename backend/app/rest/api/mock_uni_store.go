@@ -18,6 +18,9 @@ var _ uniStore = &uniStoreMock{}
 //
 //         // make and configure a mocked uniStore
 //         mockeduniStore := &uniStoreMock{
+//             AddCourseFunc: func(course store.Course) (string, error) {
+// 	               panic("mock out the AddCourse method")
+//             },
 //             AddGroupFunc: func(name string, studyYearID string) (string, error) {
 // 	               panic("mock out the AddGroup method")
 //             },
@@ -29,6 +32,9 @@ var _ uniStore = &uniStoreMock{}
 //             },
 //             DeleteStudyYearFunc: func(studyYearID string) error {
 // 	               panic("mock out the DeleteStudyYear method")
+//             },
+//             GetCourseFunc: func(id string) (store.Course, error) {
+// 	               panic("mock out the GetCourse method")
 //             },
 //             GetGroupFunc: func(groupID string) (store.Group, error) {
 // 	               panic("mock out the GetGroup method")
@@ -42,6 +48,9 @@ var _ uniStore = &uniStoreMock{}
 //             ListStudyYearsFunc: func() ([]store.StudyYear, error) {
 // 	               panic("mock out the ListStudyYears method")
 //             },
+//             ListTimeSlotsFunc: func() ([]store.TimeSlot, error) {
+// 	               panic("mock out the ListTimeSlots method")
+//             },
 //         }
 //
 //         // use mockeduniStore in code that requires uniStore
@@ -49,6 +58,9 @@ var _ uniStore = &uniStoreMock{}
 //
 //     }
 type uniStoreMock struct {
+	// AddCourseFunc mocks the AddCourse method.
+	AddCourseFunc func(course store.Course) (string, error)
+
 	// AddGroupFunc mocks the AddGroup method.
 	AddGroupFunc func(name string, studyYearID string) (string, error)
 
@@ -60,6 +72,9 @@ type uniStoreMock struct {
 
 	// DeleteStudyYearFunc mocks the DeleteStudyYear method.
 	DeleteStudyYearFunc func(studyYearID string) error
+
+	// GetCourseFunc mocks the GetCourse method.
+	GetCourseFunc func(id string) (store.Course, error)
 
 	// GetGroupFunc mocks the GetGroup method.
 	GetGroupFunc func(groupID string) (store.Group, error)
@@ -73,8 +88,16 @@ type uniStoreMock struct {
 	// ListStudyYearsFunc mocks the ListStudyYears method.
 	ListStudyYearsFunc func() ([]store.StudyYear, error)
 
+	// ListTimeSlotsFunc mocks the ListTimeSlots method.
+	ListTimeSlotsFunc func() ([]store.TimeSlot, error)
+
 	// calls tracks calls to the methods.
 	calls struct {
+		// AddCourse holds details about calls to the AddCourse method.
+		AddCourse []struct {
+			// Course is the course argument value.
+			Course store.Course
+		}
 		// AddGroup holds details about calls to the AddGroup method.
 		AddGroup []struct {
 			// Name is the name argument value.
@@ -97,6 +120,11 @@ type uniStoreMock struct {
 			// StudyYearID is the studyYearID argument value.
 			StudyYearID string
 		}
+		// GetCourse holds details about calls to the GetCourse method.
+		GetCourse []struct {
+			// ID is the id argument value.
+			ID string
+		}
 		// GetGroup holds details about calls to the GetGroup method.
 		GetGroup []struct {
 			// GroupID is the groupID argument value.
@@ -113,15 +141,52 @@ type uniStoreMock struct {
 		// ListStudyYears holds details about calls to the ListStudyYears method.
 		ListStudyYears []struct {
 		}
+		// ListTimeSlots holds details about calls to the ListTimeSlots method.
+		ListTimeSlots []struct {
+		}
 	}
+	lockAddCourse       sync.RWMutex
 	lockAddGroup        sync.RWMutex
 	lockAddStudyYear    sync.RWMutex
 	lockDeleteGroup     sync.RWMutex
 	lockDeleteStudyYear sync.RWMutex
+	lockGetCourse       sync.RWMutex
 	lockGetGroup        sync.RWMutex
 	lockGetStudyYear    sync.RWMutex
 	lockListGroups      sync.RWMutex
 	lockListStudyYears  sync.RWMutex
+	lockListTimeSlots   sync.RWMutex
+}
+
+// AddCourse calls AddCourseFunc.
+func (mock *uniStoreMock) AddCourse(course store.Course) (string, error) {
+	if mock.AddCourseFunc == nil {
+		panic("uniStoreMock.AddCourseFunc: method is nil but uniStore.AddCourse was just called")
+	}
+	callInfo := struct {
+		Course store.Course
+	}{
+		Course: course,
+	}
+	mock.lockAddCourse.Lock()
+	mock.calls.AddCourse = append(mock.calls.AddCourse, callInfo)
+	mock.lockAddCourse.Unlock()
+	return mock.AddCourseFunc(course)
+}
+
+// AddCourseCalls gets all the calls that were made to AddCourse.
+// Check the length with:
+//     len(mockeduniStore.AddCourseCalls())
+func (mock *uniStoreMock) AddCourseCalls() []struct {
+	Course store.Course
+} {
+	var calls []struct {
+		Course store.Course
+	}
+	mock.lockAddCourse.RLock()
+	calls = mock.calls.AddCourse
+	mock.lockAddCourse.RUnlock()
+	return calls
 }
 
 // AddGroup calls AddGroupFunc.
@@ -252,6 +317,37 @@ func (mock *uniStoreMock) DeleteStudyYearCalls() []struct {
 	return calls
 }
 
+// GetCourse calls GetCourseFunc.
+func (mock *uniStoreMock) GetCourse(id string) (store.Course, error) {
+	if mock.GetCourseFunc == nil {
+		panic("uniStoreMock.GetCourseFunc: method is nil but uniStore.GetCourse was just called")
+	}
+	callInfo := struct {
+		ID string
+	}{
+		ID: id,
+	}
+	mock.lockGetCourse.Lock()
+	mock.calls.GetCourse = append(mock.calls.GetCourse, callInfo)
+	mock.lockGetCourse.Unlock()
+	return mock.GetCourseFunc(id)
+}
+
+// GetCourseCalls gets all the calls that were made to GetCourse.
+// Check the length with:
+//     len(mockeduniStore.GetCourseCalls())
+func (mock *uniStoreMock) GetCourseCalls() []struct {
+	ID string
+} {
+	var calls []struct {
+		ID string
+	}
+	mock.lockGetCourse.RLock()
+	calls = mock.calls.GetCourse
+	mock.lockGetCourse.RUnlock()
+	return calls
+}
+
 // GetGroup calls GetGroupFunc.
 func (mock *uniStoreMock) GetGroup(groupID string) (store.Group, error) {
 	if mock.GetGroupFunc == nil {
@@ -363,5 +459,31 @@ func (mock *uniStoreMock) ListStudyYearsCalls() []struct {
 	mock.lockListStudyYears.RLock()
 	calls = mock.calls.ListStudyYears
 	mock.lockListStudyYears.RUnlock()
+	return calls
+}
+
+// ListTimeSlots calls ListTimeSlotsFunc.
+func (mock *uniStoreMock) ListTimeSlots() ([]store.TimeSlot, error) {
+	if mock.ListTimeSlotsFunc == nil {
+		panic("uniStoreMock.ListTimeSlotsFunc: method is nil but uniStore.ListTimeSlots was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockListTimeSlots.Lock()
+	mock.calls.ListTimeSlots = append(mock.calls.ListTimeSlots, callInfo)
+	mock.lockListTimeSlots.Unlock()
+	return mock.ListTimeSlotsFunc()
+}
+
+// ListTimeSlotsCalls gets all the calls that were made to ListTimeSlots.
+// Check the length with:
+//     len(mockeduniStore.ListTimeSlotsCalls())
+func (mock *uniStoreMock) ListTimeSlotsCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockListTimeSlots.RLock()
+	calls = mock.calls.ListTimeSlots
+	mock.lockListTimeSlots.RUnlock()
 	return calls
 }
