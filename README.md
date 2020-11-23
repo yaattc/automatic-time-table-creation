@@ -64,12 +64,12 @@ const (
 	ErrDecode     ErrCode = 1 // failed to unmarshal incoming request
 	ErrBadRequest ErrCode = 2 // request contains incorrect data or doesn't contain data
   )
-  ```
+```
 
-  ### Client methods
+### Client methods
 
-  #### Auth methods
-  - `POST /auth/local/login` - authenticate and get JWT token. The token will be saved in secure cookies. 
+#### Auth methods
+- `POST /auth/local/login` - authenticate and get JWT token. The token will be saved in secure cookies. 
   - Body:
   ```json
   {
@@ -78,42 +78,42 @@ const (
   }
   ```
   - Response (example, shrinked for the sake of simplicity; next examples will be also shrinked): 
-  - Headers:
-  ```text
-  Set-Cookie: JWT=json.web.token; Path=/; Max-Age=720000; HttpOnly
-  ```
-  - Body (avatar is not used in the application, it is provided by the auth library):
-  ```json
-  {
-    "user": {
-      "name": "e.duskaliev@innopolis.university",
-      "id": "local_7f48448389aa065af161c3215237acef139e4ecf",
-      "picture": "http://0.0.0.0:8080/avatar/", 
-      "email": "e.duskaliev@innopolis.university",
-      "attrs": {
-        "privileges": [
-          "read_users",
-          "edit_users",
-          "list_users",
-          "add_users"
-        ]
-      }
-    },
-    "token": "json.web.token"
-  }
-  ```
+    - Headers:
+    ```text
+    Set-Cookie: JWT=json.web.token; Path=/; Max-Age=720000; HttpOnly
+    ```
+    - Body (avatar is not used in the application, it is provided by the auth library):
+    ```json
+    {
+      "user": {
+        "name": "e.duskaliev@innopolis.university",
+        "id": "local_7f48448389aa065af161c3215237acef139e4ecf",
+        "picture": "http://0.0.0.0:8080/avatar/", 
+        "email": "e.duskaliev@innopolis.university",
+        "attrs": {
+          "privileges": [
+            "read_users",
+            "edit_users",
+            "list_users",
+            "add_users"
+          ]
+        }
+      },
+      "token": "json.web.token"
+    }
+    ```
 
-  - `GET /auth/local/logout` - logout from the app, this will remove the JWT token from cookies.
+- `GET /auth/local/logout` - logout from the app, this will remove the JWT token from cookies.
   - Body: `empty`
   - Response:
-  - Headers:
-  ```text
-  Set-Cookie: JWT=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0
-  ```
-  - Body: `empty`
+    - Headers:
+    ```text
+    Set-Cookie: JWT=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0
+    ```
+    - Body: `empty`
 
-  #### Teachers
-  - `POST /api/v1/teacher` - add teacher.
+#### Teachers
+- `POST /api/v1/teacher` - add teacher.
   - Body (weekday counts from 0 - Sunday, 6 - Saturday):
   ```json
   {
@@ -162,7 +162,7 @@ const (
   }
   ```
 
-  - `DELETE /api/v1/teacher?id=teacherID` - delete teacher
+- `DELETE /api/v1/teacher?id=teacherID` - delete teacher
   - Body: `empty`
   - Response:
   ```json
@@ -171,7 +171,7 @@ const (
   }
   ```
 
-  - `GET /api/v1/teacher?id=teacherID` - list teachers or get a teacher
+- `GET /api/v1/teacher?id=teacherID` - list teachers or get a teacher
   - Body: `empty`
   - Response (in case if `teacherID` is not provided, the preferences will be shrinked):
   ```json
@@ -214,7 +214,7 @@ const (
   }
   ```
 
-  - `POST /api/v1/teacher/{id}/preferences` - set teacher preferences
+- `POST /api/v1/teacher/{id}/preferences` - set teacher preferences
   - Body:
   ```json
   {
@@ -280,9 +280,9 @@ const (
   }
   ```
 
-  #### Groups and study years
+#### Groups and study years
 
-  - `POST /api/v1/study_year` - add study year
+- `POST /api/v1/study_year` - add study year
   - Body:
   ```json
   {
@@ -296,7 +296,8 @@ const (
     "name": "BS - Year 1 (Computer Science)"
   }
   ```
-  - `GET /api/v1/study_year` - lists all study years
+
+- `GET /api/v1/study_year` - lists all study years
   - Body: `empty`
   - Response:
   ```json
@@ -313,7 +314,8 @@ const (
     ]
   }
   ```
-  - `DELETE /api/v1/study_year?id=studyYearID` - remove study year
+
+- `DELETE /api/v1/study_year?id=studyYearID` - remove study year
   - Body: `empty`
   - Response:
   ```json
@@ -321,7 +323,8 @@ const (
     "deleted": true
   }
   ```
-  - `POST /api/v1/group` - add group
+
+- `POST /api/v1/group` - add group
   - Body:
   ```json
   {
@@ -340,7 +343,8 @@ const (
     }
   }
   ```
-  - `GET /api/v1/group` - list groups
+
+- `GET /api/v1/group` - list groups
   - Body: `empty`
   - Response:
   ```json
@@ -381,7 +385,8 @@ const (
     ]
   }
   ```
-  - `DELETE /api/v1/group?id=groupID` - remove group
+
+- `DELETE /api/v1/group?id=groupID` - remove group
   - Body: `empty`
   - Response:
   ```json
@@ -390,8 +395,8 @@ const (
   }
   ```
 
-  #### Schedule
-  - `GET /api/v1/time_slot` - list time slots
+#### Schedule
+- `GET /api/v1/time_slot` - list time slots
   - Body: `empty`
   - Response:
   ```json
@@ -413,8 +418,8 @@ const (
   }
   ```
 
-  #### Courses
-  - `POST /api/v1/course` - add course
+#### Courses
+- `POST /api/v1/course` - add course
   - Body (**remark**: the assistant lector might be empty - that means that the course does not have tutorials **DO NOT SEND NULL ONLY EMPTY STRING OR UUID**): 
   ```json
   {
@@ -533,5 +538,30 @@ const (
       "about": "some assistant lector about"
     },
     "classes": null
+  }
+  ```
+
+- `POST /api/v1/classes` - list classes from in the given period for the given group
+  - Body:
+  ```json
+  {
+    "from": "2020-06-30T22:01:53+06:00",
+    "till": "2020-09-30T22:01:53+06:00",
+    "group_id": "cd1a2447-340e-43f2-ae09-30bb034b5930"
+  }
+  ```
+  - Response:
+  ```json
+  {
+    "classes": [
+        {
+            "id": "af8dc4ac-cd2f-4163-a390-3d9b121d900e",
+            "title": "FSE",
+            "location": "room #108",
+            "start": "2020-08-17T12:40:00Z",
+            "duration": 5400000000000,
+            "repeats": 0
+        }
+    ]
   }
   ```

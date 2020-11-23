@@ -180,6 +180,15 @@ func (p *Postgres) getTeacherDetails(teacherID string, tx *pgx.Tx) (store.Teache
 	return t, nil
 }
 
+// GetTeacherDetails for the given teacher
+func (p *Postgres) GetTeacherDetails(teacherID string) (res store.TeacherDetails, err error) {
+	err = pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
+		res, err = p.getTeacherDetails(teacherID, tx)
+		return err
+	}))
+	return res, errors.Wrapf(err, "failed to get details for teacher %s", teacherID)
+}
+
 // SetPreferences for the given teacher
 func (p *Postgres) SetPreferences(teacherID string, pref store.TeacherPreferences) error {
 	err := pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
