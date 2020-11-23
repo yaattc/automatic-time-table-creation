@@ -5,6 +5,9 @@ package service
 import (
 	"crypto/sha1" // nolint
 	"log"
+	"time"
+
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/sched"
 
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store/uni"
 
@@ -28,6 +31,7 @@ type DataStore struct {
 	UserRepository    user.Interface
 	TeacherRepository teacher.Interface
 	UniOrgRepository  uni.Interface
+	SchedRepository   sched.Interface
 	BCryptCost        int
 }
 
@@ -222,4 +226,27 @@ func (s *DataStore) GetCourse(id string) (store.Course, error) {
 // ListTimeSlots that are registered in the database
 func (s *DataStore) ListTimeSlots() ([]store.TimeSlot, error) {
 	return s.UniOrgRepository.ListTimeSlots()
+}
+
+// ListClasses in the given period for the given group
+func (s *DataStore) ListClasses(from time.Time, till time.Time, groupID string) ([]store.Class, error) {
+	cls, err := s.SchedRepository.ListClasses(from, till, groupID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to list classes details from %s to %s for group %s",
+			from.String(), till.String(), groupID)
+	}
+	for clIdx := range cls {
+		cl := &cls[clIdx]
+
+		if cl.Course, err = s.UniOrgRepository.GetCourseDetails(cl.Course.ID); err != nil {
+			return nil, errors.Wrapf(err, "failed to get course details for course %s", cl.Group.ID)
+		}
+		if cl.Group, err = s.UniOrgRepository.GetGroup(cl.Group.ID); err != nil {
+			return nil, errors.Wrapf(err, "failed to get group details for group %s", cl.Group.ID)
+		}
+		if cl.Teacher.TeacherDetails, err = s.TeacherRepository.GetTeacherDetails(cl.Teacher.ID); err != nil {
+			return nil, errors.Wrapf(err, "failed to get teacher details for %s", cl.Teacher.ID)
+		}
+	}
+	return cls, nil
 }

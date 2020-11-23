@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/yaattc/automatic-time-table-creation/backend/app/store/sched"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-pkgz/rest"
 
@@ -86,10 +88,16 @@ func (s *Server) Execute(_ []string) error {
 		return errors.Wrapf(err, "failed to initialize postgres university organization repository at %s", s.DBConnStr)
 	}
 
+	schr, err := sched.NewPostgres(pgpool, pgconf)
+	if err != nil {
+		return errors.Wrapf(err, "failed to initialize postgres schedule repository at %s", s.DBConnStr)
+	}
+
 	ds := &service.DataStore{
 		UserRepository:    ur,
 		TeacherRepository: tr,
 		UniOrgRepository:  uor,
+		SchedRepository:   schr,
 		BCryptCost:        s.Auth.BCryptCost,
 	}
 

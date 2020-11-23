@@ -6,7 +6,7 @@ import (
 	"github.com/Semior001/timetype"
 )
 
-// Location describes a room or auditory where the Class is held
+// Location describes a room or auditory where the ClassDescription is held
 type Location string
 
 // EducationalProgram describes a study level of students
@@ -39,17 +39,25 @@ type Course struct {
 	PrimaryLector   Teacher            `json:"primary_lector"`             // e.g. who leads the lectures
 	AssistantLector Teacher            `json:"assistant_lector,omitempty"` // e.g. who leads the tutorials, might be empty
 
-	Classes []Class `json:"classes,omitempty"` // classes of the course, i.e. the course schedule
+	Classes []ClassDescription `json:"classes,omitempty"` // classes of the course, i.e. the course schedule
 }
 
-// Class describes a basic lesson of the Course, e.g. a couple
-type Class struct {
+// ClassDescription describes a basic lesson of the Course, e.g. a couple
+type ClassDescription struct {
 	ID       string        `json:"id"`
 	Title    string        `json:"title"`
 	Location Location      `json:"location"`
 	Start    time.Time     `json:"start"`
 	Duration time.Duration `json:"duration"`
 	Repeats  int           `json:"repeats"`
+}
+
+// Class describes a general class with its references to groups, courses, teachers etc.
+type Class struct {
+	ClassDescription
+	Course  Course
+	Group   Group
+	Teacher Teacher
 }
 
 // Group describes a basic students group, e.g. "BS19-04"

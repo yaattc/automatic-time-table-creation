@@ -32,6 +32,7 @@ type Rest struct {
 
 	teacherRest teacherCtrlGroup
 	uniRest     uniCtrlGroup
+	schedRest   schedCtrlGroup
 }
 
 const hardBodyLimit = 1024 * 64 // limit size of body
@@ -62,10 +63,11 @@ func (s *Rest) notFound(w http.ResponseWriter, r *http.Request) {
 	rest.SendErrorJSON(w, r, http.StatusNotFound, nil, "not found", rest.ErrBadRequest)
 }
 
-func (s *Rest) controllerGroups() (teacherCtrlGroup, uniCtrlGroup) {
+func (s *Rest) controllerGroups() (teacherCtrlGroup, uniCtrlGroup, schedCtrlGroup) {
 	teacherGroup := teacherCtrlGroup{dataService: s.DataStore}
 	uniGroup := uniCtrlGroup{dataService: s.DataStore}
-	return teacherGroup, uniGroup
+	schedGroup := schedCtrlGroup{dataService: s.DataStore}
+	return teacherGroup, uniGroup, schedGroup
 }
 
 func (s *Rest) routes() chi.Router {
@@ -89,7 +91,7 @@ func (s *Rest) routes() chi.Router {
 	r.NotFound(s.notFound)
 
 	authHandler, _ := s.Authenticator.Handlers()
-	s.teacherRest, s.uniRest = s.controllerGroups()
+	s.teacherRest, s.uniRest, s.schedRest = s.controllerGroups()
 
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Timeout(5 * time.Second))
@@ -132,6 +134,7 @@ func (s *Rest) routes() chi.Router {
 		rapi.Group(func(rpub chi.Router) {
 			rpub.Get("/study_year", s.uniRest.listStudyYears)
 			rpub.Get("/group", s.uniRest.listGroups)
+			rpub.Post("/classes", s.schedRest.listClasses)
 		})
 
 	})
