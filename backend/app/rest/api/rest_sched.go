@@ -4,18 +4,35 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/yaattc/automatic-time-table-creation/backend/app/gen"
+
 	"github.com/go-chi/render"
 	R "github.com/go-pkgz/rest"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/rest"
 	"github.com/yaattc/automatic-time-table-creation/backend/app/store"
 )
 
+//go:generate moq -out mock_sched_store.go . schedStore
+
 type schedCtrlGroup struct {
 	dataService schedStore
+	genService  gen.Service
 }
 
 type schedStore interface {
 	ListClasses(from time.Time, till time.Time, groupID string) ([]store.Class, error)
+	ListTimeSlots() ([]store.TimeSlot, error)
+}
+
+// GET /time_slots - list time slots
+func (s *schedCtrlGroup) listTimeSlots(w http.ResponseWriter, r *http.Request) {
+	tsl, err := s.dataService.ListTimeSlots()
+	if err != nil {
+		rest.SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't list time slots", rest.ErrInternal)
+		return
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, R.JSON{"time_slots": tsl})
 }
 
 // POST /classes - get classes of the given group for the given period

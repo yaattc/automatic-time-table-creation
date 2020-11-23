@@ -260,34 +260,6 @@ func TestPrivate_deleteStudyYearCtrl(t *testing.T) {
 	assert.Equal(t, R.JSON{"deleted": true}, res)
 }
 
-func Test_uniCtrlGroup_listTimeSlots(t *testing.T) {
-	expected := prepareTimeSlots()
-	ps := &uniStoreMock{ListTimeSlotsFunc: func() ([]store.TimeSlot, error) {
-		return expected, nil
-	}}
-
-	ctrl := &uniCtrlGroup{dataService: ps}
-	ts := httptest.NewServer(http.HandlerFunc(ctrl.listTimeSlots))
-	defer ts.Close()
-
-	req, err := http.NewRequest("GET", ts.URL, nil)
-	require.NoError(t, err)
-
-	cl := http.Client{Timeout: 5 * time.Second}
-	resp, err := cl.Do(req)
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	defer resp.Body.Close()
-
-	var actual struct {
-		TimeSlots []store.TimeSlot `json:"time_slots"`
-	}
-	err = render.DecodeJSON(resp.Body, &actual)
-	require.NoError(t, err)
-
-	assert.Equal(t, expected, actual.TimeSlots)
-}
-
 // fixme this method is duplicated at least three times
 func prepareTimeSlots() []store.TimeSlot {
 	timeSlotsOnWeek := func(ts store.TimeSlot) []store.TimeSlot {
