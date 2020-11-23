@@ -16,6 +16,8 @@ type Service struct{}
 func (s *Service) Build(req BuildTimeTableRequest) (res BuildTimeTableResult) {
 	tt := timetable{}
 	tt.fill(req)
+
+	// building table
 	tt.step(0)
 
 	getCourseByIdx := func(idx int) course {
@@ -27,6 +29,7 @@ func (s *Service) Build(req BuildTimeTableRequest) (res BuildTimeTableResult) {
 		panic("course not found")
 	}
 
+	// aggregating the results
 	for dt := req.From; dt.Before(req.Till); dt = dt.AddDate(0, 0, 1) {
 		for _, cell := range tt.bestResult.table[dt.Weekday()] {
 			if cell.usedBy == nil {
