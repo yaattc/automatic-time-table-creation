@@ -93,22 +93,22 @@ var tchs = []store.Teacher{
 		Preferences: store.TeacherPreferences{
 			TimeSlots: []store.TimeSlot{
 				{
+					ID:       "00000000-0000-0001-0000-000000000001",
 					Weekday:  time.Monday,
 					Start:    timetype.NewClock(20, 0, 0, 0, time.UTC),
 					Duration: timetype.Duration(1*time.Hour + 30*time.Minute),
-					Location: "room 108",
 				},
 				{
+					ID:       "00000000-0000-0001-0000-000000000002",
 					Weekday:  time.Tuesday,
 					Start:    timetype.NewClock(10, 0, 0, 0, time.UTC),
 					Duration: timetype.Duration(1*time.Hour + 30*time.Minute),
-					Location: "room 109",
 				},
 				{
+					ID:       "00000000-0000-0001-0000-000000000003",
 					Weekday:  time.Friday,
 					Start:    timetype.NewClock(15, 0, 0, 0, time.UTC),
 					Duration: timetype.Duration(1*time.Hour + 30*time.Minute),
-					Location: "room 102",
 				},
 			},
 			Locations: []store.Location{"108", "102", "109"},
@@ -165,6 +165,12 @@ func setupTestTeachers(t *testing.T, srv *Postgres) {
 	_, err = srv.AddTeacher(tchs[2].TeacherDetails)
 	require.NoError(t, err)
 
+	for _, ts := range tchs[0].Preferences.TimeSlots {
+		_, err = srv.connPool.Exec(`INSERT INTO time_slots(id, weekday, start, duration) VALUES ($1, $2, $3, $4)`,
+			ts.ID, ts.Weekday, ts.Start, ts.Duration)
+		require.NoError(t, err)
+	}
+
 	err = srv.SetPreferences(tchs[0].ID, tchs[0].Preferences)
 	require.NoError(t, err)
 }
@@ -211,5 +217,7 @@ func cleanupStorage(t *testing.T, p *pgx.ConnPool) {
 	_, err = tx.Exec(`TRUNCATE teacher_preferences_staff CASCADE`)
 	require.NoError(t, err)
 	_, err = tx.Exec(`TRUNCATE teacher_preferences_time_slots CASCADE`)
+	require.NoError(t, err)
+	_, err = tx.Exec(`TRUNCATE time_slots CASCADE`)
 	require.NoError(t, err)
 }

@@ -122,8 +122,11 @@ func (p *Postgres) getLocationPreferences(teacherID string, tx *pgx.Tx) (locs []
 
 // getTimeSlotPreferences returns the teacher preferences in time slots
 func (p *Postgres) getTimeSlotPreferences(teacherID string, tx *pgx.Tx) ([]store.TimeSlot, error) {
-	rows, err := tx.Query(`SELECT weekday, start, duration, location 
-								FROM teacher_preferences_time_slots WHERE teacher_id = $1`, teacherID)
+	rows, err := tx.Query(`SELECT time_slots.id, time_slots.weekday, time_slots.start, time_slots.duration 
+								FROM time_slots 
+								LEFT JOIN teacher_preferences_time_slots prefs 
+									ON prefs.slot_id = time_slots.id
+								WHERE prefs.teacher_id = $1`, teacherID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to query time slots for %s", teacherID)
 	}
@@ -132,7 +135,7 @@ func (p *Postgres) getTimeSlotPreferences(teacherID string, tx *pgx.Tx) ([]store
 	var tss []store.TimeSlot
 	for rows.Next() {
 		ts := store.TimeSlot{}
-		if err := rows.Scan(&ts.Weekday, &ts.Start, &ts.Duration, &ts.Location); err != nil {
+		if err := rows.Scan(&ts.ID, &ts.Weekday, &ts.Start, &ts.Duration); err != nil {
 			return nil, errors.Wrapf(err, "failed to scan time slots for %s", teacherID)
 		}
 		tss = append(tss, ts)
@@ -204,8 +207,8 @@ func (p *Postgres) SetPreferences(teacherID string, pref store.TeacherPreference
 
 		// setting time slot preferences
 		for _, ts := range pref.TimeSlots {
-			_, err := p.connPool.Exec(`INSERT INTO teacher_preferences_time_slots("teacher_id", "weekday", "start", "duration", "location") 
-			VALUES ($1, $2, $3, $4, $5)`, teacherID, ts.Weekday, ts.Start, ts.Duration, ts.Location)
+			_, err := p.connPool.Exec(`INSERT INTO teacher_preferences_time_slots("teacher_id", "slot_id") 
+			VALUES ($1, $2)`, teacherID, ts.ID)
 			if err != nil {
 				return errors.Wrapf(err, "failed to insert time slot preference for %s with the time slot %+v", teacherID, ts)
 			}

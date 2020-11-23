@@ -81,9 +81,8 @@ type StudyYear struct {
 
 // TimeSlot describes a particular period of time in a week
 type TimeSlot struct {
-	ID       string            `json:"id"`                 // id of this time slot
-	Weekday  time.Weekday      `json:"weekday"`            // a weekday of time slot
-	Start    timetype.Clock    `json:"start"`              // start time of time slot
-	Duration timetype.Duration `json:"duration"`           // duration of a time slot
-	Location Location          `json:"location,omitempty"` // an optional location field, empty means "any"
+	ID       string            `json:"id"`       // id of this time slot
+	Weekday  time.Weekday      `json:"weekday"`  // a weekday of time slot
+	Start    timetype.Clock    `json:"start"`    // start time of time slot
+	Duration timetype.Duration `json:"duration"` // duration of a time slot
 }
