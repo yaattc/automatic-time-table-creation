@@ -15,6 +15,9 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { ToastModule } from 'primeng/toast';
 import { MessagesModule } from 'primeng/messages';
 import { MessageModule } from 'primeng/message';
+import { GroupCreationComponent } from './group-creation/group-creation.component';
+import { PreferencesComponent } from './preferences/preferences.component';
+import { DropdownModule } from 'primeng/dropdown';
 
 @NgModule({
   declarations: [
@@ -23,6 +26,8 @@ import { MessageModule } from 'primeng/message';
     DashboardComponent,
     CreationProfTaComponent,
     CourseCreationComponent,
+    GroupCreationComponent,
+    PreferencesComponent,
   ],
   imports: [
     CommonModule,
@@ -37,6 +42,7 @@ import { MessageModule } from 'primeng/message';
     ToastModule,
     MessageModule,
     MessagesModule,
+    DropdownModule,
   ],
 })
 export class ControlPanelModule {}

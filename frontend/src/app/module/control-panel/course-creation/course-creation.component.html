@@ -1,3 +1,5 @@
+<p-toast></p-toast>
+
 <div class="general">
   <h1>Creation Course</h1>
   <form [formGroup]="creationForm">
@@ -41,14 +43,54 @@
     <div class="input-block">
       <div class="name-of-input">
         <label>
-          Choose teacher
+          Choose Primary Lector
+        </label>
+      </div>
+      <div class="input">
+        <p-dropdown
+          [options]="teachers"
+          placeholder="Select a Teacher"
+          optionLabel="name"
+          [showClear]="true"
+          [style]="{
+          minWidth: '100%',
+          borderColor: 'rgba(128, 188, 0, 0.45)'
+          }"
+          formControlName="primary_lector"
+        ></p-dropdown>
+      </div>
+    </div>
+    <div class="input-block">
+      <div class="name-of-input">
+        <label>
+          Choose Assistant Lector
+        </label>
+      </div>
+      <div class="input">
+        <p-dropdown
+          [options]="teachers"
+          placeholder="Select a Teacher"
+          optionLabel="name"
+          [showClear]="true"
+          [style]="{
+          minWidth: '100%',
+          borderColor: 'rgba(128, 188, 0, 0.45)'
+          }"
+          formControlName="assistant_lector"
+        ></p-dropdown>
+      </div>
+    </div>
+    <div class="input-block">
+      <div class="name-of-input">
+        <label>
+          Choose Teacher Assistants
         </label>
       </div>
       <div class="input">
         <p-multiSelect
           [options]="teachers"
-          [ngModel]="selectedTeachers"
-          (ngModelChange)="setSelectedTeachers($event)"
+          [ngModel]="selectedTeacherAssistant"
+          (ngModelChange)="setSelectedTeacherAssistant($event)"
           defaultLabel="Select a Teachers"
           selectedItemsLabel="{0} teachers selected"
           optionLabel="name"
@@ -56,7 +98,7 @@
           minWidth: '100%',
           borderColor: 'rgba(128, 188, 0, 0.45)'
           }"
-          formControlName="teachers"
+          formControlName="teacher_assistants"
         ></p-multiSelect>
       </div>
     </div>

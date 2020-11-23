@@ -1,0 +1,71 @@
+<p-toast></p-toast>
+<p-toast position="top-left" key="tl"></p-toast>
+
+<div class="main-block">
+  <div class="creation-block">
+    <form [formGroup]="year">
+      <h2>Creation Study Year</h2>
+      <div class="label">
+        <label for="year-name">
+          Name of the study year
+        </label>
+      </div>
+      <div class="input">
+        <input
+          id="year-name"
+          type="text"
+          pInputText
+          formControlName="name"
+          placeholder="Name"
+          style="width: 100%"
+        />
+      </div>
+    </form>
+    <div class="button">
+      <p-button label="Submit" styleClass="p-button-lg" (onClick)="submitYear()"></p-button>
+    </div>
+  </div>
+  <div class="creation-block">
+    <form [formGroup]="group">
+      <h2>Creation Study Group</h2>
+      <div class="label">
+        <label for="group-name">
+          Name of the group
+        </label>
+      </div>
+      <div class="input">
+        <input
+          id="group-name"
+          type="text"
+          pInputText
+          formControlName="name"
+          placeholder="Name"
+          style="width: 100%"
+        />
+      </div>
+      <div class="label">
+        <label>
+          Choose years
+        </label>
+      </div>
+      <div class="input">
+        <p-dropdown
+          [options]="years"
+          [ngModel]="selectedYears"
+          (ngModelChange)="setSelectedYears($event)"
+          optionLabel="name"
+          [style]="{
+          minWidth: '100%',
+          textAlign: 'left',
+          borderColor: 'rgba(128, 188, 0, 0.45)'
+          }"
+          formControlName="study_year_id"
+          placeholder="Choose study year"
+        ></p-dropdown>
+      </div>
+    </form>
+    <div class="button">
+      <p-button label="Submit" styleClass="p-button-lg" (onClick)="submitGroup()"></p-button>
+    </div>
+  </div>
+</div>
