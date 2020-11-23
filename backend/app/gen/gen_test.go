@@ -28,12 +28,12 @@ func TestService_Build(t *testing.T) {
 	expected := []store.Class{
 		{ClassDescription: store.ClassDescription{
 			Title:    "course1 Lecture",
-			Start:    time.Date(2020, 11, 11, 9, 0, 0, 0, time.UTC),
+			Start:    time.Date(2020, 11, 9, 9, 0, 0, 0, time.UTC),
 			Duration: 90 * time.Minute,
 		}},
 		{ClassDescription: store.ClassDescription{
 			Title:    "course1 Tutorial",
-			Start:    time.Date(2020, 11, 11, 10, 40, 0, 0, time.UTC),
+			Start:    time.Date(2020, 11, 9, 10, 40, 0, 0, time.UTC),
 			Duration: 90 * time.Minute,
 		}},
 		{ClassDescription: store.ClassDescription{
@@ -61,7 +61,18 @@ func TestService_Build(t *testing.T) {
 			Start:    time.Date(2020, 11, 12, 12, 40, 0, 0, time.UTC),
 			Duration: 90 * time.Minute,
 		}},
+		{ClassDescription: store.ClassDescription{
+			Title:    "course5 Lecture",
+			Start:    time.Date(2020, 11, 11, 12, 40, 0, 0, time.UTC),
+			Duration: 90 * time.Minute,
+		}},
+		{ClassDescription: store.ClassDescription{
+			Title:    "course5 Tutorial",
+			Start:    time.Date(2020, 11, 11, 14, 20, 0, 0, time.UTC),
+			Duration: 90 * time.Minute,
+		}},
 	}
+	assert.NotEmpty(t, res)
 
 	for i := range res.Classes {
 		res.Classes[i].ID = ""
@@ -79,9 +90,6 @@ func prepareCourses() []store.Course {
 		Preferences: store.TeacherPreferences{TimeSlots: []store.TimeSlot{
 			{ID: "ts0900_1", Weekday: time.Monday},
 			{ID: "ts1040_1", Weekday: time.Monday},
-
-			{ID: "ts0900_3", Weekday: time.Wednesday},
-			{ID: "ts1040_3", Weekday: time.Wednesday},
 			{ID: "ts1240_3", Weekday: time.Wednesday},
 		}},
 		TeacherDetails: store.TeacherDetails{ID: "succi"},
@@ -115,8 +123,7 @@ func prepareCourses() []store.Course {
 	}
 	ivanov := store.Teacher{
 		Preferences: store.TeacherPreferences{TimeSlots: []store.TimeSlot{
-			{ID: "ts1420_3", Weekday: time.Thursday},
-
+			{ID: "ts1420_3", Weekday: time.Wednesday},
 			{ID: "ts1040_4", Weekday: time.Thursday},
 			{ID: "ts1240_4", Weekday: time.Thursday},
 			{ID: "ts1420_4", Weekday: time.Thursday},
@@ -124,11 +131,41 @@ func prepareCourses() []store.Course {
 		TeacherDetails: store.TeacherDetails{ID: "ivanov"},
 	}
 
-	course1 := store.Course{ID: "course1", Name: "course1", PrimaryLector: succi, AssistantLector: succi}
-	course2 := store.Course{ID: "course2", Name: "course2", PrimaryLector: bobrov, AssistantLector: kabanov}
-	course3 := store.Course{ID: "course3", Name: "course3", PrimaryLector: sidorov}
-	course4 := store.Course{ID: "course4", Name: "course4", PrimaryLector: kabanov, AssistantLector: ivanov}
-	return []store.Course{course1, course2, course3, course4}
+	course1 := store.Course{
+		ID:              "course1",
+		StudyYear:       store.StudyYear{ID: "sy1"},
+		Name:            "course1",
+		PrimaryLector:   succi,
+		AssistantLector: succi,
+	}
+	course2 := store.Course{
+		ID:              "course2",
+		StudyYear:       store.StudyYear{ID: "sy1"},
+		Name:            "course2",
+		PrimaryLector:   bobrov,
+		AssistantLector: kabanov,
+	}
+	course3 := store.Course{
+		ID:            "course3",
+		StudyYear:     store.StudyYear{ID: "sy2"},
+		Name:          "course3",
+		PrimaryLector: sidorov,
+	}
+	course4 := store.Course{
+		ID:              "course4",
+		StudyYear:       store.StudyYear{ID: "sy1"},
+		Name:            "course4",
+		PrimaryLector:   kabanov,
+		AssistantLector: ivanov,
+	}
+	course5 := store.Course{
+		ID:              "course5",
+		StudyYear:       store.StudyYear{ID: "sy2"},
+		Name:            "course5",
+		PrimaryLector:   succi,
+		AssistantLector: ivanov,
+	}
+	return []store.Course{course1, course2, course3, course4, course5}
 }
 
 func prepareTimeSlots() []store.TimeSlot {

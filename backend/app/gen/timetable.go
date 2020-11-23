@@ -9,7 +9,7 @@ import (
 
 type timetableCell struct {
 	slot   store.TimeSlot
-	usedBy *cellReservation
+	usedBy []cellReservation
 }
 
 type cellReservation struct {
@@ -58,17 +58,28 @@ func (tt *timetable) step(courseIdx int) {
 		tt.checkAndUpgradeScore()
 		return
 	}
+	crs := &tt.courses[courseIdx]
+	syID := crs.course.StudyYear.ID
+
 	// reserve and unreserve the slot for a given course
-	reserve := func(courseIdx int, wd time.Weekday, tsIdx int, primary bool) {
-		tt.table[wd][tsIdx].usedBy = &cellReservation{courseIdx: courseIdx, primary: primary}
+	reserve := func(wd time.Weekday, tsIdx int, primary bool) {
+		tt.table[wd][tsIdx].usedBy = append(tt.table[wd][tsIdx].usedBy, cellReservation{
+			courseIdx: courseIdx, primary: primary,
+		})
 		if primary {
 			tt.courses[courseIdx].primaryLector.reservedAt = &lecReservation{wd: wd, idx: tsIdx}
 			return
 		}
 		tt.courses[courseIdx].assistantLector.reservedAt = &lecReservation{wd: wd, idx: tsIdx}
 	}
-	unreserve := func(courseIdx int, wd time.Weekday, tsIdx int, primary bool) {
-		tt.table[wd][tsIdx].usedBy = nil
+	unreserve := func(wd time.Weekday, tsIdx int, primary bool) {
+		for idx, rsrv := range tt.table[wd][tsIdx].usedBy {
+			if rsrv.courseIdx == courseIdx && rsrv.primary == primary {
+				// removing the reservation from cell
+				tt.table[wd][tsIdx].usedBy = append(tt.table[wd][tsIdx].usedBy[:idx],
+					tt.table[wd][tsIdx].usedBy[idx+1:]...)
+			}
+		}
 		tt.courses[courseIdx].status = false
 		if primary {
 			tt.courses[courseIdx].primaryLector.reservedAt = nil
@@ -76,54 +87,69 @@ func (tt *timetable) step(courseIdx int) {
 		}
 		tt.courses[courseIdx].assistantLector.reservedAt = nil
 	}
-
-	for _, pts := range tt.courses[courseIdx].primaryLector.timeslots {
-		// if this slot is used by someone - skip it
-		if tt.table[pts.weekday][pts.idx].usedBy != nil {
+	// time slot freedom checker
+	cantOccupy := func(wd time.Weekday, tsIdx int, tchID string, primary bool) bool {
+		for _, rsrv := range tt.table[wd][tsIdx].usedBy {
+			// if teacher already occupied this slot
+			if primary && tt.courses[rsrv.courseIdx].primaryLector.teacher.ID == tchID {
+				return false
+			}
+			if !primary && tt.courses[rsrv.courseIdx].assistantLector.teacher.ID == tchID {
+				return false
+			}
+			// if study year already occupied this slot
+			if tt.courses[rsrv.courseIdx].course.StudyYear.ID == syID {
+				return false
+			}
+		}
+		return true
+	}
+	for _, pts := range crs.primaryLector.timeslots {
+		// if this slot is already occupied by the current lector or study year
+		if !cantOccupy(pts.weekday, pts.idx, crs.primaryLector.teacher.ID, true) {
 			continue
 		}
 
 		// try to reserve it
-		reserve(courseIdx, pts.weekday, pts.idx, true)
+		reserve(pts.weekday, pts.idx, true)
 
 		// if there is no assistant lector - then we filled the current course, go
 		// onto the next one
-		if tt.courses[courseIdx].assistantLector == nil {
-			tt.courses[courseIdx].status = true
+		if crs.assistantLector == nil {
+			crs.status = true
 			tt.step(courseIdx + 1)
 			// oops, looks like this slot cannot be used,
 			// take off the reservation from it
-			unreserve(courseIdx, pts.weekday, pts.idx, true)
+			unreserve(pts.weekday, pts.idx, true)
 			continue
 		}
 
 		// if we have an assistant lector - go through its timeslots
-		for _, ats := range tt.courses[courseIdx].assistantLector.timeslots {
+		for _, ats := range crs.assistantLector.timeslots {
 			// if this slot is not in the same day with the primary lector, or
 			// it's earlier or at the same time with the primary lector's slot, or
 			// it is already borrowed - skip it
 			if ats.weekday != pts.weekday ||
 				ats.idx <= pts.idx ||
-				tt.table[ats.weekday][ats.idx].usedBy != nil {
+				!cantOccupy(ats.weekday, ats.idx, crs.assistantLector.teacher.ID, false) {
 				continue
 			}
 
 			// bingo! reserve it
-			reserve(courseIdx, ats.weekday, ats.idx, false)
+			reserve(ats.weekday, ats.idx, false)
 
 			// we filled the course, go onto the next one
-			tt.courses[courseIdx].status = true
+			crs.status = true
 
 			// going to the next course
 			tt.step(courseIdx + 1)
 
 			// oops, looks like this slot cannot be used,
 			// take off the reservation from it
-			unreserve(courseIdx, ats.weekday, ats.idx, false)
+			unreserve(ats.weekday, ats.idx, false)
 		}
 
-		unreserve(courseIdx, pts.weekday, pts.idx, true)
-
+		unreserve(pts.weekday, pts.idx, true)
 	}
 
 	tt.step(courseIdx + 1)
@@ -140,7 +166,10 @@ func (tt *timetable) checkAndUpgradeScore() {
 		tt.bestResult.table = map[time.Weekday][]timetableCell{}
 		for wd, cells := range tt.table {
 			tt.bestResult.table[wd] = make([]timetableCell, len(cells))
-			copy(tt.bestResult.table[wd], cells)
+			for idx, cell := range cells {
+				tt.bestResult.table[wd][idx] = timetableCell{slot: cell.slot}
+				tt.bestResult.table[wd][idx].usedBy = append(tt.bestResult.table[wd][idx].usedBy, cell.usedBy...)
+			}
 		}
 		tt.bestResult.courses = make([]course, len(tt.courses))
 		copy(tt.bestResult.courses, tt.courses)

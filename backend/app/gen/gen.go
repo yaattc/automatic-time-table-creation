@@ -32,7 +32,7 @@ func (s *Service) Build(req BuildTimeTableRequest) (res BuildTimeTableResult) {
 	// aggregating the results
 	for dt := req.From; dt.Before(req.Till); dt = dt.AddDate(0, 0, 1) {
 		for _, cell := range tt.bestResult.table[dt.Weekday()] {
-			if cell.usedBy == nil {
+			if len(cell.usedBy) < 1 {
 				continue
 			}
 
@@ -41,19 +41,21 @@ func (s *Service) Build(req BuildTimeTableRequest) (res BuildTimeTableResult) {
 				st.Second(), st.Nanosecond(), dt.Location())
 			dur := time.Duration(cell.slot.Duration)
 
-			crs := getCourseByIdx(cell.usedBy.courseIdx)
+			for _, rsrv := range cell.usedBy {
+				crs := getCourseByIdx(rsrv.courseIdx)
 
-			typ := "Tutorial"
-			if cell.usedBy.primary {
-				typ = "Lecture"
+				typ := "Tutorial"
+				if rsrv.primary {
+					typ = "Lecture"
+				}
+
+				res.Classes = append(res.Classes, store.Class{ClassDescription: store.ClassDescription{
+					ID:       uuid.New().String(),
+					Title:    fmt.Sprintf("%s %s", crs.course.Name, typ),
+					Start:    stDate,
+					Duration: dur,
+				}})
 			}
-
-			res.Classes = append(res.Classes, store.Class{ClassDescription: store.ClassDescription{
-				ID:       uuid.New().String(),
-				Title:    fmt.Sprintf("%s %s", crs.course.Name, typ),
-				Start:    stDate,
-				Duration: dur,
-			}})
 		}
 	}
 
