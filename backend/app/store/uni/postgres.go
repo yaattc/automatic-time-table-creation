@@ -152,7 +152,7 @@ func (p *Postgres) ListCourses() (ids []string, err error) {
 		}
 		return nil
 	}))
-	return ids, nil
+	return ids, err
 }
 
 // GetCourseDetails by id
