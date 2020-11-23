@@ -11,4 +11,5 @@ type Interface interface {
 	ListTeachers() ([]store.TeacherDetails, error)
 	GetTeacherFull(teacherID string) (store.Teacher, error)
 	SetPreferences(teacherID string, pref store.TeacherPreferences) error
+	GetTeacherDetails(teacherID string) (res store.TeacherDetails, err error)
 }

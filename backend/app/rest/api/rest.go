@@ -32,6 +32,7 @@ type Rest struct {
 
 	teacherRest teacherCtrlGroup
 	uniRest     uniCtrlGroup
+	schedRest   schedCtrlGroup
 }
 
 const hardBodyLimit = 1024 * 64 // limit size of body
@@ -62,10 +63,11 @@ func (s *Rest) notFound(w http.ResponseWriter, r *http.Request) {
 	rest.SendErrorJSON(w, r, http.StatusNotFound, nil, "not found", rest.ErrBadRequest)
 }
 
-func (s *Rest) controllerGroups() (teacherCtrlGroup, uniCtrlGroup) {
+func (s *Rest) controllerGroups() (teacherCtrlGroup, uniCtrlGroup, schedCtrlGroup) {
 	teacherGroup := teacherCtrlGroup{dataService: s.DataStore}
 	uniGroup := uniCtrlGroup{dataService: s.DataStore}
-	return teacherGroup, uniGroup
+	schedGroup := schedCtrlGroup{dataService: s.DataStore}
+	return teacherGroup, uniGroup, schedGroup
 }
 
 func (s *Rest) routes() chi.Router {
@@ -89,7 +91,7 @@ func (s *Rest) routes() chi.Router {
 	r.NotFound(s.notFound)
 
 	authHandler, _ := s.Authenticator.Handlers()
-	s.teacherRest, s.uniRest = s.controllerGroups()
+	s.teacherRest, s.uniRest, s.schedRest = s.controllerGroups()
 
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Timeout(5 * time.Second))
@@ -98,25 +100,44 @@ func (s *Rest) routes() chi.Router {
 
 	m := s.Authenticator.Middleware()
 
-	r.With(m.Auth).Route("/api/v1", func(rapi chi.Router) {
-		rapi.Group(func(rt chi.Router) {
-			rt.Post("/teacher", s.teacherRest.addTeacherCtrl)
-			rt.Delete("/teacher", s.teacherRest.deleteTeacherCtrl)
-			rt.Get("/teacher", s.teacherRest.listTeachersCtrl)
-			rt.Post("/teacher/{id}/preferences", s.teacherRest.setTeacherPreferencesCtrl)
+	r.Route("/api/v1", func(rapi chi.Router) {
+
+		// protected routes
+		rapi.With(m.Auth).Group(func(rprv chi.Router) {
+			rprv.Group(func(rt chi.Router) {
+				rt.Post("/teacher", s.teacherRest.addTeacherCtrl)
+				rt.Delete("/teacher", s.teacherRest.deleteTeacherCtrl)
+				rt.Get("/teacher", s.teacherRest.listTeachersCtrl)
+				rt.Post("/teacher/{id}/preferences", s.teacherRest.setTeacherPreferencesCtrl)
+			})
+
+			rprv.Group(func(rg chi.Router) {
+				rg.Post("/group", s.uniRest.addGroup)
+				rg.Delete("/group", s.uniRest.deleteGroup)
+			})
+
+			rprv.Group(func(rsy chi.Router) {
+				rsy.Post("/study_year", s.uniRest.addStudyYear)
+				rsy.Delete("/study_year", s.uniRest.deleteStudyYear)
+			})
+
+			rprv.Group(func(rcrs chi.Router) {
+				rcrs.Post("/course", s.uniRest.addCourse)
+			})
+
+			rprv.Group(func(rsched chi.Router) {
+				rsched.Get("/time_slot", s.schedRest.listTimeSlots)
+				rsched.Post("/generation", s.schedRest.buildTimeTable)
+			})
 		})
 
-		rapi.Group(func(rg chi.Router) {
-			rg.Post("/group", s.uniRest.addGroup)
-			rg.Get("/group", s.uniRest.listGroups)
-			rg.Delete("/group", s.uniRest.deleteGroup)
+		// public routes
+		rapi.Group(func(rpub chi.Router) {
+			rpub.Get("/study_year", s.uniRest.listStudyYears)
+			rpub.Get("/group", s.uniRest.listGroups)
+			rpub.Post("/classes", s.schedRest.listClasses)
 		})
 
-		rapi.Group(func(rsy chi.Router) {
-			rsy.Post("/study_year", s.uniRest.addStudyYear)
-			rsy.Get("/study_year", s.uniRest.listStudyYears)
-			rsy.Delete("/study_year", s.uniRest.deleteStudyYear)
-		})
 	})
 
 	return r

@@ -205,6 +205,14 @@ func TestDataStore_PassThroughMethods(t *testing.T) {
 			StudyYear: store.StudyYear{ID: "some awesome sy ID 2", Name: "BS - Year 2"},
 		},
 	}
+	crs := store.Course{
+		ID:              "some awesome course ID",
+		Name:            "awesome course",
+		Program:         store.Bachelor,
+		PrimaryLector:   tch[0],
+		AssistantLector: tch[1],
+		Assistants:      tch[2:],
+	}
 
 	srv := DataStore{UserRepository: &user.InterfaceMock{
 		GetUserFunc: func(id string) (store.User, error) {
@@ -229,6 +237,14 @@ func TestDataStore_PassThroughMethods(t *testing.T) {
 			return []store.TeacherDetails{tch[0].TeacherDetails, tch[1].TeacherDetails}, nil
 		},
 	}, UniOrgRepository: &uni.InterfaceMock{
+		AddCourseFunc: func(course store.Course) (string, error) {
+			assert.Equal(t, crs, course)
+			return course.ID, nil
+		},
+		AddStudyYearFunc: func(sy store.StudyYear) (string, error) {
+			assert.Equal(t, grps[0].StudyYear.Name, sy.Name)
+			return sy.ID, nil
+		},
 		AddGroupFunc: func(g store.Group) (string, error) {
 			assert.NotEmpty(t, g.ID)
 			grps[0].ID = g.ID
@@ -236,12 +252,20 @@ func TestDataStore_PassThroughMethods(t *testing.T) {
 			assert.Equal(t, grps[0].StudyYear.ID, g.StudyYear.ID)
 			return g.ID, nil
 		},
+		GetGroupFunc: func(id string) (store.Group, error) {
+			assert.Equal(t, grps[0].ID, id)
+			return grps[0], nil
+		},
 		DeleteGroupFunc: func(id string) error {
 			assert.Equal(t, grps[1].ID, id)
 			return nil
 		},
 		ListGroupsFunc: func() ([]store.Group, error) {
 			return grps, nil
+		},
+		GetStudyYearFunc: func(id string) (store.StudyYear, error) {
+			assert.Equal(t, grps[0].StudyYear.ID, id)
+			return grps[0].StudyYear, nil
 		},
 	}, BCryptCost: 4}
 	err := srv.DeleteTeacher(tch[0].ID)
@@ -276,6 +300,23 @@ func TestDataStore_PassThroughMethods(t *testing.T) {
 
 	err = srv.DeleteGroup(grps[1].ID)
 	require.NoError(t, err)
+
+	gg, err := srv.GetGroup(grps[0].ID)
+	require.NoError(t, err)
+	assert.Equal(t, grps[0], gg)
+
+	id, err = srv.AddStudyYear(grps[0].StudyYear.Name)
+	require.NoError(t, err)
+	assert.NotEmpty(t, id)
+
+	id, err = srv.AddCourse(crs)
+	require.NoError(t, err)
+	assert.NotEmpty(t, id)
+
+	syy, err := srv.GetStudyYear(grps[0].StudyYear.ID)
+	require.NoError(t, err)
+	assert.Equal(t, grps[0].StudyYear, syy)
+
 }
 
 func TestDataStore_CheckUserCredentials(t *testing.T) {
@@ -296,3 +337,9 @@ func TestDataStore_CheckUserCredentials(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, ok)
 }
+
+//func TestDataStore_AddCourse(t *testing.T) {
+//	srv := DataStore{
+//
+//	}
+//}

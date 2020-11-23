@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Semior001/timetype"
+
 	"github.com/go-chi/render"
 	R "github.com/go-pkgz/rest"
 	"github.com/google/uuid"
@@ -256,4 +258,56 @@ func TestPrivate_deleteStudyYearCtrl(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, R.JSON{"deleted": true}, res)
+}
+
+// fixme this method is duplicated at least three times
+func prepareTimeSlots() []store.TimeSlot {
+	timeSlotsOnWeek := func(ts store.TimeSlot) []store.TimeSlot {
+		var res []store.TimeSlot
+		for i := time.Monday; i <= time.Friday; i++ {
+			newTS := ts
+			newTS.ID = uuid.New().String()
+			newTS.Weekday = i
+			res = append(res, newTS)
+		}
+		return res
+	}
+	var timeSlots []store.TimeSlot
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(9, 0, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(10, 40, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(12, 40, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(14, 20, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(16, 0, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(17, 40, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	timeSlots = append(timeSlots, timeSlotsOnWeek(store.TimeSlot{
+		Start:    timetype.NewUTCClock(19, 20, 0, 0),
+		Duration: timetype.Duration(90 * time.Minute),
+	})...)
+
+	return timeSlots
 }
