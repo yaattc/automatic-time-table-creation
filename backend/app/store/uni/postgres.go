@@ -116,10 +116,10 @@ func (p *Postgres) AddCourse(course store.Course) (id string, err error) {
 			aLecID = &course.AssistantLector.ID
 		}
 
-		_, err := tx.Exec(`INSERT INTO courses(id, name, primary_lector_id, assistant_lector_id, edu_program) 
-						VALUES ($1, $2, $3, $4, $5)`,
+		_, err := tx.Exec(`INSERT INTO courses(id, name, primary_lector_id, assistant_lector_id, study_year_id, edu_program) 
+						VALUES ($1, $2, $3, $4, $5, $6)`,
 			course.ID, course.Name, course.PrimaryLector.ID,
-			aLecID, course.Program)
+			aLecID, course.StudyYear.ID, course.Program)
 		if err != nil {
 			return errors.Wrapf(err, "failed to insert course %s", course.Name)
 		}
@@ -135,15 +135,35 @@ func (p *Postgres) AddCourse(course store.Course) (id string, err error) {
 	return course.ID, err
 }
 
+// ListCourses that are registered in the database
+func (p *Postgres) ListCourses() (ids []string, err error) {
+	err = pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
+		rows, err := tx.Query(`SELECT id FROM courses`)
+		if err != nil {
+			return errors.Wrap(err, "failed to query ids of courses")
+		}
+
+		for rows.Next() {
+			var id string
+			if err = rows.Scan(&id); err != nil {
+				return errors.Wrap(err, "failed to scan course id")
+			}
+			ids = append(ids, id)
+		}
+		return nil
+	}))
+	return ids, nil
+}
+
 // GetCourseDetails by id
 func (p *Postgres) GetCourseDetails(id string) (res store.Course, err error) {
 	err = pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
-		row := tx.QueryRow(`SELECT id, name, edu_program, primary_lector_id, assistant_lector_id 
+		row := tx.QueryRow(`SELECT id, name, edu_program, primary_lector_id, assistant_lector_id, study_year_id 
 							FROM courses WHERE id = $1`, id)
 
 		var aLecID *string
 
-		if err := row.Scan(&res.ID, &res.Name, &res.Program, &res.PrimaryLector.ID, &aLecID); err != nil {
+		if err := row.Scan(&res.ID, &res.Name, &res.Program, &res.PrimaryLector.ID, &aLecID, &res.StudyYear.ID); err != nil {
 			return errors.Wrapf(err, "failed to scan course details for course %s", id)
 		}
 

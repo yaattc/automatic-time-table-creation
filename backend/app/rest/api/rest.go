@@ -127,6 +127,7 @@ func (s *Rest) routes() chi.Router {
 
 			rprv.Group(func(rsched chi.Router) {
 				rsched.Get("/time_slot", s.schedRest.listTimeSlots)
+				rsched.Post("/generation", s.schedRest.buildTimeTable)
 			})
 		})
 
