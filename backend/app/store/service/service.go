@@ -232,7 +232,8 @@ func (s *DataStore) ListTimeSlots() ([]store.TimeSlot, error) {
 func (s *DataStore) ListClasses(from time.Time, till time.Time, groupID string) ([]store.Class, error) {
 	cls, err := s.SchedRepository.ListClasses(from, till, groupID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to list classes details from %v to %v for group %s")
+		return nil, errors.Wrapf(err, "failed to list classes details from %s to %s for group %s",
+			from.String(), till.String(), groupID)
 	}
 	for clIdx := range cls {
 		cl := &cls[clIdx]

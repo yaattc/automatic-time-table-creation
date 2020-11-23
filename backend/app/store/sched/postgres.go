@@ -32,7 +32,7 @@ func (p *Postgres) ListClasses(from time.Time, till time.Time, groupID string) (
 	err = pgh.Tx(p.connPool, pgh.TxerFunc(func(tx *pgx.Tx) error {
 		rows, err := tx.Query(query, from, till, groupID)
 		if err != nil {
-			return errors.Wrapf(err, "failed to query classes from %v to %v for group %s",
+			return errors.Wrapf(err, "failed to query classes from %s to %s for group %s",
 				from.String(), till.String(), groupID)
 		}
 
@@ -41,11 +41,11 @@ func (p *Postgres) ListClasses(from time.Time, till time.Time, groupID string) (
 			err := rows.Scan(&cl.ID, &cl.Course.ID, &cl.Group.ID, &cl.Teacher.ID,
 				&cl.Title, &cl.Location, &cl.Start, &cl.Duration)
 			if err != nil {
-				return errors.Wrapf(err, "failed to scan classes from %v to %v for group %s")
+				return errors.Wrapf(err, "failed to scan classes from %s to %s for group %s", from.String(), till.String(), groupID)
 			}
 			res = append(res, cl)
 		}
 		return nil
 	}))
-	return res, nil
+	return res, err
 }
