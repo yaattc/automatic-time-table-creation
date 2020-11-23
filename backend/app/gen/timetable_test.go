@@ -26,48 +26,48 @@ func TestService_Build(t *testing.T) {
 		return strings.Compare(res.Classes[i].Title, res.Classes[j].Title) < 0
 	})
 	expected := []store.Class{
-		{
+		{ClassDescription: store.ClassDescription{
 			Title:    "course1 Lecture",
 			Start:    time.Date(2020, 11, 11, 9, 0, 0, 0, time.UTC),
 			Duration: 90 * time.Minute,
-		},
-		{
+		}},
+		{ClassDescription: store.ClassDescription{
 			Title:    "course1 Tutorial",
 			Start:    time.Date(2020, 11, 11, 10, 40, 0, 0, time.UTC),
 			Duration: 90 * time.Minute,
-		},
-		{
+		}},
+		{ClassDescription: store.ClassDescription{
 			Title:    "course2 Lecture",
 			Start:    time.Date(2020, 11, 10, 10, 40, 0, 0, time.UTC),
 			Duration: 90 * time.Minute,
-		},
-		{
+		}},
+		{ClassDescription: store.ClassDescription{
 			Title:    "course2 Tutorial",
 			Start:    time.Date(2020, 11, 10, 14, 20, 0, 0, time.UTC),
 			Duration: 90 * time.Minute,
-		},
-		{
+		}},
+		{ClassDescription: store.ClassDescription{
 			Title:    "course3 Lecture",
 			Start:    time.Date(2020, 11, 9, 10, 40, 0, 0, time.UTC),
 			Duration: 90 * time.Minute,
-		},
-		{
+		}},
+		{ClassDescription: store.ClassDescription{
 			Title:    "course4 Lecture",
 			Start:    time.Date(2020, 11, 12, 10, 40, 0, 0, time.UTC),
 			Duration: 90 * time.Minute,
-		},
-		{
+		}},
+		{ClassDescription: store.ClassDescription{
 			Title:    "course4 Tutorial",
 			Start:    time.Date(2020, 11, 12, 12, 40, 0, 0, time.UTC),
 			Duration: 90 * time.Minute,
-		},
+		}},
 	}
 
 	for i := range res.Classes {
 		res.Classes[i].ID = ""
 		res.Classes[i].Start = res.Classes[i].Start.In(time.UTC)
 		expected[i].Start = expected[i].Start.In(time.UTC)
-		t.Log(res.Classes[i])
+		t.Log(res.Classes[i].ClassDescription)
 		assert.Equal(t, expected[i], res.Classes[i])
 	}
 	t.Logf("Unused Courses: %v", res.UnusedCourses)

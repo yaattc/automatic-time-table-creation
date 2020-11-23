@@ -189,37 +189,6 @@ func (mock *uniStoreMock) AddCourseCalls() []struct {
 	return calls
 }
 
-// AddCourse calls AddCourseFunc.
-func (mock *uniStoreMock) AddCourse(course store.Course) (string, error) {
-	if mock.AddCourseFunc == nil {
-		panic("uniStoreMock.AddCourseFunc: method is nil but uniStore.AddCourse was just called")
-	}
-	callInfo := struct {
-		Course store.Course
-	}{
-		Course: course,
-	}
-	mock.lockAddCourse.Lock()
-	mock.calls.AddCourse = append(mock.calls.AddCourse, callInfo)
-	mock.lockAddCourse.Unlock()
-	return mock.AddCourseFunc(course)
-}
-
-// AddCourseCalls gets all the calls that were made to AddCourse.
-// Check the length with:
-//     len(mockeduniStore.AddCourseCalls())
-func (mock *uniStoreMock) AddCourseCalls() []struct {
-	Course store.Course
-} {
-	var calls []struct {
-		Course store.Course
-	}
-	mock.lockAddCourse.RLock()
-	calls = mock.calls.AddCourse
-	mock.lockAddCourse.RUnlock()
-	return calls
-}
-
 // AddGroup calls AddGroupFunc.
 func (mock *uniStoreMock) AddGroup(name string, studyYearID string) (string, error) {
 	if mock.AddGroupFunc == nil {

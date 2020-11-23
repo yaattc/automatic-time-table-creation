@@ -45,12 +45,12 @@ func (s *Service) Build(req BuildTimeTableRequest) (res BuildTimeTableResult) {
 				typ = "Lecture"
 			}
 
-			res.Classes = append(res.Classes, store.Class{
+			res.Classes = append(res.Classes, store.Class{ClassDescription: store.ClassDescription{
 				ID:       uuid.New().String(),
 				Title:    fmt.Sprintf("%s %s", crs.course.Name, typ),
 				Start:    stDate,
 				Duration: dur,
-			})
+			}})
 		}
 	}
 
