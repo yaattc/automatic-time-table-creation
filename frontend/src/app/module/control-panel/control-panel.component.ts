@@ -5,4 +5,4 @@ import { Component } from '@angular/core';
   templateUrl: './control-panel.component.html',
   styleUrls: ['./control-panel.component.css'],
 })
-export class ControlPanelComponent{}
+export class ControlPanelComponent {}

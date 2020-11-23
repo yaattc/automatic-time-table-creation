@@ -9,9 +9,21 @@ import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AuthInterceptor } from './interceptor/auth.interceptor';
+import { TimeTableComponent } from './module/time-table/time-table.component';
+
+import { FullCalendarModule } from '@fullcalendar/angular';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import { CalendarModule } from 'primeng/calendar';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DropdownModule } from 'primeng/dropdown';
+import {ToastModule} from 'primeng/toast';
+
+FullCalendarModule.registerPlugins([dayGridPlugin, timeGridPlugin, interactionPlugin]);
 
 @NgModule({
-  declarations: [AppComponent, NavigationPanelComponent],
+  declarations: [AppComponent, NavigationPanelComponent, TimeTableComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -19,6 +31,12 @@ import { AuthInterceptor } from './interceptor/auth.interceptor';
     HttpClientModule,
     ButtonModule,
     RippleModule,
+    FullCalendarModule,
+    CalendarModule,
+    ReactiveFormsModule,
+    DropdownModule,
+    FormsModule,
+    ToastModule,
   ],
   providers: [
     {
